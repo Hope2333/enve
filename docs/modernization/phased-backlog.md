@@ -3,7 +3,7 @@
 ## Status Snapshot
 
 - Phase 0 is complete on the recovery branch: one Linux baseline build has passed end to end.
-- Phase 1 is now focused on master validation and CI policy stabilization.
+- Phase 1 has cleared manual `master` validation, but the automatic-build gate is still open because the first post-merge `push` run skipped `Build (Linux)`.
 - Phases 2 through 7 remain planned work and should not be mixed into the current stabilization gate.
 - The recovered Ubuntu 22.04 + Qt 5.15.x lane is no longer hypothetical future work; later phases should treat it as the baseline to formalize and harden.
 
@@ -29,6 +29,7 @@ Goal: replace Travis with a maintained CI system while preserving current behavi
 - Upload logs and build artifacts for debugging.
 - Validate the first successful branch baseline on `master`.
 - Keep the full compile job manual until the build is repeatable, then promote it to automatic.
+- After the trigger policy changes, verify at least one real non-manual full build executes as intended.
 - Keep packaging as a separate follow-up job unless it is required for parity.
 
 Exit criteria:

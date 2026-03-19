@@ -45,9 +45,18 @@ win32 { # Windows
     CONFIG -= debug_and_release
     RC_ICONS = pixmaps\enve.ico
 } unix {
-    GPERFTOOLS_FOLDER = $$THIRD_PARTY_FOLDER/gperftools
-    INCLUDEPATH += $$GPERFTOOLS_FOLDER/include
-    LIBS += -L$$GPERFTOOLS_FOLDER/.libs -ltcmalloc
+    # gperftools is optional - controlled by ENVE_USE_GPERFTOOLS
+    # Default: enabled for backwards compatibility
+    GPERFTOOLS_ENABLED = $$[ENVE_USE_GPERFTOOLS]
+    isEmpty(GPERFTOOLS_ENABLED): GPERFTOOLS_ENABLED = 1
+    equals(GPERFTOOLS_ENABLED, 1) {
+        GPERFTOOLS_FOLDER = $$THIRD_PARTY_FOLDER/gperftools
+        INCLUDEPATH += $$GPERFTOOLS_FOLDER/include
+        LIBS += -L$$GPERFTOOLS_FOLDER/.libs -ltcmalloc
+        message("gperftools enabled")
+    } else {
+        message("gperftools disabled")
+    }
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets

@@ -8,13 +8,15 @@ Turn the first successful branch-side Linux baseline build into a stable, repeat
 
 - A full Linux baseline build has already passed on the branch.
 - The recovery lane is running on `ubuntu-22.04` with distro Qt 5.15.x packages, not the old Travis-era Qt 5.12.4 lane.
-- The next technical gate is not baseline recovery anymore; it is master validation and CI stabilization.
-- PR checks are currently misleading if read casually: `Preflight` runs on pull requests, but `Build (Linux)` is still skipped unless the workflow is triggered manually.
+- Manual `master` validation has now passed through run `23288361000`.
+- The remaining technical gate is CI trigger verification, not source compilation.
+- PR checks are still misleading if read casually: `Preflight` runs on pull requests, but `Build (Linux)` is not yet proven on normal non-manual change flow.
 
 ## Gate Clarifications
 
 - A green pull request check does not currently prove full build health.
-- Phase 1 is not complete until `master` has at least one successful full Linux baseline run after the recovery branch is merged.
+- A green manual `workflow_dispatch` run on `master` is necessary but not sufficient for full Phase 1 closure.
+- Phase 1 is not complete until a non-manual change-flow event actually executes `Build (Linux)` successfully.
 - Phase 2 work should stay queued until the CI trigger policy, reference-lane documentation, smoke contract, and dependency-boundary candidate list are all in place.
 
 ## Workstreams
@@ -24,11 +26,13 @@ Turn the first successful branch-side Linux baseline build into a stable, repeat
 - Merge the branch recovery work to `master`.
 - Run `linux-baseline.yml` on `master`.
 - Require at least one green `master` validation run before changing trigger policy.
+- Status: achieved through run `23288361000`.
 
 ### 2. CI Policy Upgrade
 
 - Keep `preflight` automatic.
 - After `master` proves stable, promote `Build (Linux)` from manual-only to automatic on relevant push and pull request events.
+- Verify the first real non-manual run after the policy change; a YAML change alone does not close the gate.
 - Preserve build artifacts and failed logs so regressions stay diagnosable without local reproduction.
 
 ### 3. Toolchain Formalization
@@ -56,7 +60,7 @@ Turn the first successful branch-side Linux baseline build into a stable, repeat
 Phase 1 is complete when:
 
 1. `master` has at least one confirmed green Linux baseline run.
-2. The Linux build lane can run automatically on normal change flow.
+2. The Linux build lane has at least one confirmed successful non-manual full build on normal change flow.
 3. The recovered Ubuntu 22.04 + Qt 5.15.x lane is documented as the current Linux reference baseline.
 4. A minimum smoke verification contract is documented.
 5. Optional dependency candidates are identified with concrete next actions.
@@ -71,8 +75,8 @@ Phase 1 is complete when:
 
 ## Suggested Execution Order
 
-1. Merge and validate on `master`
-2. Promote CI trigger policy
+1. Validate on `master`
+2. Prove the automatic build lane on normal change flow
 3. Freeze and document the recovered toolchain lane
 4. Add smoke verification expectations
 5. Classify optional dependencies
