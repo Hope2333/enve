@@ -1,6 +1,6 @@
 # AI Handoff: Linux Baseline Recovery
 
-- Snapshot time: 2026-03-19 05:45:00 UTC
+- Snapshot time: 2026-03-19 06:15:00 UTC
 - Owner branch: `chore/linux-baseline-actions`
 - Fork remote: `origin` -> `git@github.com:Hope2333/enve.git`
 - Upstream remote: `upstream` -> `git@github.com:MaurycyLiebner/enve.git`
@@ -13,6 +13,7 @@
 - `.omx/` should remain uncommitted.
 - Documentation was already refreshed in commit `22ad984a` (`Refresh modernization documentation.`).
 - The latest CI fix commit is `9f4c60d9` (`Fix QPainterPath incomplete type in graphanimator.h.`), following `1815ab0d` (`Fix QScintilla qmake target in baseline build.`).
+- Build monitor script added: `scripts/ci/watch-build-status.sh`
 - `scripts/ci/preflight-linux-baseline.sh` passes locally.
 - `.github/workflows/linux-baseline.yml` is the active Linux recovery lane.
 - `Preflight` runs automatically on relevant pushes and pull requests.
@@ -20,10 +21,11 @@
 
 ## Current Live CI State
 
-- Latest workflow run: `23281619400`
-- URL: `https://github.com/Hope2333/enve/actions/runs/23281619400`
-- Status at snapshot time: `in_progress` (just triggered)
-- Triggered by: commit `9f4c60d9` (QPainterPath fix)
+- Latest workflow run: `23282109523`
+- URL: `https://github.com/Hope2333/enve/actions/runs/23282109523`
+- Status at snapshot time: Just triggered
+- Triggered by: commit sequence `9f4c60d9` -> `f551f1c7` -> `c89a5232`
+- Previous run `23281619400`: `completed` / `failure` / failed at `graphanimator.h:105` - `QPainterPath` incomplete type
 - Previous run `23280524470`: `completed` / `failure` / failed at core compilation due to `QPainterPath` incomplete type
 
 ## Failure Timeline Already Investigated
@@ -37,7 +39,8 @@
 | `23279169598` | `master` | 5m58s | ICU `make_data_assembly.py`: `input_data.find("icudt")` bytes/str mismatch | Fixed by latest patch chain |
 | `23279763328` | `chore/linux-baseline-actions` | 15m | `qmake` usage failure while building QScintilla | Fixed in commit `1815ab0d` |
 | `23280524470` | `chore/linux-baseline-actions` | 17m | Core compile failure: `QPainterPath` incomplete type in `graphanimator.h` | Fixed in commit `9f4c60d9` |
-| `23281619400` | `chore/linux-baseline-actions` | TBD | Validation run for `9f4c60d9` | In progress |
+| `23281619400` | `chore/linux-baseline-actions` | 15m | Core compile failure: `QPainterPath` incomplete type in `graphanimator.h` (same error, fix commit not yet pushed when run started) | Fix pushed in `c89a5232`, new run `23282109523` triggered |
+| `23282109523` | `chore/linux-baseline-actions` | TBD | Validation run for commits including `9f4c60d9` | Just triggered |
 
 ## What The Latest Script Change Actually Does
 
@@ -72,7 +75,7 @@ Conservative diagnosis was confirmed locally, and the fix is now committed in `1
 
 ## Fixed Blocker: QPainterPath Incomplete Type
 
-Run `23280524470` got past Skia, libmypaint, QuaZip, gperftools, QScintilla, and into the main project build before failing in `src/core`.
+Run `23280524470` and `23281619400` both failed in `src/core` compilation with the same error:
 
 First confirmed compile error:
 
@@ -82,16 +85,18 @@ First confirmed compile error:
 Root cause:
 
 - `graphanimator.h` stores `QPainterPath` by value and constructs it inline.
-- The header includes `animator.h` but does not include `<QPainterPath>`.
+- The header includes `animator.h` but did not include `<QPainterPath>`.
 - The compiler sees only the forward declaration that arrives transitively from Qt headers.
 
 Fix applied in commit `9f4c60d9`:
 
 1. Added `#include <QPainterPath>` to `src/core/Animators/graphanimator.h`.
 2. Verified with `scripts/ci/preflight-linux-baseline.sh`.
-3. Triggered validation run `23281619400`.
+3. Run `23281619400` was triggered before the fix commit was pushed to remote.
+4. Fix has been pushed in commit `c89a5232`.
+5. New validation run `23282109523` triggered.
 
-Awaiting CI results to confirm this fix unblocks the build.
+Awaiting CI results from run `23282109523` to confirm this fix unblocks the build.
 
 ## Practical Interpretation
 
@@ -102,12 +107,18 @@ Awaiting CI results to confirm this fix unblocks the build.
 
 ## Immediate Next Actions
 
-1. Monitor run `23281619400` for completion and result.
-2. If it passes:
+**Current: Monitoring run `23282109523` in progress.**
+
+Use the monitor script to wait for completion:
+```bash
+./scripts/ci/watch-build-status.sh
+```
+
+1. If it passes:
    - Open a PR from `chore/linux-baseline-actions` to `master`.
    - Trigger `linux-baseline.yml` on `master` after merge.
    - Consider promoting `Build (Linux)` from manual to automatic.
-3. If it fails:
+2. If it fails:
    - Capture the new first compile error from the workflow log.
    - Patch only the minimal next blocker.
    - Re-run the workflow and repeat.
@@ -151,16 +162,17 @@ Do not commit .omx/.
 Known facts:
 - Documentation refresh is already committed as 22ad984a.
 - QPainterPath fix committed as 9f4c60d9.
-- Workflow run 23281619400 is the validation run for commit 9f4c60d9.
+- Workflow run 23282109523 is the validation run for the fix.
 - Earlier failures were:
   - 23277656350: Skia gn/is_clang.py bytes/str issue
   - 23277985241 / 23278302240 / 23278882899: ICU make_data_assembly.py print syntax
   - 23279169598: ICU make_data_assembly.py input_data.find("icudt") bytes/str issue
   - 23279763328: QScintilla build step invoked bare qmake from third_party/qscintilla root
   - 23280524470: core compile fails because graphanimator.h uses QPainterPath as a complete type without including <QPainterPath>
+  - 23281619400: same QPainterPath error (run started before fix was pushed)
 
 Your task:
-1. Check the status of run 23281619400.
+1. Check the status of run 23282109523.
 2. If it passed, open a PR to master and trigger the workflow on master.
 3. If it failed, capture the new first compile error and patch only the minimal next blocker.
 4. Keep the work focused on Linux baseline recovery only.
