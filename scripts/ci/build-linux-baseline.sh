@@ -112,6 +112,23 @@ require_skia_network_if_needed() {
   done
 }
 
+apply_skia_python3_fix_if_needed() {
+  local is_clang_py="${ROOT_DIR}/third_party/skia/gn/is_clang.py"
+  if [[ ! -f "${is_clang_py}" ]]; then
+    return
+  fi
+
+  if grep -q "b'clang' in subprocess.check_output" "${is_clang_py}"; then
+    return
+  fi
+
+  if grep -q "'clang' in subprocess.check_output('%s --version' % cc, shell=True)" "${is_clang_py}"; then
+    echo "Applying Skia Python 3 compatibility fix..."
+    sed -i "s/'clang' in subprocess.check_output('%s --version' % cc, shell=True)/b'clang' in subprocess.check_output('%s --version' % cc, shell=True)/" "${is_clang_py}"
+    sed -i "s/'clang' in subprocess.check_output('%s --version' % cxx, shell=True)/b'clang' in subprocess.check_output('%s --version' % cxx, shell=True)/" "${is_clang_py}"
+  fi
+}
+
 echo "Using root: ${ROOT_DIR}"
 echo "Using jobs: ${JOBS}"
 echo "Skip third-party build: ${SKIP_THIRD_PARTY}"
@@ -131,6 +148,7 @@ if [[ "${SKIP_THIRD_PARTY}" != "1" ]]; then
   echo "Building third-party dependencies..."
   if [[ "${USE_PREBUILT_SKIA}" != "1" ]]; then
     require_skia_network_if_needed
+    apply_skia_python3_fix_if_needed
   fi
   apply_gperftools_patch_if_needed
   if [[ "${USE_PREBUILT_SKIA}" == "1" ]]; then
