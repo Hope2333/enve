@@ -44,10 +44,18 @@ win32 { # Windows
     QMAKE_CFLAGS_RELEASE += /O2 -O2 /GL
     QMAKE_CXXFLAGS_RELEASE += /O2 -O2 /GL
 
-    QMAKE_CFLAGS += -openmp
-    QMAKE_CXXFLAGS += -openmp
-
-    LIBS += -L"C:\Program Files\LLVM\lib" -llibomp
+    # OpenMP is optional - controlled by ENVE_USE_OPENMP
+    # Default: enabled for backwards compatibility
+    OPENMP_ENABLED = $$[ENVE_USE_OPENMP]
+    isEmpty(OPENMP_ENABLED): OPENMP_ENABLED = 1
+    equals(OPENMP_ENABLED, 1) {
+        QMAKE_CFLAGS += -openmp
+        QMAKE_CXXFLAGS += -openmp
+        LIBS += -L"C:\Program Files\LLVM\lib" -llibomp
+        message("OpenMP enabled")
+    } else {
+        message("OpenMP disabled")
+    }
     LIBS += -luser32 -lopengl32
 
     CONFIG -= debug_and_release
@@ -70,7 +78,16 @@ win32 { # Windows
         QMAKE_CFLAGS_RELEASE += -m64 -O3
         QMAKE_CXXFLAGS_RELEASE += -m64 -O3
 
-        QMAKE_CXXFLAGS += -fopenmp
-        LIBS += -lpthread -lfontconfig -lfreetype -lpng -ldl -fopenmp
+        # OpenMP is optional - controlled by ENVE_USE_OPENMP
+        # Default: enabled for backwards compatibility
+        OPENMP_ENABLED = $$[ENVE_USE_OPENMP]
+        isEmpty(OPENMP_ENABLED): OPENMP_ENABLED = 1
+        equals(OPENMP_ENABLED, 1) {
+            QMAKE_CXXFLAGS += -fopenmp
+            LIBS += -lpthread -lfontconfig -lfreetype -lpng -ldl -fopenmp
+            message("OpenMP enabled")
+        } else {
+            message("OpenMP disabled")
+        }
     }
 }
