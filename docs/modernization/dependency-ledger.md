@@ -9,9 +9,11 @@ This ledger records the current build and runtime dependencies, their coupling l
 | Dependency | Evidence | Current role | Coupling | Recommended first action |
 | --- | --- | --- | --- | --- |
 | Travis CI | `.travis.yml` | Legacy Linux/macOS build and packaging orchestration | High | Replace with GitHub Actions or equivalent before version upgrades |
+| GitHub Actions | `.github/workflows/linux-baseline.yml` | Current Linux baseline recovery lane | High | Validate the green baseline on `master`, then promote the Linux build from manual-only to automatic |
 | qmake | `enve.pro`, `src/src.pro`, `src/app/app.pro`, `src/core/core.pro` | Primary build generator | High | Keep during baseline recovery; migrate only after CI and smoke tests exist |
-| Qt 5.12.4 | `.travis.yml`, `Source and building info.md` | UI/runtime foundation | High | Move to a supported Qt 5.15 lane before any Qt 6 work |
-| `g++-7` / old macOS toolchain | `.travis.yml`, `Source and building info.md` | Compiler baseline | Medium | Raise compiler version in a compatibility phase without changing app architecture |
+| Historical Qt 5.12.4 lane | `.travis.yml`, `Source and building info.md` | Legacy documented UI/runtime baseline | High | Replace legacy documentation with the recovered Ubuntu 22.04 distro Qt 5.15.x reference lane |
+| Historical `g++-7` / old macOS toolchain | `.travis.yml`, `Source and building info.md` | Legacy documented compiler baseline | Medium | Replace legacy documentation with the recovered Ubuntu 22.04 distro compiler lane before broader upgrades |
+| Python 3 with legacy vendor scripts | `scripts/ci/build-linux-baseline.sh`, `third_party/skia/gn/is_clang.py`, `third_party/skia/third_party/externals/icu/scripts/make_data_assembly.py` | Skia dependency sync and ICU data generation during bootstrap | Medium | Keep the script-side compatibility shims until vendored sources are either updated or isolated from the bootstrap path |
 
 ## Vendored Third-Party Dependencies
 
@@ -34,7 +36,7 @@ This ledger records the current build and runtime dependencies, their coupling l
 
 ## Immediate Priorities
 
-1. Build a reproducible Linux baseline image with the current qmake flow and third-party setup.
-2. Stand up CI for one Linux release build before changing dependency versions.
+1. Validate the first green Linux baseline build on `master`.
+2. Promote the Linux build lane from manual-only to routine CI after `master` validation succeeds.
 3. Mark optional dependencies explicitly: `gperftools`, OpenMP, and WebEngine preview are the best first candidates.
-4. Upgrade the compiler and Qt within a Qt 5 compatibility lane before attempting CMake or Qt 6.
+4. Formalize the recovered Ubuntu 22.04 + distro Qt 5.15.x lane before attempting CMake or Qt 6.

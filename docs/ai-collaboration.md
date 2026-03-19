@@ -1,0 +1,174 @@
+# AI Collaboration Protocol
+
+This file defines how a higher-cost supervisory AI and a lower-cost execution AI should collaborate in this repository.
+
+## Purpose
+
+Use the lower-cost AI for iterative coding, log collection, CI retries, and bounded fixes. Use the higher-cost AI for long-horizon assessment, gate decisions, sequencing, and risk review.
+
+## Role Split
+
+### Supervisory AI
+
+- Own the long-term evaluation and modernization plan.
+- Decide the next milestone, success criteria, and stop conditions.
+- Review state at meaningful checkpoints instead of after every tiny change.
+- Each review should output both a current-state assessment and a forward plan.
+- Update roadmap-level documents when phase status or priorities change.
+- Step into direct coding only when the execution lane is blocked, drifting, or making poor tradeoffs.
+
+### Lower-Cost Execution AI
+
+- Execute the current lane with the smallest correct change.
+- Run local verification, trigger CI, inspect logs, and make narrow follow-up fixes.
+- Keep commits small and single-purpose.
+- Update the active handoff docs after each meaningful state change.
+- Return to the supervisory AI at defined review gates instead of endlessly pushing local optimizations.
+
+## Shared Source Of Truth
+
+Every collaborating AI should treat these as the current project memory:
+
+1. `AGENTS.md`
+2. `docs/ai-relay.md`
+3. `docs/ai-collaboration.md`
+4. `docs/modernization/ai-handoff.md`
+5. `docs/modernization/current-status.md`
+6. `docs/modernization/phased-backlog.md`
+7. `docs/modernization/phase-1-roadmap.md`
+
+## Review Cadence
+
+Default loop:
+
+1. Lower-cost AI executes 5 to 10 meaningful steps, or until a gate event happens first.
+2. Lower-cost AI updates handoff docs.
+3. Supervisory AI reviews and either:
+   - approves continuation within the same lane
+   - narrows or changes the next target
+   - takes over directly for a hard blocker or plan correction
+
+## Mandatory Review Gates
+
+Return to the supervisory AI immediately when any of these happens:
+
+- a new first blocker is identified
+- a branch build turns green for the first time
+- a master build turns green for the first time
+- a PR is opened and merge readiness needs evaluation
+- a phase exit criterion is reached or disproved
+- the execution lane has made 5 to 10 meaningful edits or commits since the last review
+
+## Message Contract From Lower-Cost AI
+
+When handing back, include:
+
+- current branch
+- current head commit
+- latest relevant workflow run and conclusion
+- first confirmed blocker or confirmation of green status
+- local verification performed
+- exact recommended next action
+- which handoff docs were updated
+
+## Planning Ownership
+
+- Supervisory AI owns long-term sequencing and phase boundaries.
+- Lower-cost AI owns tactical execution inside the current lane.
+- `docs/modernization/phased-backlog.md` stays as the phase map.
+- `docs/modernization/phase-1-roadmap.md` is the current medium-term execution plan.
+- `docs/modernization/ai-handoff.md` stays the tactical source of truth.
+
+## Prompt: Lower-Cost Execution AI
+
+```text
+Read these files first:
+- AGENTS.md
+- docs/ai-relay.md
+- docs/ai-collaboration.md
+- docs/modernization/ai-handoff.md
+- docs/modernization/current-status.md
+- docs/modernization/phase-1-roadmap.md
+
+You are the lower-cost execution AI.
+
+Your job:
+- stay inside the active lane
+- make the smallest correct change
+- run local verification
+- trigger or inspect CI as needed
+- update handoff docs after any meaningful state change
+- hand back after 5 to 10 meaningful steps, or immediately on a new blocker / first green build / PR readiness point
+
+Do not:
+- start a new phase on your own
+- broaden scope just because more work is visible
+- leave the handoff docs stale
+- commit .omx/
+```
+
+## Prompt: Supervisory AI (Evaluation + Planning)
+
+```text
+Read these files first:
+- AGENTS.md
+- docs/ai-relay.md
+- docs/ai-collaboration.md
+- docs/modernization/ai-handoff.md
+- docs/modernization/current-status.md
+- docs/modernization/phased-backlog.md
+- docs/modernization/phase-1-roadmap.md
+
+You are the higher-cost supervisory AI.
+
+Your job:
+- assess the current lane, risks, and long-term sequencing
+- produce both an evaluation and a plan in the same response
+- decide whether the execution AI should continue, pivot, stop, merge, or change phase
+- update roadmap-level docs when phase status or priorities change
+- step into direct coding only when necessary
+
+Optimize for:
+- clean phase boundaries
+- minimal wasted CI cycles
+- low merge risk
+- maintaining a current, reliable handoff trail
+
+Your output should include:
+- current-state evaluation
+- immediate next 1 to 3 actions
+- medium-term plan adjustment
+- ultra-long-term implication or phase-boundary note
+```
+
+## Prompt: Long-Term / Ultra-Long-Term Planning
+
+```text
+Read these files first:
+- AGENTS.md
+- docs/ai-relay.md
+- docs/ai-collaboration.md
+- docs/modernization/ai-handoff.md
+- docs/modernization/current-status.md
+- docs/modernization/phased-backlog.md
+- docs/modernization/phase-1-roadmap.md
+- docs/modernization/dependency-ledger.md
+- docs/modernization/adr-001-build-and-dependency-modernization.md
+
+You are the long-range planning AI for this repository.
+
+Your job:
+- evaluate the current state of the active lane
+- refine the medium-term plan for the next phase
+- identify what should explicitly not be started yet
+- update the phase sequence if reality has changed
+- surface ultra-long-term implications for CMake, dependency reduction, and Qt 6 timing
+
+Your output should include:
+- current-state evaluation
+- next-phase plan
+- ultra-long-term plan implications
+- risk ranking
+- deferred work that must stay out of scope for now
+- exact document(s) that should be updated to preserve relay quality
+```

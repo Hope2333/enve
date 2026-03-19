@@ -127,6 +127,21 @@ apply_skia_post_sync_python3_fixes_if_needed() {
     echo "Applying Skia Python 3 compatibility fix (make_data_assembly.py)..."
     sed -i 's/^[[:space:]]*print "Generated " + output_file$/print("Generated " + output_file)/' "${icu_make_data_py}"
   fi
+
+  if [[ -f "${icu_make_data_py}" ]] && grep -q 'input_data.find("icudt")' "${icu_make_data_py}"; then
+    echo "Applying Skia Python 3 bytes fix (make_data_assembly.py: find)..."
+    sed -i 's/input_data.find("icudt")/input_data.find(b"icudt")/' "${icu_make_data_py}"
+  fi
+
+  if [[ -f "${icu_make_data_py}" ]] && grep -q 'version_number = input_data\[n + 5:n + 7\]$' "${icu_make_data_py}"; then
+    echo "Applying Skia Python 3 bytes fix (make_data_assembly.py: version)..."
+    sed -i 's/version_number = input_data\[n + 5:n + 7\]/version_number = input_data[n + 5:n + 7].decode("ascii")/' "${icu_make_data_py}"
+  fi
+
+  if [[ -f "${icu_make_data_py}" ]] && grep -q "hexlify(input_data\\[i:i + 4\\]\\[::step\\]).upper().lstrip('0')" "${icu_make_data_py}"; then
+    echo "Applying Skia Python 3 bytes fix (make_data_assembly.py: hexlify decode)..."
+    sed -i "s/hexlify(input_data\\[i:i + 4\\]\\[::step\\]).upper().lstrip('0')/hexlify(input_data[i:i + 4][::step]).upper().decode('ascii').lstrip('0')/" "${icu_make_data_py}"
+  fi
 }
 
 build_skia() {
@@ -145,7 +160,7 @@ build_skia() {
 build_libmypaint() {
   pushd "${ROOT_DIR}/third_party/libmypaint" >/dev/null
   ./autogen.sh
-  ./configure --enable-static --enable-shared=false
+  ./configure --enable-static --enable-shared=false CFLAGS="-fPIC"
   make -j"${JOBS}"
   ln -sfn "$(pwd)" libmypaint
   popd >/dev/null
@@ -167,8 +182,8 @@ build_gperftools() {
 }
 
 build_qscintilla() {
-  pushd "${ROOT_DIR}/third_party/qscintilla" >/dev/null
-  qmake CONFIG+=release
+  pushd "${ROOT_DIR}/third_party/qscintilla/Qt4Qt5" >/dev/null
+  qmake qscintilla.pro CONFIG+=release
   make -j"${JOBS}"
   popd >/dev/null
 }
