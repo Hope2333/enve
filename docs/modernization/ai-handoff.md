@@ -1,103 +1,111 @@
 # AI Handoff: Linux Baseline Recovery
 
-- Snapshot time: 2026-03-19 10:00:00 UTC
-- Owner branch: `master` (Phase 1 COMPLETE)
+- Snapshot time: 2026-03-19 10:25:00 UTC
+- Active reference branch: `master`
+- Local working branch still present: `chore/linux-baseline-actions`
 - Fork remote: `origin` -> `git@github.com:Hope2333/enve.git`
 - Upstream remote: `upstream` -> `git@github.com:MaurycyLiebner/enve.git`
 - Default fork branch: `origin/master`
-- Latest master commit: `2a1675d7` (chore: Linux baseline CI recovery)
-- PR #6: MERGED at 2026-03-19T09:26:14Z
+- Latest confirmed `master` commit: `2a1675d7` (`chore: Linux baseline CI recovery`)
+- PR #6: `MERGED` at `2026-03-19T09:26:14Z`
 
 ## What Is Stable Right Now
 
-- ✅ **Phase 0 COMPLETE** - Linux baseline build PASSES on branch
-- ✅ **Phase 1 COMPLETE** - Master validation PASSED
-- ✅ **CI Auto-trigger ENABLED** - Build (Linux) now runs automatically on push to master
-- Master validation run `23288361000`: **SUCCESS** ✅
-- All CI fixes landed in master:
-  - `a2d146ff` - Fix libmypaint -fPIC flag
-  - `9f4c60d9` - Fix QPainterPath incomplete type
-  - `1815ab0d` - Fix QScintilla qmake target
-- Build monitor script: `scripts/ci/watch-build-status.sh`
-- `scripts/ci/preflight-linux-baseline.sh` passes locally.
-- `.github/workflows/linux-baseline.yml` is the active Linux recovery lane.
-- `Preflight` runs automatically on relevant pushes and pull requests.
-- `Build (Linux)` now runs automatically on `push` to master/main branches.
+- ✅ PR #6 is merged to `master`.
+- ✅ One full master validation run passed end to end:
+  - run `23288361000`
+  - event: `workflow_dispatch`
+  - conclusion: `success`
+  - duration: `26m2s`
+- ✅ One full branch-side baseline run had already passed before merge:
+  - run `23282890827`
+  - event: `workflow_dispatch`
+  - conclusion: `success`
+- The workflow file now intends to run `Build (Linux)` on both `workflow_dispatch` and `push`.
+- The active Linux lane remains Ubuntu 22.04 with distro Qt 5.15.x packages, qmake, and the vendored `third_party/` stack.
+- Local worktree caveat:
+  - `git status --short --ignore-submodules=none` still shows dirty `third_party` submodules from local build state (`gperftools`, `libmypaint`, `qscintilla`, `quazip`, `skia`).
+  - Do not reset them blindly.
 
 ## Current Live CI State
 
-- Master validation run `23288361000`: **SUCCESS** ✅
-- Branch run `23282890827`: **SUCCESS** ✅
-- CI trigger policy: Automatic on push to master/main
-- URL: `https://github.com/Hope2333/enve/actions/runs/23282890827`
+- Post-merge `push` run on `master`: `23288282562`
+- URL: `https://github.com/Hope2333/enve/actions/runs/23288282562`
+- Event: `push`
+- Overall conclusion: `success`
+- What actually happened:
+  - `Preflight`: `success`
+  - `Build (Linux)`: `skipped` (workflow at merge commit still had `workflow_dispatch`-only condition)
+- Root cause: The workflow fix (adding `|| github.event_name == 'push'`) was committed AFTER the PR #6 merge, not included in PR #6 itself.
+- Fix: PR #7 created to merge the workflow fix.
+- Full master validation run: `23288361000`
+- URL: `https://github.com/Hope2333/enve/actions/runs/23288361000`
 - Event: `workflow_dispatch`
 - Conclusion: `success`
-- Latest full master run still visible from before the branch fixes: `23279169598` (`failure`)
-- There is no post-fix full `master` validation run yet.
+- This means the code path is healthy on `master`, but the automatic trigger policy needs PR #7 to be merged.
 
 ## Practical Interpretation
 
-- Phase 0 technical recovery is complete on the branch.
-- Phase 1 is still in progress because `master` has not yet received a full post-fix Linux baseline validation run.
-- The active blocker is now merge and CI policy gating, not a known source-level compile failure.
-- Do not treat a green PR check as proof of full build health right now; the PR checks only prove `preflight` until `Build (Linux)` is promoted beyond `workflow_dispatch`.
+- Phase 0 is closed.
+- Manual `master` validation succeeded, which clears the original recovery goal.
+- Phase 1 is not cleanly closed yet because the first real `push` run on `master` still skipped `Build (Linux)` even though the workflow now claims to allow `push`.
+- The active blocker is no longer source compilation; it is CI policy behavior drift between the workflow definition and the observed run result.
 
 ## Immediate Next Actions
 
-1. Merge PR #6 into `master`.
-2. Trigger `linux-baseline.yml` on `master` and confirm that the full `Build (Linux)` job passes there.
-3. Only after a green full `master` run, promote `Build (Linux)` from manual-only to automatic on relevant push and pull request paths.
-4. Finish the remaining Phase 1 documentation work:
-   - record the exact compiler, qmake, and Qt versions from a green run
-   - write the minimum manual smoke checklist
-   - list the concrete Phase 2 dependency-boundary candidates
-5. Keep CMake migration, dependency replacement, and Qt 6 work out of scope until the Phase 1 exit criteria are actually satisfied.
+1. ✅ Root cause diagnosed: workflow fix was committed AFTER PR #6 merge.
+2. ✅ PR #7 created: https://github.com/Hope2333/enve/pull/7
+3. Next: Merge PR #7 to master.
+4. After merge: Trigger workflow to verify automatic Build (Linux) runs on push.
+5. Once one successful non-manual full build on normal change flow is confirmed, mark Phase 1 fully complete.
+6. Begin Phase 2 dependency-boundary hardening:
+   - `gperftools`
+   - WebEngine preview
+   - QScintilla
+   - OpenMP
+   - examples
 
 ## Commands Worth Reusing
 
 ```sh
 git status --short --ignore-submodules=none
-scripts/ci/preflight-linux-baseline.sh
-gh pr view 6 --repo Hope2333/enve --json state,isDraft,mergeStateStatus,headRefName,baseRefName,statusCheckRollup,url
 gh pr list --repo Hope2333/enve --state all --limit 10
-gh run list --repo Hope2333/enve --workflow linux-baseline.yml --limit 10
-gh run view 23282890827 --repo Hope2333/enve --json status,conclusion,jobs,url
-gh run view 23282890827 --repo Hope2333/enve --log-failed
-gh workflow run linux-baseline.yml --repo Hope2333/enve --ref master
+gh pr view 6 --repo Hope2333/enve --json state,mergedAt,headRefName,baseRefName,statusCheckRollup,url
+gh run list --repo Hope2333/enve --workflow linux-baseline.yml --limit 12
+gh run view 23288282562 --repo Hope2333/enve --json status,conclusion,event,headBranch,url,jobs
+gh run view 23288361000 --repo Hope2333/enve --json status,conclusion,event,headBranch,url,jobs
+gh api repos/Hope2333/enve/branches/master --jq '.commit.sha'
 ```
 
 ## Guardrails
 
 - Do not commit `.omx/`.
 - Do not reset dirty vendored submodules unless the user explicitly asks.
-- Phase 1 is COMPLETE - master validation passed.
-- Do NOT start CMake migration or Qt 6 migration yet.
-- Phase 2 should focus on dependency-boundary hardening, not dependency replacement.
+- Do not call Phase 1 complete until a non-manual full build actually runs on normal change flow.
+- Do not start CMake migration, dependency replacement, or Qt 6 work yet.
+- Phase 2 planning can continue, but Phase 2 implementation should wait until the CI trigger discrepancy is closed.
 
 ## Copy-Paste Prompt For The Next AI
 
 ```text
-Phase 1 COMPLETE! Ready for Phase 2.
+Linux baseline recovery is technically successful on master, but Phase 1 still has one unresolved gate.
 
 Current state:
-- Phase 0: Branch recovery COMPLETE
-- Phase 1: Master validation COMPLETE (run 23288361000: success)
-- CI auto-trigger: ENABLED for push to master/main
-- Master commit: 2a1675d7
+- PR #6 is merged to master
+- Latest confirmed master commit: 2a1675d7
+- Manual master validation run 23288361000 succeeded
+- The first post-merge push run 23288282562 skipped Build (Linux) and only ran Preflight
+- The workflow file now intends to run Build (Linux) on push, but that behavior is not yet proven
 
 Your task:
-1. Begin Phase 2: dependency-boundary hardening.
-   - Focus on gperftools, WebEngine preview, QScintilla, OpenMP, and examples.
-   - Make these optional dependencies explicit build flags.
-2. Document the recovered toolchain:
-   - Ubuntu 22.04 + Qt 5.15.x as the official Linux reference baseline.
-3. Do NOT start:
-   - CMake migration
-   - Qt 6 migration  
-   - Dependency replacement
+1. Diagnose why Build (Linux) was skipped on push run 23288282562.
+2. Get one successful push-driven full build on master.
+3. Only then mark Phase 1 complete and begin Phase 2 dependency-boundary hardening.
 
 Read these files for context:
 - docs/modernization/ai-handoff.md
-- docs/modernization/phased-backlog.md (Phase 2 section)
+- docs/modernization/current-status.md
+- docs/modernization/phase-1-roadmap.md
+- docs/modernization/phased-backlog.md
 - docs/modernization/dependency-ledger.md
 ```
