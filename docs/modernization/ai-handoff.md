@@ -29,11 +29,14 @@
 
 ## Current Live CI State
 
-- **Automatic build triggered by PR #7 merge**: Run `23306463704`
+- ✅ **First automatic build on master: SUCCESS**
+- Run: `23306463704`
 - URL: `https://github.com/Hope2333/enve/actions/runs/23306463704`
 - Event: `push` (automatic trigger from PR #7 merge)
-- Status: `in_progress` (Build baseline step running)
-- This is the FIRST non-manual automatic build on master - proves Phase 1 exit criteria.
+- Status: `completed`
+- Conclusion: `success`
+- Duration: ~14 minutes
+- This PROVES Phase 1 exit criteria: automatic Build (Linux) on push is now working.
 
 - PR #7: MERGED at 2026-03-19T16:53:14Z
 
@@ -54,28 +57,37 @@
 
 ## Practical Interpretation
 
-- Phase 0 is closed.
-- Manual `master` validation succeeded, which clears the original recovery goal.
-- PR #7 merged, enabling automatic Build (Linux) on push.
-- First automatic build run `23306463704` is in progress.
-- Phase 1 will be cleanly closed once run `23306463704` completes successfully.
-- The active blocker is no longer source compilation or CI policy; it is waiting for the automatic build to complete.
+- ✅ Phase 0: CLOSED (manual validation passed)
+- ✅ Phase 1: CLOSED (automatic build on push now proven)
+- ✅ PR #6 merged: Code fixes landed
+- ✅ PR #7 merged: Auto-trigger enabled
+- ✅ Run 23306463704: SUCCESS (first automatic build on master)
+- Ready for: Phase 2 dependency-boundary hardening
 
 ## Immediate Next Actions
 
+**Phase 1 COMPLETE! Ready for Phase 2.**
+
 1. ✅ Root cause diagnosed: workflow fix was committed AFTER PR #6 merge.
 2. ✅ PR #7 created and MERGED.
-3. ✅ First automatic build run `23306463704` triggered and IN PROGRESS.
-4. Next: Wait for run `23306463704` to complete.
-5. If successful: Mark Phase 1 COMPLETE and begin Phase 2 dependency-boundary hardening.
-6. If failed: Capture first error and apply minimal fix.
+3. ✅ First automatic build run `23306463704`: SUCCESS.
+4. ✅ Phase 1 exit criteria PROVEN: automatic Build (Linux) on push is working.
+5. Next: Begin Phase 2 dependency-boundary hardening.
 
-Phase 2 targets (ready to start):
-- `gperftools` (optional profiling)
-- WebEngine preview (optional feature)
-- QScintilla (optional scripting)
-- OpenMP (optional parallelism)
-- Examples (optional build)
+Phase 2 targets (in priority order):
+1. `gperftools` - Make optional (profiling only, not core functionality)
+2. WebEngine preview - Make optional (SVG preview feature)
+3. QScintilla - Make optional (scripting editor)
+4. OpenMP - Make optional (parallelism)
+5. Examples - Make optional (sample effects)
+
+Phase 2 approach:
+- Add build flags to enable/disable each optional dependency
+- Keep default as "all enabled" for backwards compatibility
+- Update dependency-ledger.md with ownership and default state
+- Do NOT start CMake migration yet
+- Do NOT start Qt 6 migration yet
+- Do NOT start dependency replacement yet
 
 ## Commands Worth Reusing
 
@@ -93,29 +105,41 @@ gh api repos/Hope2333/enve/branches/master --jq '.commit.sha'
 
 - Do not commit `.omx/`.
 - Do not reset dirty vendored submodules unless the user explicitly asks.
-- Do not call Phase 1 complete until a non-manual full build actually runs on normal change flow.
-- Do not start CMake migration, dependency replacement, or Qt 6 work yet.
-- Phase 2 planning can continue, but Phase 2 implementation should wait until the CI trigger discrepancy is closed.
+- Phase 1 IS NOW COMPLETE (run 23306463704 proved automatic build on push).
+- Phase 2 can now start: dependency-boundary hardening.
+- Do NOT start CMake migration, dependency replacement, or Qt 6 work yet.
 
 ## Copy-Paste Prompt For The Next AI
 
 ```text
-Linux baseline recovery is technically successful on master, but Phase 1 still has one unresolved gate.
+Phase 1 COMPLETE! Ready for Phase 2.
 
 Current state:
-- PR #6 is merged to master
-- Latest confirmed master commit: 2a1675d7
-- Manual master validation run 23288361000 succeeded
-- The first post-merge push run 23288282562 skipped Build (Linux) and only ran Preflight
-- The workflow file now intends to run Build (Linux) on push, but that behavior is not yet proven
+- Phase 0: COMPLETE (manual validation run 23288361000: success)
+- Phase 1: COMPLETE (automatic build run 23306463704: success)
+- Automatic Build (Linux) on push: PROVEN working
+- Master commit: ad9df455 (PR #7 merged)
 
 Your task:
-1. Diagnose why Build (Linux) was skipped on push run 23288282562.
-2. Get one successful push-driven full build on master.
-3. Only then mark Phase 1 complete and begin Phase 2 dependency-boundary hardening.
+1. Begin Phase 2: dependency-boundary hardening.
+   - Start with gperftools (lowest coupling, highest maintenance)
+   - Add build flag to enable/disable
+   - Keep default as enabled for backwards compatibility
+2. Update dependency-ledger.md with:
+   - Ownership (core vs optional)
+   - Default state (on/off)
+   - Upgrade notes
+3. Do NOT start:
+   - CMake migration (wait until qmake feature boundaries extracted)
+   - Qt 6 migration (wait until after Phase 2)
+   - Dependency replacement (Phase 2 is about boundaries, not replacement)
 
 Read these files for context:
-- docs/modernization/ai-handoff.md
+- docs/modernization/ai-handoff.md (this file)
+- docs/modernization/phased-backlog.md (Phase 2 section)
+- docs/modernization/dependency-ledger.md
+- docs/modernization/phase-1-roadmap.md (completed work)
+```
 - docs/modernization/current-status.md
 - docs/modernization/phase-1-roadmap.md
 - docs/modernization/phased-backlog.md
