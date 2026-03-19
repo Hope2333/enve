@@ -1,11 +1,11 @@
 # AI Handoff: Linux Baseline Recovery
 
-- Snapshot time: 2026-03-19 06:25:00 UTC
+- Snapshot time: 2026-03-19 06:35:00 UTC
 - Owner branch: `chore/linux-baseline-actions`
 - Fork remote: `origin` -> `git@github.com:Hope2333/enve.git`
 - Upstream remote: `upstream` -> `git@github.com:MaurycyLiebner/enve.git`
 - Default fork branch: `origin/master`
-- Head commit: `b9f5a258` (Update handoff with run 23282109523 status.)
+- Head commit: `a2d146ff` (Fix libmypaint -fPIC flag for shared library linking.)
 
 ## What Is Stable Right Now
 
@@ -13,7 +13,8 @@
 - If checked with `git status --short --ignore-submodules=none`, several `third_party` submodules appear dirty from local build state (`gperftools`, `libmypaint`, `quazip`, `skia`). Do not reset them blindly during CI recovery.
 - `.omx/` should remain uncommitted.
 - Documentation was already refreshed in commit `22ad984a` (`Refresh modernization documentation.`).
-- The latest CI fix commit is `9f4c60d9` (`Fix QPainterPath incomplete type in graphanimator.h.`), following `1815ab0d` (`Fix QScintilla qmake target in baseline build.`).
+- The latest CI fix commit is `a2d146ff` (`Fix libmypaint -fPIC flag for shared library linking.`).
+- Previous fixes: `9f4c60d9` (QPainterPath include), `1815ab0d` (QScintilla qmake target).
 - Build monitor script added: `scripts/ci/watch-build-status.sh` (usage corrected).
 - `scripts/ci/preflight-linux-baseline.sh` passes locally.
 - `.github/workflows/linux-baseline.yml` is the active Linux recovery lane.
@@ -22,11 +23,11 @@
 
 ## Current Live CI State
 
-- Latest workflow run: `23282109523`
-- URL: `https://github.com/Hope2333/enve/actions/runs/23282109523`
-- Status at snapshot time: `in_progress` (Build baseline step running)
-- Updated at: `2026-03-19T06:03:14Z`
-- Triggered by: commit sequence `9f4c60d9` -> `f551f1c7` -> `c89a5232` -> `b9f5a258`
+- Latest workflow run: `23282890827`
+- URL: `https://github.com/Hope2333/enve/actions/runs/23282890827`
+- Status at snapshot time: Just triggered
+- Triggered by: commit `a2d146ff` (libmypaint -fPIC fix)
+- Previous run `23282109523`: `completed` / `failure` / failed at link stage: `libmypaint.a` not compiled with `-fPIC`
 - Previous run `23281619400`: `completed` / `failure` / failed at `graphanimator.h:105` - `QPainterPath` incomplete type
 - Previous run `23280524470`: `completed` / `failure` / failed at core compilation due to `QPainterPath` incomplete type
 
@@ -41,8 +42,9 @@
 | `23279169598` | `master` | 5m58s | ICU `make_data_assembly.py`: `input_data.find("icudt")` bytes/str mismatch | Fixed by latest patch chain |
 | `23279763328` | `chore/linux-baseline-actions` | 15m | `qmake` usage failure while building QScintilla | Fixed in commit `1815ab0d` |
 | `23280524470` | `chore/linux-baseline-actions` | 17m | Core compile failure: `QPainterPath` incomplete type in `graphanimator.h` | Fixed in commit `9f4c60d9` |
-| `23281619400` | `chore/linux-baseline-actions` | 15m | Core compile failure: `QPainterPath` incomplete type in `graphanimator.h` (same error, fix commit not yet pushed when run started) | Fix pushed in `c89a5232`, new run `23282109523` triggered |
-| `23282109523` | `chore/linux-baseline-actions` | TBD | Validation run for commits including `9f4c60d9` | Just triggered |
+| `23281619400` | `chore/linux-baseline-actions` | 15m | Core compile failure: `QPainterPath` incomplete type (run started before fix pushed) | Fix pushed, new run triggered |
+| `23282109523` | `chore/linux-baseline-actions` | ~18m | Link failure: `libmypaint.a` not compiled with `-fPIC` | Fixed in commit `a2d146ff` |
+| `23282890827` | `chore/linux-baseline-actions` | TBD | Validation run for `a2d146ff` | Just triggered |
 
 ## What The Latest Script Change Actually Does
 
@@ -75,30 +77,26 @@ This strongly points to `build_qscintilla()` in `scripts/ci/build-linux-baseline
 
 Conservative diagnosis was confirmed locally, and the fix is now committed in `1815ab0d` by building QScintilla from `third_party/qscintilla/Qt4Qt5/` with an explicit `qscintilla.pro` target.
 
-## Fixed Blocker: QPainterPath Incomplete Type
+## Fixed Blocker: libmypaint -fPIC Link Failure
 
-Run `23280524470` and `23281619400` both failed in `src/core` compilation with the same error:
+Run `23282109523` succeeded in compiling all source files but failed at the link stage when creating `libenvecore.so`:
 
-First confirmed compile error:
-
-- `src/core/Animators/graphanimator.h:105:22: error: field 'fPath' has incomplete type 'QPainterPath'`
-- Follow-up error at `graphanimator.h:102`: invalid use of incomplete type `QPainterPath`
+Link error:
+```
+/usr/bin/ld: /home/runner/work/enve/enve/src/core/../../third_party/libmypaint/.libs/libmypaint.a(mypaint-brush.o): relocation R_X86_64_PC32 against symbol `stderr@@GLIBC_2.2.5' can not be used when making a shared object; recompile with -fPIC
+collect2: error: ld returned 1 exit status
+```
 
 Root cause:
+- `libmypaint.a` was compiled without `-fPIC` flag.
+- When linking a shared library (`libenvecore.so`), all static libraries must be compiled with `-fPIC`.
+- The `build_libmypaint()` function in `scripts/ci/build-linux-baseline.sh` did not pass `CFLAGS="-fPIC"` to `configure`.
 
-- `graphanimator.h` stores `QPainterPath` by value and constructs it inline.
-- The header includes `animator.h` but did not include `<QPainterPath>`.
-- The compiler sees only the forward declaration that arrives transitively from Qt headers.
+Fix applied in commit `a2d146ff`:
+1. Changed `./configure --enable-static --enable-shared=false` to `./configure --enable-static --enable-shared=false CFLAGS="-fPIC"`.
+2. New validation run `23282890827` triggered.
 
-Fix applied in commit `9f4c60d9`:
-
-1. Added `#include <QPainterPath>` to `src/core/Animators/graphanimator.h`.
-2. Verified with `scripts/ci/preflight-linux-baseline.sh`.
-3. Run `23281619400` was triggered before the fix commit was pushed to remote.
-4. Fix has been pushed in commit `c89a5232`.
-5. New validation run `23282109523` triggered.
-
-Awaiting CI results from run `23282109523` to confirm this fix unblocks the build.
+Awaiting CI results from run `23282890827` to confirm this fix unblocks the build.
 
 ## Practical Interpretation
 
@@ -109,7 +107,7 @@ Awaiting CI results from run `23282109523` to confirm this fix unblocks the buil
 
 ## Immediate Next Actions
 
-**Current: Monitoring run `23282109523` in progress.**
+**Current: Monitoring run `23282890827` in progress.**
 
 Use the monitor script to wait for completion:
 ```bash
@@ -121,7 +119,7 @@ Use the monitor script to wait for completion:
    - Trigger `linux-baseline.yml` on `master` after merge.
    - Consider promoting `Build (Linux)` from manual to automatic.
 2. If it fails:
-   - Capture the new first compile error from the workflow log.
+   - Capture the new first compile/link error from the workflow log.
    - Patch only the minimal next blocker.
    - Re-run the workflow and repeat.
 
@@ -164,7 +162,8 @@ Do not commit .omx/.
 Known facts:
 - Documentation refresh is already committed as 22ad984a.
 - QPainterPath fix committed as 9f4c60d9.
-- Workflow run 23282109523 is the validation run for the fix.
+- libmypaint -fPIC fix committed as a2d146ff.
+- Workflow run 23282890827 is the validation run for the -fPIC fix.
 - Earlier failures were:
   - 23277656350: Skia gn/is_clang.py bytes/str issue
   - 23277985241 / 23278302240 / 23278882899: ICU make_data_assembly.py print syntax
@@ -172,10 +171,11 @@ Known facts:
   - 23279763328: QScintilla build step invoked bare qmake from third_party/qscintilla root
   - 23280524470: core compile fails because graphanimator.h uses QPainterPath as a complete type without including <QPainterPath>
   - 23281619400: same QPainterPath error (run started before fix was pushed)
+  - 23282109523: link failure - libmypaint.a not compiled with -fPIC
 
 Your task:
-1. Check the status of run 23282109523.
+1. Check the status of run 23282890827.
 2. If it passed, open a PR to master and trigger the workflow on master.
-3. If it failed, capture the new first compile error and patch only the minimal next blocker.
+3. If it failed, capture the new first compile/link error and patch only the minimal next blocker.
 4. Keep the work focused on Linux baseline recovery only.
 ```
