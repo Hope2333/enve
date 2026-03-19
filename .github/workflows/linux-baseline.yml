@@ -1,0 +1,81 @@
+name: Linux Baseline Build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/linux-baseline.yml"
+      - "scripts/ci/**"
+      - "third_party/Makefile"
+      - "*.pro"
+      - "src/**/*.pro"
+      - "src/**/*.pri"
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - ".github/workflows/linux-baseline.yml"
+      - "scripts/ci/**"
+      - "third_party/Makefile"
+      - "*.pro"
+      - "src/**/*.pro"
+      - "src/**/*.pri"
+
+jobs:
+  preflight:
+    name: Preflight
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Make CI scripts executable
+        run: chmod +x scripts/ci/*.sh
+
+      - name: Run preflight checks
+        run: scripts/ci/preflight-linux-baseline.sh
+
+  build:
+    name: Build (Linux)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 240
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Make CI scripts executable
+        run: chmod +x scripts/ci/*.sh
+
+      - name: Install Linux build dependencies
+        run: scripts/ci/install-linux-build-deps.sh
+
+      - name: Cache skia release output
+        id: cache-skia
+        uses: actions/cache@v4
+        with:
+          path: third_party/skia/out/Release
+          key: ${{ runner.os }}-skia-release-${{ hashFiles('third_party/Makefile', '.gitmodules', 'scripts/ci/build-linux-baseline.sh') }}
+
+      - name: Build baseline
+        env:
+          ENVE_JOBS: "2"
+          ENVE_USE_PREBUILT_SKIA: ${{ steps.cache-skia.outputs.cache-hit == 'true' && '1' || '0' }}
+        run: scripts/ci/build-linux-baseline.sh
+
+      - name: Smoke checks
+        run: scripts/ci/smoke-linux-baseline.sh
+
+      - name: Upload app artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: enve-linux-baseline
+          if-no-files-found: warn
+          path: |
+            build/Release/src/app/enve
+            build/Release/src/core/libenvecore.so*
