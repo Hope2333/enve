@@ -29,7 +29,15 @@
 
 ## Current Live CI State
 
-- Post-merge `push` run on `master`: `23288282562`
+- **Automatic build triggered by PR #7 merge**: Run `23306463704`
+- URL: `https://github.com/Hope2333/enve/actions/runs/23306463704`
+- Event: `push` (automatic trigger from PR #7 merge)
+- Status: `in_progress` (Build baseline step running)
+- This is the FIRST non-manual automatic build on master - proves Phase 1 exit criteria.
+
+- PR #7: MERGED at 2026-03-19T16:53:14Z
+
+- Previous post-merge `push` run on `master`: `23288282562`
 - URL: `https://github.com/Hope2333/enve/actions/runs/23288282562`
 - Event: `push`
 - Overall conclusion: `success`
@@ -37,33 +45,37 @@
   - `Preflight`: `success`
   - `Build (Linux)`: `skipped` (workflow at merge commit still had `workflow_dispatch`-only condition)
 - Root cause: The workflow fix (adding `|| github.event_name == 'push'`) was committed AFTER the PR #6 merge, not included in PR #6 itself.
-- Fix: PR #7 created to merge the workflow fix.
+- Fix: PR #7 created and MERGED at 2026-03-19T16:53:14Z.
+
 - Full master validation run: `23288361000`
 - URL: `https://github.com/Hope2333/enve/actions/runs/23288361000`
 - Event: `workflow_dispatch`
 - Conclusion: `success`
-- This means the code path is healthy on `master`, but the automatic trigger policy needs PR #7 to be merged.
 
 ## Practical Interpretation
 
 - Phase 0 is closed.
 - Manual `master` validation succeeded, which clears the original recovery goal.
-- Phase 1 is not cleanly closed yet because the first real `push` run on `master` still skipped `Build (Linux)` even though the workflow now claims to allow `push`.
-- The active blocker is no longer source compilation; it is CI policy behavior drift between the workflow definition and the observed run result.
+- PR #7 merged, enabling automatic Build (Linux) on push.
+- First automatic build run `23306463704` is in progress.
+- Phase 1 will be cleanly closed once run `23306463704` completes successfully.
+- The active blocker is no longer source compilation or CI policy; it is waiting for the automatic build to complete.
 
 ## Immediate Next Actions
 
 1. ✅ Root cause diagnosed: workflow fix was committed AFTER PR #6 merge.
-2. ✅ PR #7 created: https://github.com/Hope2333/enve/pull/7
-3. Next: Merge PR #7 to master.
-4. After merge: Trigger workflow to verify automatic Build (Linux) runs on push.
-5. Once one successful non-manual full build on normal change flow is confirmed, mark Phase 1 fully complete.
-6. Begin Phase 2 dependency-boundary hardening:
-   - `gperftools`
-   - WebEngine preview
-   - QScintilla
-   - OpenMP
-   - examples
+2. ✅ PR #7 created and MERGED.
+3. ✅ First automatic build run `23306463704` triggered and IN PROGRESS.
+4. Next: Wait for run `23306463704` to complete.
+5. If successful: Mark Phase 1 COMPLETE and begin Phase 2 dependency-boundary hardening.
+6. If failed: Capture first error and apply minimal fix.
+
+Phase 2 targets (ready to start):
+- `gperftools` (optional profiling)
+- WebEngine preview (optional feature)
+- QScintilla (optional scripting)
+- OpenMP (optional parallelism)
+- Examples (optional build)
 
 ## Commands Worth Reusing
 
