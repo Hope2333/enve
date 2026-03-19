@@ -24,6 +24,7 @@ env:
   PROXY: http://localhost:7890
   JOBS: 2
   COMPRESS: 6
+  VER: 0.0.0
 
 jobs:
   build-ubuntu:
@@ -53,7 +54,7 @@ jobs:
 
       - name: Build with Makefile
         run: |
-          make build JOBS=${{ env.JOBS }}
+          make build VER=${{ env.VER }} JOBS=${{ env.JOBS }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -91,7 +92,7 @@ jobs:
 
       - name: Build with Makefile
         run: |
-          make build JOBS=${{ env.JOBS }}
+          make build VER=${{ env.VER }} JOBS=${{ env.JOBS }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -124,7 +125,7 @@ jobs:
 
       - name: Build with Makefile
         run: |
-          make build JOBS=${{ env.JOBS }}
+          make build VER=${{ env.VER }} JOBS=${{ env.JOBS }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -133,40 +134,6 @@ jobs:
           path: |
             build/Release/src/app/enve
             build/Release/src/core/libenvecore.so*
-
-  package-appimage:
-    name: AppImage
-    needs: [build-ubuntu]
-    runs-on: ubuntu-22.04
-    timeout-minutes: 60
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            qt5-qmake qtbase5-dev qtbase5-dev-tools \
-            qtmultimedia5-dev libqt5svg5-dev \
-            libqt5webengine5-dev libqt5webchannel5-dev \
-            libavcodec-dev libavformat-dev libavutil-dev \
-            libswscale-dev libswresample-dev \
-            libmypaint-dev libgperftools-dev \
-            libjson-c-dev libfontconfig1-dev \
-            libfreetype6-dev libpng-dev \
-            curl patch make g++ wget libfuse2
-
-      - name: Build and package with Makefile
-        run: |
-          make package-appimage JOBS=${{ env.JOBS }} COMPRESS=${{ env.COMPRESS }}
-
-      - name: Upload AppImage
-        uses: actions/upload-artifact@v4
-        with:
-          name: enve-x86_64.AppImage
-          path: dist/enve-*.AppImage
 
   package-deb:
     name: Debian Package
@@ -194,16 +161,16 @@ jobs:
 
       - name: Build and package with Makefile
         run: |
-          make package-deb JOBS=${{ env.JOBS }} COMPRESS=${{ env.COMPRESS }}
+          make all VER=${{ env.VER }} PKG=deb JOBS=${{ env.JOBS }} COMPRESS=${{ env.COMPRESS }}
 
       - name: Upload .deb package
         uses: actions/upload-artifact@v4
         with:
-          name: enve_2.0.0_amd64.deb
-          path: dist/enve_*.deb
+          name: enve_0.0.0_amd64.deb
+          path: packing/deb/enve_*.deb
 
   package-pkg:
-    name: Arch Package (PKGBUILD)
+    name: Arch Package
     needs: [build-arch]
     runs-on: ubuntu-22.04
     container: archlinux:latest
@@ -224,10 +191,10 @@ jobs:
 
       - name: Build and package with Makefile
         run: |
-          make package-pkg JOBS=${{ env.JOBS }} COMPRESS=${{ env.COMPRESS }}
+          make all VER=${{ env.VER }} PKG=pkg JOBS=${{ env.JOBS }} COMPRESS=${{ env.COMPRESS }}
 
       - name: Upload Arch package
         uses: actions/upload-artifact@v4
         with:
           name: enve-archlinux.pkg.tar.gz
-          path: dist/enve-*.pkg.tar.gz
+          path: packing/pacman/enve-*.pkg.tar.gz

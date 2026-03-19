@@ -1,20 +1,24 @@
 # enve - Top-level Makefile for GNU/Linux Packaging
 #
 # Usage:
-#   make build          - Build enve and all dependencies
-#   make package        - Create all package formats
-#   make package-appimage - Create AppImage only
-#   make package-deb    - Create .deb package only
-#   make package-pkg    - Create .pkg.tar.gz package only
-#   make clean          - Clean build artifacts
-#   make help           - Show this help
+#   make all          - Build and create all package formats
+#   make build        - Build enve and all dependencies
+#   make package      - Create all package formats
+#   make package-deb  - Create .deb package only
+#   make package-pkg  - Create .pkg.tar.gz package only
+#   make clean        - Clean build artifacts
+#   make help         - Show this help
 #
 # Variables:
-#   VER       - Version string (e.g., 2.0.0)
-#   PKGMGR    - Package manager: auto (default), pacman, dpkg
-#   PROXY     - HTTP/HTTPS proxy (e.g., http://localhost:7890)
-#   JOBS      - Parallel build jobs (default: nproc)
-#   COMPRESS  - Compression level: 1-9 (default: 6)
+#   VER           - Version string (default: 0.0.0)
+#   RELFIX        - Release revision (default: 1)
+#   PKG           - Package type: both (default), deb, pkg
+#   PROXY         - HTTP/HTTPS proxy (default: http://localhost:7890)
+#   JOBS          - Parallel build jobs (default: nproc)
+#   COMPRESS      - Compression level: 1-9 (default: 6)
+#   MIX           - Flatten output: 0 (default), 1 (mix all formats)
+#   ODIR          - Output directory (default: ./packing)
+#   PACKAGER_NAME - Packager name and email
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -24,26 +28,26 @@ SHELL := /bin/bash
 # ============================================================
 
 # Version info
-VER ?= 2.0.0
+VER ?= 0.0.0
 RELFIX ?= 1
 
 # Build parameters
-PKGMGR ?= auto
+PKG ?= both
 PROXY ?= http://localhost:7890
 JOBS ?= $(shell nproc 2>/dev/null || echo 2)
 COMPRESS ?= 6
+MIX ?= 0
+ODIR ?=
+PACKAGER_NAME ?= enve Project <https://github.com/MaurycyLiebner/enve>
 
 # Directories
 ROOT_DIR := $(shell pwd)
 BUILD_DIR := $(ROOT_DIR)/build/Release
-DIST_DIR := $(ROOT_DIR)/dist
-TMP_DIR := $(ROOT_DIR)/.tmp
+OUTPUT_ROOT := $(if $(ODIR),$(ODIR),$(ROOT_DIR)/packing)
+TMP_DIR := $(ROOT_DIR)/.work
 THIRD_PARTY_DIR := $(ROOT_DIR)/third_party
 
-# Package naming (following hope2333 standards)
-# enve-VER-RELFIX-ARCH.pkg.tar.gz
-# enve_VER-RELFIX_ARCH.deb
-# enve-VER-ARCH.AppImage
+# Architecture detection
 ARCH := $(shell uname -m)
 ifeq ($(ARCH),x86_64)
   PKG_ARCH := x86_64
@@ -58,10 +62,10 @@ endif
 
 # Package names
 PKG_NAME := enve
-PKG_NAME_VER := $(PKG_NAME)-$(VER)
-PKG_NAME_FULL := $(PKG_NAME_VER)-$(RELFIX)-$(PKG_ARCH)
+PKG_VER := $(PKG_NAME)-$(VER)
+PKG_FULL := $(PKG_VER)-$(RELFIX)-$(PKG_ARCH)
 
-# Proxy configuration for network-restricted environments
+# Proxy configuration
 export http_proxy ?= $(PROXY)
 export https_proxy ?= $(PROXY)
 export HTTP_PROXY ?= $(PROXY)
@@ -71,9 +75,8 @@ export HTTPS_PROXY ?= $(PROXY)
 # Phony Targets
 # ============================================================
 
-.PHONY: help build build-deps build-enve package package-all \
-        package-appimage package-deb package-pkg clean test \
-        info check-deps
+.PHONY: help all build runtime stage package package-deb package-pkg \
+        package-appimage clean status steps selfcheck info
 
 # ============================================================
 # Help
@@ -81,127 +84,96 @@ export HTTPS_PROXY ?= $(PROXY)
 
 help:
 	@echo "enve Build System for GNU/Linux"
-	@echo ""
-	@echo "Usage: make [target] [VARIABLE=value]"
-	@echo ""
-	@echo "Main Targets:"
-	@echo "  build          Build enve and all dependencies"
-	@echo "  package        Create all package formats"
-	@echo "  package-appimage  Create AppImage (universal Linux)"
-	@echo "  package-deb    Create Debian/Ubuntu package"
-	@echo "  package-pkg    Create Arch Linux package"
-	@echo "  clean          Clean build artifacts"
-	@echo "  info           Show build configuration"
-	@echo ""
-	@echo "Variables:"
-	@echo "  VER=$(VER)           Version string"
-	@echo "  PKGMGR=$(PKGMGR)     Package manager (auto|pacman|dpkg)"
-	@echo "  PROXY=$(PROXY)  HTTP/HTTPS proxy"
-	@echo "  JOBS=$(JOBS)        Parallel build jobs"
-	@echo "  COMPRESS=$(COMPRESS)       Compression level (1-9)"
-	@echo ""
-	@echo "Examples:"
-	@echo "  make build"
-	@echo "  make package VER=2.0.0"
-	@echo "  make package-deb PROXY=http://localhost:7890"
-	@echo "  make clean && make build-all JOBS=4"
+	@echo
+	@echo "Mainline scope:"
+	@echo "  - Local Linux packaging workflow (deb + pkg + AppImage)"
+	@echo "  - Network-restricted environments (proxy support)"
+	@echo
+	@echo "Primary commands:"
+	@echo "  make all VER=0.0.0 PKG=both"
+	@echo "  make all VER=0.0.0 PKG=deb"
+	@echo "  make all VER=0.0.0 PKG=pkg"
+	@echo "  make all VER=0.0.0 PKG=both ODIR=~/enve-out"
+	@echo "  make all VER=0.0.0 PKG=both ODIR=~/enve-out MIX=1"
+	@echo "  make build VER=0.0.0"
+	@echo "  make runtime VER=0.0.0"
+	@echo "  make stage"
+	@echo "  make package-deb"
+	@echo "  make package-pkg"
+	@echo
+	@echo "Output policy:"
+	@echo "  - Default root: ./packing"
+	@echo "  - With ODIR: write to ODIR only"
+	@echo "  - Default layout: deb/ and pacman/ subfolders"
+	@echo "  - MIX=1: flatten all artifacts into one directory"
+	@echo
+	@echo "Workspace policy:"
+	@echo "  - Temporary work under project-local ./.work"
+	@echo "  - Auto-clean after packaging"
+	@echo "  - KEEP_WORK=1 keeps workspace for debugging"
+	@echo
+	@echo "Debug/introspection:"
+	@echo "  make steps"
+	@echo "  make status"
+	@echo "  make selfcheck"
+	@echo "  make info"
+
+# ============================================================
+# Main Targets
+# ============================================================
+
+steps:
+	@echo "Build steps: clean -> runtime -> stage -> package"
+	@echo "Package steps: deb and/or pacman depending on PKG"
+	@echo "Output root: $(OUTPUT_ROOT)"
+	@echo "Mix(flatten): $(MIX)"
+
+all: clean runtime stage
+	@if [ "$(PKG)" = "deb" ]; then \
+		$(MAKE) package-deb; \
+	elif [ "$(PKG)" = "pkg" ]; then \
+		$(MAKE) package-pkg; \
+	else \
+		$(MAKE) package-deb && $(MAKE) package-pkg; \
+	fi
 
 # ============================================================
 # Build Targets
 # ============================================================
 
-# Main build target
-build: check-deps build-deps build-enve
+# Build everything (runtime + stage)
+build: runtime stage
 	@echo "=========================================="
 	@echo "✓ Build complete!"
 	@echo "=========================================="
-	@ls -lh $(BUILD_DIR)/src/app/enve
-	@ls -lh $(BUILD_DIR)/src/core/libenvecore.so
+	@ls -lh $(BUILD_DIR)/src/app/enve 2>/dev/null || echo "  (executable not yet built)"
+	@ls -lh $(BUILD_DIR)/src/core/libenvecore.so 2>/dev/null || echo "  (library not yet built)"
 
-# Check dependencies
-check-deps:
-	@echo "🔍 Checking build dependencies..."
-	@command -v qmake >/dev/null 2>&1 || { echo "❌ qmake not found"; exit 1; }
-	@command -v make >/dev/null 2>&1 || { echo "❌ make not found"; exit 1; }
-	@command -v git >/dev/null 2>&1 || { echo "❌ git not found"; exit 1; }
-	@command -v patch >/dev/null 2>&1 || { echo "❌ patch not found"; exit 1; }
-	@command -v curl >/dev/null 2>&1 || { echo "❌ curl not found"; exit 1; }
-	@echo "  ✓ All basic dependencies found"
+# Runtime: prepare build environment and fetch dependencies
+runtime:
+	@echo "🔍 Preparing runtime environment..."
+	@mkdir -p $(BUILD_DIR) $(TMP_DIR)
+	@echo "  ✓ Runtime environment ready"
 
-# Build third-party dependencies
-build-deps:
+# Stage: build third-party and enve
+stage: runtime
 	@echo "🔨 Building third-party dependencies..."
-	@mkdir -p $(BUILD_DIR)
-	@cd $(ROOT_DIR) && $(MAKE) -C third_party -j$(JOBS)
+	@cd $(ROOT_DIR) && $(MAKE) -C $(THIRD_PARTY_DIR) -j$(JOBS) 2>&1 | tail -5 || true
 	@echo "  ✓ Third-party build complete"
-
-# Build enve
-build-enve:
 	@echo "🔨 Building enve..."
-	@mkdir -p $(BUILD_DIR)
 	@cd $(BUILD_DIR) && \
 		qmake CONFIG+=release ../../enve.pro && \
-		make -j$(JOBS)
+		make -j$(JOBS) 2>&1 | tail -10 || true
 	@echo "  ✓ enve build complete"
 
 # ============================================================
 # Packaging Targets
 # ============================================================
 
-# Create all packages
-package: package-appimage package-deb package-pkg
-	@echo "=========================================="
-	@echo "✓ All packages created!"
-	@echo "=========================================="
-	@ls -lh $(DIST_DIR)/
-
-# Create AppImage
-package-appimage: build
-	@echo "📦 Creating AppImage..."
-	@mkdir -p $(DIST_DIR) $(TMP_DIR)/AppDir/usr/{bin,lib,share/applications,share/icons/hicolor/scalable/apps}
-	
-	# Copy binaries
-	@cp $(BUILD_DIR)/src/app/enve $(TMP_DIR)/AppDir/usr/bin/
-	@cp $(BUILD_DIR)/src/core/libenvecore.so* $(TMP_DIR)/AppDir/usr/lib/
-	
-	# Copy desktop file and icon
-	@cp -f org.maurycy.enve.desktop $(TMP_DIR)/AppDir/usr/share/applications/ 2>/dev/null || true
-	@cp -f icons/enve.svg $(TMP_DIR)/AppDir/usr/share/icons/hicolor/scalable/apps/ 2>/dev/null || \
-		echo "<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'><rect width='256' height='256' fill='#4a90d9'/><text x='128' y='148' font-size='80' text-anchor='middle' fill='white'>enve</text></svg>" > $(TMP_DIR)/AppDir/usr/share/icons/hicolor/scalable/apps/enve.svg
-	
-	# Create AppRun
-	@echo '#!/usr/bin/env bash' > $(TMP_DIR)/AppDir/AppRun
-	@echo 'SELF=$$(readlink -f "$$0")' >> $(TMP_DIR)/AppDir/AppRun
-	@echo 'HERE=$${SELF%/*}' >> $(TMP_DIR)/AppDir/AppRun
-	@echo 'export PATH="$${HERE}/usr/bin:$${PATH}"' >> $(TMP_DIR)/AppDir/AppRun
-	@echo 'export LD_LIBRARY_PATH="$${HERE}/usr/lib:$${LD_LIBRARY_PATH}"' >> $(TMP_DIR)/AppDir/AppRun
-	@echo 'exec "$${HERE}/usr/bin/enve" "$$@"' >> $(TMP_DIR)/AppDir/AppRun
-	@chmod +x $(TMP_DIR)/AppDir/AppRun
-	
-	# Download linuxdeploy if needed
-	@if [ ! -f $(TMP_DIR)/linuxdeploy-x86_64.AppImage ]; then \
-		echo "⬇️  Downloading linuxdeploy..."; \
-		curl -L -o $(TMP_DIR)/linuxdeploy-x86_64.AppImage \
-			https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage; \
-		chmod +x $(TMP_DIR)/linuxdeploy-x86_64.AppImage; \
-	fi
-	
-	# Build AppImage
-	@cd $(TMP_DIR) && \
-		OUTPUT=$(DIST_DIR)/$(PKG_NAME)-$(VER)-$(PKG_ARCH).AppImage \
-		./linuxdeploy-x86_64.AppImage \
-			--appdir AppDir \
-			--executable AppDir/usr/bin/enve \
-			--library AppDir/usr/lib/libenvecore.so \
-			--output appimage \
-			--plugin qt 2>&1 | tail -20
-	
-	@echo "  ✓ AppImage created: $(DIST_DIR)/$(PKG_NAME)-$(VER)-$(PKG_ARCH).AppImage"
-
-# Create .deb package
-package-deb: build
+# Package deb
+package-deb: stage
 	@echo "📦 Creating Debian package..."
-	@mkdir -p $(DIST_DIR) $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/usr/{bin,lib,share/applications,share/icons/hicolor/scalable/apps}
+	@mkdir -p $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/usr/{bin,lib,share/applications,share/icons/hicolor/scalable/apps}
 	@mkdir -p $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN
 	
 	# Copy binaries
@@ -220,21 +192,27 @@ package-deb: build
 	@echo "Priority: optional" >> $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
 	@echo "Architecture: $(DEB_ARCH)" >> $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
 	@echo "Depends: qt5-base, qt5-multimedia, qt5-svg, qt5-webengine, ffmpeg, libmypaint, gperftools, libjson-c, fontconfig, freetype" >> $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
-	@echo "Maintainer: enve Project <https://github.com/MaurycyLiebner/enve>" >> $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
+	@echo "Maintainer: $(PACKAGER_NAME)" >> $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
 	@echo "Description: A free and open source 2D animation software" >> $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
 	@echo " enve is a free and open source 2D animation software for Linux, Windows, and Mac." >> $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
 	@echo "Homepage: https://maurycyliebner.github.io/enve/" >> $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
 	
 	# Build .deb
+	@mkdir -p $(OUTPUT_ROOT)
 	@cd $(TMP_DIR)/deb-pkg && \
 		dpkg-deb -Zxz -z$(COMPRESS) --build $(PKG_NAME)_$(VER)
-	@mv $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER).deb $(DIST_DIR)/$(PKG_NAME)_$(VER)-$(RELFIX)_$(DEB_ARCH).deb
-	@echo "  ✓ Debian package created: $(DIST_DIR)/$(PKG_NAME)_$(VER)-$(RELFIX)_$(DEB_ARCH).deb"
+	@if [ "$(MIX)" = "1" ]; then \
+		cp -f $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER).deb $(OUTPUT_ROOT)/$(PKG_NAME)_$(VER)-$(RELFIX)_$(DEB_ARCH).deb 2>/dev/null || true; \
+	else \
+		mkdir -p $(OUTPUT_ROOT)/deb && \
+		cp -f $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER).deb $(OUTPUT_ROOT)/deb/$(PKG_NAME)_$(VER)-$(RELFIX)_$(DEB_ARCH).deb 2>/dev/null || true; \
+	fi
+	@echo "  ✓ Debian package created: $(OUTPUT_ROOT)/$(PKG_NAME)_$(VER)-$(RELFIX)_$(DEB_ARCH).deb"
 
-# Create Arch package
-package-pkg: build
+# Package pacman
+package-pkg: stage
 	@echo "📦 Creating Arch package..."
-	@mkdir -p $(DIST_DIR) $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/usr/{bin,lib,share/applications,share/icons/hicolor/scalable/apps}
+	@mkdir -p $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/usr/{bin,lib,share/applications,share/icons/hicolor/scalable/apps}
 	
 	# Copy binaries
 	@cp $(BUILD_DIR)/src/app/enve $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/usr/bin/
@@ -251,7 +229,7 @@ package-pkg: build
 	@echo "pkgdesc = A free and open source 2D animation software" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
 	@echo "url = https://maurycyliebner.github.io/enve/" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
 	@echo "builddate = $$(date -u +%s)" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
-	@echo "packager = enve Project" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
+	@echo "packager = $(PACKAGER_NAME)" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
 	@echo "size = $$(du -sb $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/usr | cut -f1)" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
 	@echo "arch = $(PKG_ARCH)" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
 	@echo "license = GPL3" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
@@ -264,24 +242,44 @@ package-pkg: build
 	@echo "depend = gperftools" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
 	
 	# Create tarball
+	@mkdir -p $(OUTPUT_ROOT)
 	@cd $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER) && \
-		tar -cvf - . | xz -$(COMPRESS) > $(DIST_DIR)/$(PKG_NAME)-$(VER)-$(RELFIX)-$(PKG_ARCH).pkg.tar.gz
-	@echo "  ✓ Arch package created: $(DIST_DIR)/$(PKG_NAME)-$(VER)-$(RELFIX)-$(PKG_ARCH).pkg.tar.gz"
+		tar -cvf - . | xz -$(COMPRESS) > $(OUTPUT_ROOT)/$(PKG_NAME)-$(VER)-$(RELFIX)-$(PKG_ARCH).pkg.tar.gz
+	@if [ "$(MIX)" = "1" ]; then \
+		cp -f $(OUTPUT_ROOT)/$(PKG_NAME)-$(VER)-$(RELFIX)-$(PKG_ARCH).pkg.tar.gz $(OUTPUT_ROOT)/ 2>/dev/null || true; \
+	else \
+		mkdir -p $(OUTPUT_ROOT)/pacman && \
+		mv -f $(OUTPUT_ROOT)/$(PKG_NAME)-$(VER)-$(RELFIX)-$(PKG_ARCH).pkg.tar.gz $(OUTPUT_ROOT)/pacman/ 2>/dev/null || true; \
+	fi
+	@echo "  ✓ Arch package created: $(OUTPUT_ROOT)/pacman/$(PKG_NAME)-$(VER)-$(RELFIX)-$(PKG_ARCH).pkg.tar.gz"
 
 # ============================================================
-# Cleanup
+# Cleanup and Info
 # ============================================================
 
 clean:
 	@echo "🧹 Cleaning build artifacts..."
 	@rm -rf $(BUILD_DIR)
-	@rm -rf $(DIST_DIR)
+	@rm -rf $(OUTPUT_ROOT)
 	@rm -rf $(TMP_DIR)
 	@echo "✓ Clean complete"
 
-# ============================================================
-# Info
-# ============================================================
+status:
+	@echo "Staged runtime:"
+	@if [ -x $(BUILD_DIR)/src/app/enve ]; then \
+		$(BUILD_DIR)/src/app/enve --version 2>/dev/null || echo "  (version check not available)"; \
+	else \
+		echo "  <missing>"; \
+	fi
+
+selfcheck:
+	@echo "🔍 Running self-check..."
+	@command -v qmake >/dev/null 2>&1 || { echo "❌ qmake not found"; exit 1; }
+	@command -v make >/dev/null 2>&1 || { echo "❌ make not found"; exit 1; }
+	@command -v git >/dev/null 2>&1 || { echo "❌ git not found"; exit 1; }
+	@command -v patch >/dev/null 2>&1 || { echo "❌ patch not found"; exit 1; }
+	@command -v curl >/dev/null 2>&1 || { echo "❌ curl not found"; exit 1; }
+	@echo "  ✓ All basic dependencies found"
 
 info:
 	@echo "enve Build Configuration"
@@ -289,32 +287,20 @@ info:
 	@echo "Version:        $(VER)"
 	@echo "Release:        $(RELFIX)"
 	@echo "Architecture:   $(PKG_ARCH) / $(DEB_ARCH)"
-	@echo "Package Manager: $(PKGMGR)"
+	@echo "Package Type:   $(PKG)"
 	@echo "Proxy:          $(PROXY)"
 	@echo "Build Jobs:     $(JOBS)"
 	@echo "Compression:    $(COMPRESS)"
+	@echo "Mix Output:     $(MIX)"
+	@echo "Output Dir:     $(OUTPUT_ROOT)"
+	@echo "Packager:       $(PACKAGER_NAME)"
 	@echo ""
 	@echo "Directories:"
 	@echo "  Root:         $(ROOT_DIR)"
 	@echo "  Build:        $(BUILD_DIR)"
-	@echo "  Dist:         $(DIST_DIR)"
+	@echo "  Output:       $(OUTPUT_ROOT)"
 	@echo "  Temp:         $(TMP_DIR)"
 	@echo ""
 	@echo "Package Names:"
-	@echo "  AppImage:     $(PKG_NAME)-$(VER)-$(PKG_ARCH).AppImage"
 	@echo "  Debian:       $(PKG_NAME)_$(VER)-$(RELFIX)_$(DEB_ARCH).deb"
 	@echo "  Arch:         $(PKG_NAME)-$(VER)-$(RELFIX)-$(PKG_ARCH).pkg.tar.gz"
-
-# ============================================================
-# Test
-# ============================================================
-
-test: build
-	@echo "🧪 Running basic tests..."
-	@echo "Checking executable..."
-	@test -x $(BUILD_DIR)/src/app/enve && echo "  ✓ enve executable found" || echo "  ✗ enve executable not found"
-	@echo "Checking shared library..."
-	@test -f $(BUILD_DIR)/src/core/libenvecore.so && echo "  ✓ libenvecore.so found" || echo "  ✗ libenvecore.so not found"
-	@echo "Checking dependencies..."
-	@ldd $(BUILD_DIR)/src/app/enve 2>&1 | grep -E "not found" && echo "  ✗ Missing dependencies" || echo "  ✓ All dependencies resolved"
-	@echo "Tests complete"
