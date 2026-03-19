@@ -1,0 +1,200 @@
+name: Multi-Distro Build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/linux-multi-distro.yml"
+      - "Makefile"
+      - "scripts/ci/**"
+      - "*.pro"
+      - "src/**/*.pro"
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - ".github/workflows/linux-multi-distro.yml"
+      - "Makefile"
+      - "scripts/ci/**"
+      - "*.pro"
+      - "src/**/*.pro"
+
+env:
+  PROXY: http://localhost:7890
+  JOBS: 2
+  COMPRESS: 6
+  VER: 0.0.0
+
+jobs:
+  build-ubuntu:
+    name: Ubuntu 22.04 (Qt 5.15)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 240
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            qt5-qmake qtbase5-dev qtbase5-dev-tools \
+            qtmultimedia5-dev libqt5svg5-dev \
+            libqt5webengine5-dev libqt5webchannel5-dev \
+            libavcodec-dev libavformat-dev libavutil-dev \
+            libswscale-dev libswresample-dev \
+            libmypaint-dev libgperftools-dev \
+            libjson-c-dev libfontconfig1-dev \
+            libfreetype6-dev libpng-dev \
+            curl patch make g++ wget libfuse2
+
+      - name: Build with Makefile
+        run: |
+          make build VER=${{ env.VER }} JOBS=${{ env.JOBS }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: enve-ubuntu-22.04
+          path: |
+            build/Release/src/app/enve
+            build/Release/src/core/libenvecore.so*
+
+  build-debian:
+    name: Debian 12 (Bookworm)
+    runs-on: ubuntu-22.04
+    container: debian:bookworm
+    timeout-minutes: 240
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y \
+            qt5-qmake qtbase5-dev qtbase5-dev-tools \
+            qtmultimedia5-dev libqt5svg5-dev \
+            libqt5webengine5-dev libqt5webchannel5-dev \
+            libavcodec-dev libavformat-dev libavutil-dev \
+            libswscale-dev libswresample-dev \
+            libmypaint-dev libgperftools-dev \
+            libjson-c-dev libfontconfig1-dev \
+            libfreetype6-dev libpng-dev \
+            curl patch make g++ git wget
+
+      - name: Build with Makefile
+        run: |
+          make build VER=${{ env.VER }} JOBS=${{ env.JOBS }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: enve-debian-12
+          path: |
+            build/Release/src/app/enve
+            build/Release/src/core/libenvecore.so*
+
+  build-arch:
+    name: Arch Linux (Latest Qt)
+    runs-on: ubuntu-22.04
+    container: archlinux:latest
+    timeout-minutes: 240
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm \
+            qt5-base qt5-multimedia qt5-svg \
+            qt5-webengine qt5-webchannel \
+            ffmpeg libmypaint gperftools \
+            json-c fontconfig freetype2 libpng \
+            curl patch make gcc git wget
+
+      - name: Build with Makefile
+        run: |
+          make build VER=${{ env.VER }} JOBS=${{ env.JOBS }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: enve-archlinux
+          path: |
+            build/Release/src/app/enve
+            build/Release/src/core/libenvecore.so*
+
+  package-deb:
+    name: Debian Package
+    needs: [build-debian]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            qt5-qmake qtbase5-dev qtbase5-dev-tools \
+            qtmultimedia5-dev libqt5svg5-dev \
+            libqt5webengine5-dev libqt5webchannel5-dev \
+            libavcodec-dev libavformat-dev libavutil-dev \
+            libswscale-dev libswresample-dev \
+            libmypaint-dev libgperftools-dev \
+            libjson-c-dev libfontconfig1-dev \
+            libfreetype6-dev libpng-dev \
+            curl patch make g++ wget
+
+      - name: Build and package with Makefile
+        run: |
+          make all VER=${{ env.VER }} PKG=deb JOBS=${{ env.JOBS }} COMPRESS=${{ env.COMPRESS }}
+
+      - name: Upload .deb package
+        uses: actions/upload-artifact@v4
+        with:
+          name: enve_0.0.0_amd64.deb
+          path: packing/deb/enve_*.deb
+
+  package-pkg:
+    name: Arch Package
+    needs: [build-arch]
+    runs-on: ubuntu-22.04
+    container: archlinux:latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm \
+            qt5-base qt5-multimedia qt5-svg \
+            qt5-webengine qt5-webchannel \
+            ffmpeg libmypaint gperftools \
+            json-c fontconfig freetype2 libpng \
+            curl patch make gcc git wget
+
+      - name: Build and package with Makefile
+        run: |
+          make all VER=${{ env.VER }} PKG=pkg JOBS=${{ env.JOBS }} COMPRESS=${{ env.COMPRESS }}
+
+      - name: Upload Arch package
+        uses: actions/upload-artifact@v4
+        with:
+          name: enve-archlinux.pkg.tar.gz
+          path: packing/pacman/enve-*.pkg.tar.gz
