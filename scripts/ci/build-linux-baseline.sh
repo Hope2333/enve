@@ -182,8 +182,8 @@ build_gperftools() {
 }
 
 build_qscintilla() {
-  pushd "${ROOT_DIR}/third_party/qscintilla" >/dev/null
-  qmake CONFIG+=release
+  pushd "${ROOT_DIR}/third_party/qscintilla/Qt4Qt5" >/dev/null
+  qmake qscintilla.pro CONFIG+=release
   make -j"${JOBS}"
   popd >/dev/null
 }
