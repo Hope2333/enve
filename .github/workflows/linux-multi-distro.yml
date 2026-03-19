@@ -44,7 +44,7 @@ jobs:
           sudo apt-get install -y \
             qt5-qmake qtbase5-dev qtbase5-dev-tools \
             qtmultimedia5-dev libqt5svg5-dev \
-            libqt5webenginewidgets5-dev libqt5webchannel5-dev \
+            libqt5webchannel5-dev \
             libavcodec-dev libavformat-dev libavutil-dev \
             libswscale-dev libswresample-dev \
             libmypaint-dev libgoogle-perftools-dev \
@@ -86,7 +86,7 @@ jobs:
           apt-get install -y \
             qt5-qmake qtbase5-dev qtbase5-dev-tools \
             qtmultimedia5-dev libqt5svg5-dev \
-            libqt5webenginewidgets5-dev libqt5webchannel5-dev \
+            libqt5webchannel5-dev \
             libavcodec-dev libavformat-dev libavutil-dev \
             libswscale-dev libswresample-dev \
             libmypaint-dev libgoogle-perftools-dev \
@@ -125,7 +125,7 @@ jobs:
       - name: Install dependencies
         run: |
           pacman -Syu --noconfirm \
-            qt5-base qt5-multimedia qt5-svg \
+            qt5-base qt5-multimedia qt5-svg qt5-qml qt5-quick \
             ffmpeg libmypaint gperftools \
             json-c fontconfig freetype2 libpng \
             curl patch make gcc git wget
@@ -158,7 +158,7 @@ jobs:
           sudo apt-get install -y \
             qt5-qmake qtbase5-dev qtbase5-dev-tools \
             qtmultimedia5-dev libqt5svg5-dev \
-            libqt5webenginewidgets5-dev libqt5webchannel5-dev \
+            libqt5webchannel5-dev \
             libavcodec-dev libavformat-dev libavutil-dev \
             libswscale-dev libswresample-dev \
             libmypaint-dev libgoogle-perftools-dev \
@@ -194,7 +194,7 @@ jobs:
       - name: Install dependencies
         run: |
           pacman -Syu --noconfirm \
-            qt5-base qt5-multimedia qt5-svg \
+            qt5-base qt5-multimedia qt5-svg qt5-qml qt5-quick \
             ffmpeg libmypaint gperftools \
             json-c fontconfig freetype2 libpng \
             curl patch make gcc git wget
