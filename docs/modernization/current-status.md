@@ -18,7 +18,8 @@
 - `preflight` runs automatically on pull requests and pushes that touch workflow or build files.
 - `Build (Linux)` runs only on `workflow_dispatch` until the compile path is stable.
 - Successful build artifacts are expected at `build/Release/src/app/enve` and `build/Release/src/core/libenvecore.so*`.
-- Validation run `23281619400` is in progress for commit `9f4c60d9`.
+- Validation run `23282109523` is in progress for commit `9f4c60d9` (QPainterPath fix).
+- Build baseline step currently running as of 2026-03-19 06:25:00 UTC.
 
 ## Active Blockers
 

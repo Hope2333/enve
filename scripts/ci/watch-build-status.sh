@@ -3,11 +3,11 @@
 # watch-build-status.sh - Monitor GitHub Actions build status
 #
 # Usage:
-#   ./scripts/ci/watch-build-status.sh [RUN_ID] [REPO] [INTERVAL]
+#   ./scripts/ci/watch-build-status.sh [REPO] [RUN_ID] [INTERVAL]
 #
 # Defaults:
-#   RUN_ID  - Latest in-progress run for chore/linux-baseline-actions
 #   REPO    - Hope2333/enve
+#   RUN_ID  - Latest in-progress run for chore/linux-baseline-actions
 #   INTERVAL - 45 seconds
 #
 

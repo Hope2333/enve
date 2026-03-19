@@ -1,10 +1,11 @@
 # AI Handoff: Linux Baseline Recovery
 
-- Snapshot time: 2026-03-19 06:15:00 UTC
+- Snapshot time: 2026-03-19 06:25:00 UTC
 - Owner branch: `chore/linux-baseline-actions`
 - Fork remote: `origin` -> `git@github.com:Hope2333/enve.git`
 - Upstream remote: `upstream` -> `git@github.com:MaurycyLiebner/enve.git`
 - Default fork branch: `origin/master`
+- Head commit: `b9f5a258` (Update handoff with run 23282109523 status.)
 
 ## What Is Stable Right Now
 
@@ -13,7 +14,7 @@
 - `.omx/` should remain uncommitted.
 - Documentation was already refreshed in commit `22ad984a` (`Refresh modernization documentation.`).
 - The latest CI fix commit is `9f4c60d9` (`Fix QPainterPath incomplete type in graphanimator.h.`), following `1815ab0d` (`Fix QScintilla qmake target in baseline build.`).
-- Build monitor script added: `scripts/ci/watch-build-status.sh`
+- Build monitor script added: `scripts/ci/watch-build-status.sh` (usage corrected).
 - `scripts/ci/preflight-linux-baseline.sh` passes locally.
 - `.github/workflows/linux-baseline.yml` is the active Linux recovery lane.
 - `Preflight` runs automatically on relevant pushes and pull requests.
@@ -23,8 +24,9 @@
 
 - Latest workflow run: `23282109523`
 - URL: `https://github.com/Hope2333/enve/actions/runs/23282109523`
-- Status at snapshot time: Just triggered
-- Triggered by: commit sequence `9f4c60d9` -> `f551f1c7` -> `c89a5232`
+- Status at snapshot time: `in_progress` (Build baseline step running)
+- Updated at: `2026-03-19T06:03:14Z`
+- Triggered by: commit sequence `9f4c60d9` -> `f551f1c7` -> `c89a5232` -> `b9f5a258`
 - Previous run `23281619400`: `completed` / `failure` / failed at `graphanimator.h:105` - `QPainterPath` incomplete type
 - Previous run `23280524470`: `completed` / `failure` / failed at core compilation due to `QPainterPath` incomplete type
 
