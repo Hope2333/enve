@@ -51,30 +51,21 @@
 
 ## Immediate Next Actions
 
-**Phase 1 COMPLETE! Ready for Phase 2.**
+**Phase 1 COMPLETE! Phase 2 in progress.**
 
 1. ✅ Root cause diagnosed: workflow fix was committed AFTER PR #6 merge.
 2. ✅ PR #7 created and MERGED.
 3. ✅ First automatic build run `23306463704`: SUCCESS.
 4. ✅ Phase 1 exit criteria PROVEN: automatic Build (Linux) on push is working.
 5. ✅ Multi-Distro Build: SUCCESS (Ubuntu/Debian/Arch all building).
-6. Next: Begin Phase 2 dependency-boundary hardening.
+6. ✅ Phase 2 started: dependency-boundary hardening in progress.
 
-Phase 2 targets (in priority order):
-1. `gperftools` - Make optional (profiling only, not core functionality)
-   - Add `ENVE_USE_GPERFTOOLS` build flag
-   - Default: enabled for backwards compatibility
-2. WebEngine preview - Make optional (SVG preview feature)
-   - Add `ENVE_USE_WEBENGINE` build flag
-   - Default: enabled
-3. QScintilla - Make optional (scripting editor)
-   - Add `ENVE_USE_QSCINTILLA` build flag
-   - Default: enabled
-4. OpenMP - Make optional (parallelism)
-   - Add `ENVE_USE_OPENMP` build flag
-   - Default: enabled
-5. Examples - Make optional (sample effects)
-   - Already has `ENVE_BUILD_EXAMPLES` flag
+Phase 2 progress (dependency boundaries):
+1. ✅ `gperftools` - `ENVE_USE_GPERFTOOLS` flag added to app.pro and Makefile
+2. ✅ `OpenMP` - `ENVE_USE_OPENMP` flag added to core.pri and Makefile
+3. ✅ `WebEngine` - `ENVE_USE_WEBENGINE` flag added to Makefile (pending core.pri if needed)
+4. ✅ `QScintilla` - `ENVE_USE_QSCINTILLA` flag added to Makefile (app.pro already uses it)
+5. ✅ `Examples` - `ENVE_BUILD_EXAMPLES` flag already existed
 
 Phase 2 approach:
 - Add build flags to enable/disable each optional dependency
