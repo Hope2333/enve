@@ -29,31 +29,16 @@
 
 ## Current Live CI State
 
-- ✅ **First automatic build on master: SUCCESS**
-- Run: `23306463704`
-- URL: `https://github.com/Hope2333/enve/actions/runs/23306463704`
-- Event: `push` (automatic trigger from PR #7 merge)
-- Status: `completed`
-- Conclusion: `success`
-- Duration: ~14 minutes
-- This PROVES Phase 1 exit criteria: automatic Build (Linux) on push is now working.
+- ✅ **First automatic build on master: SUCCESS** (run `23306463704`)
+- ✅ **Multi-Distro Build: SUCCESS** (run `23310875934`)
+  - Ubuntu 22.04 (Qt 5.15): ✅ success
+  - Debian 12 (Bookworm): ✅ success
+  - Arch Linux (Latest Qt): ✅ success
+  - Package steps: ⏸️ temporarily disabled (libmypaint header issues)
 
 - PR #7: MERGED at 2026-03-19T16:53:14Z
-
-- Previous post-merge `push` run on `master`: `23288282562`
-- URL: `https://github.com/Hope2333/enve/actions/runs/23288282562`
-- Event: `push`
-- Overall conclusion: `success`
-- What actually happened:
-  - `Preflight`: `success`
-  - `Build (Linux)`: `skipped` (workflow at merge commit still had `workflow_dispatch`-only condition)
-- Root cause: The workflow fix (adding `|| github.event_name == 'push'`) was committed AFTER the PR #6 merge, not included in PR #6 itself.
-- Fix: PR #7 created and MERGED at 2026-03-19T16:53:14Z.
-
-- Full master validation run: `23288361000`
-- URL: `https://github.com/Hope2333/enve/actions/runs/23288361000`
-- Event: `workflow_dispatch`
-- Conclusion: `success`
+- Phase 1: **COMPLETE** - automatic Build (Linux) on push is proven working
+- Phase 2: **READY TO START** - dependency-boundary hardening
 
 ## Practical Interpretation
 
@@ -72,14 +57,24 @@
 2. ✅ PR #7 created and MERGED.
 3. ✅ First automatic build run `23306463704`: SUCCESS.
 4. ✅ Phase 1 exit criteria PROVEN: automatic Build (Linux) on push is working.
-5. Next: Begin Phase 2 dependency-boundary hardening.
+5. ✅ Multi-Distro Build: SUCCESS (Ubuntu/Debian/Arch all building).
+6. Next: Begin Phase 2 dependency-boundary hardening.
 
 Phase 2 targets (in priority order):
 1. `gperftools` - Make optional (profiling only, not core functionality)
+   - Add `ENVE_USE_GPERFTOOLS` build flag
+   - Default: enabled for backwards compatibility
 2. WebEngine preview - Make optional (SVG preview feature)
+   - Add `ENVE_USE_WEBENGINE` build flag
+   - Default: enabled
 3. QScintilla - Make optional (scripting editor)
+   - Add `ENVE_USE_QSCINTILLA` build flag
+   - Default: enabled
 4. OpenMP - Make optional (parallelism)
+   - Add `ENVE_USE_OPENMP` build flag
+   - Default: enabled
 5. Examples - Make optional (sample effects)
+   - Already has `ENVE_BUILD_EXAMPLES` flag
 
 Phase 2 approach:
 - Add build flags to enable/disable each optional dependency
@@ -88,6 +83,10 @@ Phase 2 approach:
 - Do NOT start CMake migration yet
 - Do NOT start Qt 6 migration yet
 - Do NOT start dependency replacement yet
+
+Multi-Distro Build notes:
+- Package steps temporarily disabled (libmypaint header issues)
+- Will be fixed in Phase 2 when we add proper include paths
 
 ## Commands Worth Reusing
 
