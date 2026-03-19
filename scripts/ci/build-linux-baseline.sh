@@ -29,13 +29,6 @@ require_cmd qmake
 require_cmd patch
 require_cmd curl
 
-run_third_party_make() {
-  make -C "${ROOT_DIR}/third_party" \
-    SHELL=/bin/bash \
-    .SHELLFLAGS="-eu -o pipefail -c" \
-    "$@"
-}
-
 verify_artifact() {
   local label="$1"
   local pattern="$2"
@@ -112,9 +105,8 @@ require_skia_network_if_needed() {
   done
 }
 
-apply_skia_python3_fixes_if_needed() {
+apply_skia_pre_sync_python3_fixes_if_needed() {
   local is_clang_py="${ROOT_DIR}/third_party/skia/gn/is_clang.py"
-  local icu_make_data_py="${ROOT_DIR}/third_party/skia/third_party/externals/icu/scripts/make_data_assembly.py"
   if [[ ! -f "${is_clang_py}" ]]; then
     return
   fi
@@ -127,10 +119,58 @@ apply_skia_python3_fixes_if_needed() {
     sed -i "s/'clang' in subprocess.check_output('%s --version' % cxx, shell=True)/b'clang' in subprocess.check_output('%s --version' % cxx, shell=True)/" "${is_clang_py}"
   fi
 
+}
+
+apply_skia_post_sync_python3_fixes_if_needed() {
+  local icu_make_data_py="${ROOT_DIR}/third_party/skia/third_party/externals/icu/scripts/make_data_assembly.py"
   if [[ -f "${icu_make_data_py}" ]] && grep -q '^    print "Generated " + output_file$' "${icu_make_data_py}"; then
     echo "Applying Skia Python 3 compatibility fix (make_data_assembly.py)..."
     sed -i 's/^    print "Generated " + output_file$/    print("Generated " + output_file)/' "${icu_make_data_py}"
   fi
+}
+
+build_skia() {
+  pushd "${ROOT_DIR}/third_party/skia" >/dev/null
+
+  apply_skia_pre_sync_python3_fixes_if_needed
+  python tools/git-sync-deps
+  apply_skia_post_sync_python3_fixes_if_needed
+
+  bin/gn gen out/Release --args='is_official_build=true is_debug=false extra_cflags=["-Wno-error"] skia_use_system_expat=false skia_use_system_icu=false skia_use_system_libjpeg_turbo=false skia_use_system_libpng=false skia_use_system_libwebp=false skia_use_system_zlib=false'
+  ninja -C out/Release -j"${JOBS}" skia
+
+  popd >/dev/null
+}
+
+build_libmypaint() {
+  pushd "${ROOT_DIR}/third_party/libmypaint" >/dev/null
+  ./autogen.sh
+  ./configure --enable-static --enable-shared=false
+  make -j"${JOBS}"
+  ln -sfn "$(pwd)" libmypaint
+  popd >/dev/null
+}
+
+build_quazip() {
+  pushd "${ROOT_DIR}/third_party/quazip" >/dev/null
+  qmake quazip.pro CONFIG+=release
+  make -j"${JOBS}"
+  popd >/dev/null
+}
+
+build_gperftools() {
+  pushd "${ROOT_DIR}/third_party/gperftools" >/dev/null
+  ./autogen.sh
+  ./configure --prefix /usr LIBS=-lpthread
+  make -j"${JOBS}"
+  popd >/dev/null
+}
+
+build_qscintilla() {
+  pushd "${ROOT_DIR}/third_party/qscintilla" >/dev/null
+  qmake CONFIG+=release
+  make -j"${JOBS}"
+  popd >/dev/null
 }
 
 echo "Using root: ${ROOT_DIR}"
@@ -150,17 +190,21 @@ verify_submodule_checkout
 
 if [[ "${SKIP_THIRD_PARTY}" != "1" ]]; then
   echo "Building third-party dependencies..."
-  if [[ "${USE_PREBUILT_SKIA}" != "1" ]]; then
-    require_skia_network_if_needed
-    apply_skia_python3_fixes_if_needed
-  fi
   apply_gperftools_patch_if_needed
+
   if [[ "${USE_PREBUILT_SKIA}" == "1" ]]; then
     verify_artifact "skia" "${ROOT_DIR}/third_party/skia/out/Release/libskia.a"
-    run_third_party_make libmypaint quazip gperftools qscintilla
   else
-    run_third_party_make build
+    require_skia_network_if_needed
+    build_skia
   fi
+
+  build_libmypaint
+  build_quazip
+  build_gperftools
+  build_qscintilla
+
+  verify_artifact "skia" "${ROOT_DIR}/third_party/skia/out/Release/libskia.a"
   verify_third_party_artifacts
 else
   echo "Skipping third-party build (ENVE_SKIP_THIRD_PARTY=1)."
