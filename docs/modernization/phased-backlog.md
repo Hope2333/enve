@@ -5,6 +5,7 @@
 - Phase 0 is complete on the recovery branch: one Linux baseline build has passed end to end.
 - Phase 1 is now focused on master validation and CI policy stabilization.
 - Phases 2 through 7 remain planned work and should not be mixed into the current stabilization gate.
+- The recovered Ubuntu 22.04 + Qt 5.15.x lane is no longer hypothetical future work; later phases should treat it as the baseline to formalize and harden.
 
 ## Phase 0: Baseline Recovery
 
@@ -34,25 +35,27 @@ Exit criteria:
 - Every change runs a Linux build automatically.
 - CI failures are actionable without reproducing everything locally.
 
-## Phase 2: Dependency Classification and Flags
+## Phase 2: Dependency Boundary Hardening
 
-Goal: separate hard requirements from optional features.
+Goal: turn obvious optional features into explicit build choices so the base Linux build surface becomes smaller and easier to reason about.
 
 - Confirm which dependencies are strictly required for core app startup.
-- Add build flags or documented toggles for optional pieces such as `gperftools`, OpenMP, and WebEngine preview.
-- Update the dependency ledger with ownership and upgrade notes.
+- Add real build flags or clearly enforced toggles for optional pieces such as `gperftools`, WebEngine preview, QScintilla, OpenMP, and examples.
+- Keep provider replacement out of scope here; this phase is about boundaries, not new vendors.
+- Update the dependency ledger with ownership, default-on/default-off intent, and upgrade notes.
 
 Exit criteria:
 - Optional dependencies are explicit instead of implicit.
-- The base build can be discussed independently from profiling or preview extras.
+- The base build can be discussed independently from profiling, preview, editor, or example extras.
 
-## Phase 3: Toolchain Refresh
+## Phase 3: Toolchain Consolidation
 
-Goal: move to a supported compiler and Qt 5 compatibility line without changing the app architecture.
+Goal: formalize the already-recovered Linux reference lane and pay down the remaining source and documentation fallout without changing the app architecture.
 
 - Formalize the recovered Ubuntu 22.04 distro compiler lane as the supported Linux baseline.
 - Treat the already-proven Qt `5.15.x` compatibility lane as the current reference, then fix any remaining fallout explicitly.
-- Fix compile or deprecation fallout while keeping behavior stable.
+- Remove or update stale documentation that still points at Qt `5.12.4`, `g++-7`, or Travis-era assumptions.
+- Fix compile, warning, or deprecation fallout while keeping behavior stable.
 
 Exit criteria:
 - CI passes on the new compiler and Qt 5 lane.
@@ -122,3 +125,4 @@ Exit criteria:
 - The highest-risk areas are Skia integration, FFmpeg integration, GPU rendering, and libmypaint-backed painting flows.
 - Avoid combining build-system migration with Qt major-version migration.
 - Avoid changing packaging and runtime dependency strategy in the same phase as compiler or Qt upgrades.
+- Avoid starting the first CMake lane before Phase 2 has made the optional-feature boundaries explicit, or the initial CMake graph will inherit avoidable complexity.

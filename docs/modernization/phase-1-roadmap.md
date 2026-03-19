@@ -9,6 +9,13 @@ Turn the first successful branch-side Linux baseline build into a stable, repeat
 - A full Linux baseline build has already passed on the branch.
 - The recovery lane is running on `ubuntu-22.04` with distro Qt 5.15.x packages, not the old Travis-era Qt 5.12.4 lane.
 - The next technical gate is not baseline recovery anymore; it is master validation and CI stabilization.
+- PR checks are currently misleading if read casually: `Preflight` runs on pull requests, but `Build (Linux)` is still skipped unless the workflow is triggered manually.
+
+## Gate Clarifications
+
+- A green pull request check does not currently prove full build health.
+- Phase 1 is not complete until `master` has at least one successful full Linux baseline run after the recovery branch is merged.
+- Phase 2 work should stay queued until the CI trigger policy, reference-lane documentation, smoke contract, and dependency-boundary candidate list are all in place.
 
 ## Workstreams
 
@@ -40,7 +47,8 @@ Turn the first successful branch-side Linux baseline build into a stable, repeat
 ### 5. Dependency Classification
 
 - Separate hard requirements from optional features.
-- Start with `gperftools`, OpenMP, WebEngine preview, and examples.
+- Start with `gperftools`, WebEngine preview, QScintilla, OpenMP, and examples.
+- Produce the concrete Phase 2 implementation list, but keep the actual flagging/removal work behind the Phase 1 exit gate unless a tiny, low-risk change is required for CI stability.
 - Prefer explicit build flags over undocumented assumptions.
 
 ## Exit Criteria
@@ -52,6 +60,7 @@ Phase 1 is complete when:
 3. The recovered Ubuntu 22.04 + Qt 5.15.x lane is documented as the current Linux reference baseline.
 4. A minimum smoke verification contract is documented.
 5. Optional dependency candidates are identified with concrete next actions.
+6. The team no longer confuses PR-side `preflight` success with a full baseline build signal.
 
 ## Non-Goals
 
