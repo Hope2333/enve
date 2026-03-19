@@ -1,6 +1,6 @@
 # ADR 001: Build and Dependency Modernization Strategy
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-03-19
 
 ## Context
@@ -11,6 +11,13 @@ The current delivery chain is tightly coupled to aging infrastructure and manual
 - Local setup instructions still depend on hand-built third-party libraries and manual tool installation in `Source and building info.md`.
 - The qmake projects (`enve.pro`, `src/app/app.pro`, `src/core/core.pro`) directly wire Skia, libmypaint, QuaZip, FFmpeg, QScintilla, and gperftools through `src/core/core.pri`.
 - Rendering, media, and packaging concerns are spread across both `src/core/` and `src/app/`, so a single-step migration would change too many failure variables at once.
+
+## Implementation Status
+
+- A GitHub Actions baseline workflow now exists at `.github/workflows/linux-baseline.yml`.
+- Linux bootstrap scripts now exist in `scripts/ci/`, plus a container recipe at `docker/linux-baseline.Dockerfile`.
+- Preflight validation already runs automatically.
+- The full Linux compile lane is still manual while Skia bootstrap is being stabilized under Python 3.
 
 ## Decision
 

@@ -37,7 +37,9 @@ You can download the latest enve release for <a href="https://github.com/Maurycy
 
 ## Source and building instructions
 
-See [Source and Building info.md](/Source%20and%20building%20info.md) for in-detail instructions for getting the source, and building for Linux, Windows, and macOS.
+Current Linux baseline recovery work lives in [docs/modernization/README.md](docs/modernization/README.md). Start there for the active GitHub Actions lane, CI scripts, and modernization plan.
+
+The older [Source and building info.md](Source and building info.md) file is kept as historical reference for the Travis-era manual setup across Linux, Windows, and macOS. It is not the source of truth for the current Linux CI recovery work.
 
 ## Authors
 

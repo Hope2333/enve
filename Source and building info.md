@@ -2,6 +2,11 @@
 - [Table of Contents (TOC)](#toc)
 - [License](#license)
 
+> Legacy note:
+> This document preserves the older manual and Travis-era build flow.
+> For the current Linux baseline recovery, GitHub Actions workflow, and CI scripts, start with `docs/modernization/README.md`.
+> Expect some commands below to reflect older toolchains such as Ubuntu 16.04/18.04, Qt 5.12.4, and `g++-7`.
+
 #### TOC
 
 | [Linux][A0]              | [Windows][B0]            | [macOS][C0]       |

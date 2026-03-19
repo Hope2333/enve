@@ -9,9 +9,11 @@ This ledger records the current build and runtime dependencies, their coupling l
 | Dependency | Evidence | Current role | Coupling | Recommended first action |
 | --- | --- | --- | --- | --- |
 | Travis CI | `.travis.yml` | Legacy Linux/macOS build and packaging orchestration | High | Replace with GitHub Actions or equivalent before version upgrades |
+| GitHub Actions | `.github/workflows/linux-baseline.yml` | Current Linux baseline recovery lane | High | Keep the full compile job manual until one clean baseline build is reproducible |
 | qmake | `enve.pro`, `src/src.pro`, `src/app/app.pro`, `src/core/core.pro` | Primary build generator | High | Keep during baseline recovery; migrate only after CI and smoke tests exist |
 | Qt 5.12.4 | `.travis.yml`, `Source and building info.md` | UI/runtime foundation | High | Move to a supported Qt 5.15 lane before any Qt 6 work |
 | `g++-7` / old macOS toolchain | `.travis.yml`, `Source and building info.md` | Compiler baseline | Medium | Raise compiler version in a compatibility phase without changing app architecture |
+| Python 3 with legacy vendor scripts | `scripts/ci/build-linux-baseline.sh`, `third_party/skia/gn/is_clang.py`, `third_party/skia/third_party/externals/icu/scripts/make_data_assembly.py` | Skia dependency sync and ICU data generation during bootstrap | Medium | Patch or isolate the remaining Python 2 assumptions before widening CI coverage |
 
 ## Vendored Third-Party Dependencies
 
@@ -35,6 +37,6 @@ This ledger records the current build and runtime dependencies, their coupling l
 ## Immediate Priorities
 
 1. Build a reproducible Linux baseline image with the current qmake flow and third-party setup.
-2. Stand up CI for one Linux release build before changing dependency versions.
+2. Get one green GitHub Actions Linux release build before changing dependency versions.
 3. Mark optional dependencies explicitly: `gperftools`, OpenMP, and WebEngine preview are the best first candidates.
 4. Upgrade the compiler and Qt within a Qt 5 compatibility lane before attempting CMake or Qt 6.

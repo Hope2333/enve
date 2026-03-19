@@ -1,5 +1,11 @@
 # Phased Modernization Backlog
 
+## Status Snapshot
+
+- Phase 0 is in progress: scripts, workflow, and a container lane exist, but the Linux baseline is not green yet.
+- Phase 1 is in progress: GitHub Actions preflight is active, while the full build remains manual until stability improves.
+- Phases 2 through 7 are still planned work and should not start in parallel with baseline recovery.
+
 ## Phase 0: Baseline Recovery
 
 Goal: recover one reproducible Linux release build using the current qmake and vendored dependency model.
@@ -19,6 +25,7 @@ Goal: replace Travis with a maintained CI system while preserving current behavi
 
 - Add one Linux release workflow that installs the current dependency set.
 - Upload logs and build artifacts for debugging.
+- Keep the full compile job manual until the build is repeatable, then promote it to automatic.
 - Keep packaging as a separate follow-up job unless it is required for parity.
 
 Exit criteria:
