@@ -173,85 +173,16 @@ stage: runtime
 # Package deb
 package-deb: stage
 	@echo "📦 Creating Debian package..."
-	@mkdir -p $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/usr/{bin,lib,share/applications,share/icons/hicolor/scalable/apps}
-	@mkdir -p $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN
-	
-	# Copy binaries
-	@cp $(BUILD_DIR)/src/app/enve $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/usr/bin/
-	@cp $(BUILD_DIR)/src/core/libenvecore.so* $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/usr/lib/
-	@chmod +x $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/usr/bin/enve
-	
-	# Copy desktop file and icon
-	@cp -f org.maurycy.enve.desktop $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/usr/share/applications/ 2>/dev/null || true
-	@cp -f icons/enve.svg $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/usr/share/icons/hicolor/scalable/apps/ 2>/dev/null || true
-	
-	# Create control file
-	@echo "Package: $(PKG_NAME)" > $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
-	@echo "Version: $(VER)" >> $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
-	@echo "Section: graphics" >> $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
-	@echo "Priority: optional" >> $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
-	@echo "Architecture: $(DEB_ARCH)" >> $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
-	@echo "Depends: qt5-base, qt5-multimedia, qt5-svg, qt5-webengine, ffmpeg, libmypaint, gperftools, libjson-c, fontconfig, freetype" >> $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
-	@echo "Maintainer: $(PACKAGER_NAME)" >> $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
-	@echo "Description: A free and open source 2D animation software" >> $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
-	@echo " enve is a free and open source 2D animation software for Linux, Windows, and Mac." >> $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
-	@echo "Homepage: https://maurycyliebner.github.io/enve/" >> $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER)/DEBIAN/control
-	
-	# Build .deb
-	@mkdir -p $(OUTPUT_ROOT)
-	@cd $(TMP_DIR)/deb-pkg && \
-		dpkg-deb -Zxz -z$(COMPRESS) --build $(PKG_NAME)_$(VER)
-	@if [ "$(MIX)" = "1" ]; then \
-		cp -f $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER).deb $(OUTPUT_ROOT)/$(PKG_NAME)_$(VER)-$(RELFIX)_$(DEB_ARCH).deb 2>/dev/null || true; \
-	else \
-		mkdir -p $(OUTPUT_ROOT)/deb && \
-		cp -f $(TMP_DIR)/deb-pkg/$(PKG_NAME)_$(VER).deb $(OUTPUT_ROOT)/deb/$(PKG_NAME)_$(VER)-$(RELFIX)_$(DEB_ARCH).deb 2>/dev/null || true; \
-	fi
-	@echo "  ✓ Debian package created: $(OUTPUT_ROOT)/$(PKG_NAME)_$(VER)-$(RELFIX)_$(DEB_ARCH).deb"
+	@mkdir -p $(OUTPUT_ROOT)/deb
+	@OUTPUT_ROOT=$(OUTPUT_ROOT) VERSION=$(VER) RELFIX=$(RELFIX) MAINTAINER='$(PACKAGER_NAME)' COMPRESS=$(COMPRESS) \
+		./packaging/scripts/package_deb.sh
 
 # Package pacman
 package-pkg: stage
 	@echo "📦 Creating Arch package..."
-	@mkdir -p $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/usr/{bin,lib,share/applications,share/icons/hicolor/scalable/apps}
-	
-	# Copy binaries
-	@cp $(BUILD_DIR)/src/app/enve $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/usr/bin/
-	@cp $(BUILD_DIR)/src/core/libenvecore.so* $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/usr/lib/
-	@chmod +x $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/usr/bin/enve
-	
-	# Copy desktop file and icon
-	@cp -f org.maurycy.enve.desktop $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/usr/share/applications/ 2>/dev/null || true
-	@cp -f icons/enve.svg $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/usr/share/icons/hicolor/scalable/apps/ 2>/dev/null || true
-	
-	# Create .PKGINFO
-	@echo "pkgname = $(PKG_NAME)" > $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
-	@echo "pkgver = $(VER)" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
-	@echo "pkgdesc = A free and open source 2D animation software" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
-	@echo "url = https://maurycyliebner.github.io/enve/" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
-	@echo "builddate = $$(date -u +%s)" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
-	@echo "packager = $(PACKAGER_NAME)" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
-	@echo "size = $$(du -sb $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/usr | cut -f1)" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
-	@echo "arch = $(PKG_ARCH)" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
-	@echo "license = GPL3" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
-	@echo "depend = qt5-base" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
-	@echo "depend = qt5-multimedia" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
-	@echo "depend = qt5-svg" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
-	@echo "depend = qt5-webengine" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
-	@echo "depend = ffmpeg" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
-	@echo "depend = libmypaint" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
-	@echo "depend = gperftools" >> $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER)/.PKGINFO
-	
-	# Create tarball
-	@mkdir -p $(OUTPUT_ROOT)
-	@cd $(TMP_DIR)/pkg-pkg/$(PKG_NAME)-$(VER) && \
-		tar -cvf - . | xz -$(COMPRESS) > $(OUTPUT_ROOT)/$(PKG_NAME)-$(VER)-$(RELFIX)-$(PKG_ARCH).pkg.tar.gz
-	@if [ "$(MIX)" = "1" ]; then \
-		cp -f $(OUTPUT_ROOT)/$(PKG_NAME)-$(VER)-$(RELFIX)-$(PKG_ARCH).pkg.tar.gz $(OUTPUT_ROOT)/ 2>/dev/null || true; \
-	else \
-		mkdir -p $(OUTPUT_ROOT)/pacman && \
-		mv -f $(OUTPUT_ROOT)/$(PKG_NAME)-$(VER)-$(RELFIX)-$(PKG_ARCH).pkg.tar.gz $(OUTPUT_ROOT)/pacman/ 2>/dev/null || true; \
-	fi
-	@echo "  ✓ Arch package created: $(OUTPUT_ROOT)/pacman/$(PKG_NAME)-$(VER)-$(RELFIX)-$(PKG_ARCH).pkg.tar.gz"
+	@mkdir -p $(OUTPUT_ROOT)/pacman
+	@OUTPUT_ROOT=$(OUTPUT_ROOT) VERSION=$(VER) RELFIX=$(RELFIX) PACKAGER='$(PACKAGER_NAME)' COMPRESS=$(COMPRESS) \
+		./packaging/scripts/package_pacman.sh
 
 # ============================================================
 # Cleanup and Info
