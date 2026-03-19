@@ -71,6 +71,10 @@ jobs:
     timeout-minutes: 240
 
     steps:
+      - name: Install git in container
+        run: |
+          apt-get update && apt-get install -y git
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -88,7 +92,7 @@ jobs:
             libmypaint-dev libgperftools-dev \
             libjson-c-dev libfontconfig1-dev \
             libfreetype6-dev libpng-dev \
-            curl patch make g++ git wget
+            curl patch make g++ wget
 
       - name: Build with Makefile
         run: |
@@ -109,6 +113,10 @@ jobs:
     timeout-minutes: 240
 
     steps:
+      - name: Install git in container
+        run: |
+          pacman -Sy --noconfirm git
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -177,6 +185,10 @@ jobs:
     timeout-minutes: 60
 
     steps:
+      - name: Install git in container
+        run: |
+          pacman -Sy --noconfirm git
+
       - name: Checkout
         uses: actions/checkout@v4
 
