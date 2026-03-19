@@ -126,7 +126,6 @@ jobs:
         run: |
           pacman -Syu --noconfirm \
             qt5-base qt5-multimedia qt5-svg \
-            qt5-webengine qt5-channels \
             ffmpeg libmypaint gperftools \
             json-c fontconfig freetype2 libpng \
             curl patch make gcc git wget
@@ -196,7 +195,6 @@ jobs:
         run: |
           pacman -Syu --noconfirm \
             qt5-base qt5-multimedia qt5-svg \
-            qt5-webengine qt5-channels \
             ffmpeg libmypaint gperftools \
             json-c fontconfig freetype2 libpng \
             curl patch make gcc git wget
