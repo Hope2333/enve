@@ -1,0 +1,296 @@
+name: Multi-Distro Build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/linux-multi-distro.yml"
+      - "scripts/ci/**"
+      - "packaging/**"
+      - "*.pro"
+      - "src/**/*.pro"
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - ".github/workflows/linux-multi-distro.yml"
+      - "scripts/ci/**"
+      - "packaging/**"
+      - "*.pro"
+      - "src/**/*.pro"
+
+jobs:
+  build-ubuntu:
+    name: Ubuntu 22.04 (Qt 5.15)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 240
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            qt5-qmake qtbase5-dev qtbase5-dev-tools \
+            qtmultimedia5-dev libqt5svg5-dev \
+            libqt5webengine5-dev libqt5webchannel5-dev \
+            libavcodec-dev libavformat-dev libavutil-dev \
+            libswscale-dev libswresample-dev \
+            libmypaint-dev libgperftools-dev \
+            libjson-c-dev libfontconfig1-dev \
+            libfreetype6-dev libpng-dev \
+            curl patch make g++
+
+      - name: Build third-party
+        run: |
+          make -C third_party
+
+      - name: Build enve
+        run: |
+          mkdir -p build/Release
+          cd build/Release
+          qmake CONFIG+=release ../../enve.pro
+          make -j"$(nproc)"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: enve-ubuntu-22.04
+          path: |
+            build/Release/src/app/enve
+            build/Release/src/core/libenvecore.so*
+
+  build-debian:
+    name: Debian 12 (Bookworm)
+    runs-on: ubuntu-22.04
+    container: debian:bookworm
+    timeout-minutes: 240
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y \
+            qt5-qmake qtbase5-dev qtbase5-dev-tools \
+            qtmultimedia5-dev libqt5svg5-dev \
+            libqt5webengine5-dev libqt5webchannel5-dev \
+            libavcodec-dev libavformat-dev libavutil-dev \
+            libswscale-dev libswresample-dev \
+            libmypaint-dev libgperftools-dev \
+            libjson-c-dev libfontconfig1-dev \
+            libfreetype6-dev libpng-dev \
+            curl patch make g++ git
+
+      - name: Build third-party
+        run: |
+          make -C third_party
+
+      - name: Build enve
+        run: |
+          mkdir -p build/Release
+          cd build/Release
+          qmake CONFIG+=release ../../enve.pro
+          make -j"$(nproc)"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: enve-debian-12
+          path: |
+            build/Release/src/app/enve
+            build/Release/src/core/libenvecore.so*
+
+  build-arch:
+    name: Arch Linux (Latest Qt)
+    runs-on: ubuntu-22.04
+    container: archlinux:latest
+    timeout-minutes: 240
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm \
+            qt5-base qt5-multimedia qt5-svg \
+            qt5-webengine qt5-webchannel \
+            ffmpeg libmypaint gperftools \
+            json-c fontconfig freetype2 libpng \
+            curl patch make gcc git
+
+      - name: Build third-party
+        run: |
+          make -C third_party
+
+      - name: Build enve
+        run: |
+          mkdir -p build/Release
+          cd build/Release
+          qmake CONFIG+=release ../../enve.pro
+          make -j"$(nproc)"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: enve-archlinux
+          path: |
+            build/Release/src/app/enve
+            build/Release/src/core/libenvecore.so*
+
+  package-appimage:
+    name: AppImage
+    needs: [build-ubuntu]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Ubuntu build
+        uses: actions/download-artifact@v4
+        with:
+          name: enve-ubuntu-22.04
+          path: appdir/usr/bin
+
+      - name: Setup AppImage tools
+        run: |
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage
+          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
+
+      - name: Create AppDir structure
+        run: |
+          mkdir -p appdir/usr/{lib,share/applications,share/icons/hicolor/scalable/apps}
+          cp build/Release/src/core/libenvecore.so* appdir/usr/lib/
+          # Add desktop file and icon if available
+          if [[ -f org.maurycy.enve.desktop ]]; then
+            cp org.maurycy.enve.desktop appdir/usr/share/applications/
+          fi
+          if [[ -f icons/enve.svg ]]; then
+            cp icons/enve.svg appdir/usr/share/icons/hicolor/scalable/apps/
+          fi
+
+      - name: Build AppImage
+        env:
+          OUTPUT: enve-x86_64.AppImage
+        run: |
+          ./linuxdeploy-x86_64.AppImage \
+            --appdir appdir \
+            --executable appdir/usr/bin/enve \
+            --library appdir/usr/lib/libenvecore.so \
+            --output appimage \
+            --plugin qt
+
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: enve-x86_64.AppImage
+          path: enve-x86_64.AppImage
+
+  package-deb:
+    name: Debian Package
+    needs: [build-debian]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Debian build
+        uses: actions/download-artifact@v4
+        with:
+          name: enve-debian-12
+          path: debian-pkg/usr/bin
+
+      - name: Setup Debian package structure
+        run: |
+          mkdir -p debian-pkg/usr/{lib,share/applications,share/icons/hicolor/scalable/apps}
+          mkdir -p debian-pkg/DEBIAN
+          cp build/Release/src/core/libenvecore.so* debian-pkg/usr/lib/
+          
+          # Create control file
+          cat > debian-pkg/DEBIAN/control << EOF
+          Package: enve
+          Version: 2.0.0
+          Section: graphics
+          Priority: optional
+          Architecture: amd64
+          Depends: qt5-base, qt5-multimedia, qt5-svg, qt5-webengine, ffmpeg, libmypaint, gperftools
+          Maintainer: enve Project
+          Description: A free and open source 2D animation software
+          EOF
+          
+          chmod +x debian-pkg/usr/bin/enve
+
+      - name: Build .deb package
+        run: |
+          dpkg-deb --build debian-pkg enve_2.0.0_amd64.deb
+
+      - name: Upload .deb package
+        uses: actions/upload-artifact@v4
+        with:
+          name: enve_2.0.0_amd64.deb
+          path: enve_2.0.0_amd64.deb
+
+  package-pkgman:
+    name: Arch Package (PKGBUILD)
+    needs: [build-arch]
+    runs-on: ubuntu-22.04
+    container: archlinux:latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install packaging tools
+        run: |
+          pacman -Syu --noconfirm pacman-dev git base-devel
+
+      - name: Download Arch build
+        uses: actions/download-artifact@v4
+        with:
+          name: enve-archlinux
+          path: pkgdir/usr/bin
+
+      - name: Setup PKGBUILD environment
+        run: |
+          mkdir -p pkgdir/usr/{lib,share/applications,share/icons/hicolor/scalable/apps}
+          cp build/Release/src/core/libenvecore.so* pkgdir/usr/lib/
+          cp packaging/arch/PKGBUILD .
+          
+          # Update PKGBUILD for CI build
+          cat >> PKGBUILD << 'EOF'
+          
+          # CI override
+          package() {
+              cp pkgdir/usr/bin/enve "${pkgdir}/usr/bin/"
+              cp pkgdir/usr/lib/libenvecore.so* "${pkgdir}/usr/lib/"
+          }
+          EOF
+
+      - name: Build package
+        run: |
+          makepkg -d --noconfirm
+
+      - name: Upload Arch package
+        uses: actions/upload-artifact@v4
+        with:
+          name: enve-archlinux.pkg.tar.zst
+          path: enve-*.pkg.tar.zst

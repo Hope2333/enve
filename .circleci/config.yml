@@ -1,0 +1,181 @@
+version: 2.1
+
+executors:
+  ubuntu:
+    docker:
+      - image: ubuntu:22.04
+    environment:
+      DEBIAN_FRONTEND: noninteractive
+  
+  debian:
+    docker:
+      - image: debian:bookworm
+    environment:
+      DEBIAN_FRONTEND: noninteractive
+  
+  archlinux:
+    docker:
+      - image: archlinux:latest
+
+jobs:
+  build-ubuntu:
+    executor: ubuntu
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apt-get update
+            apt-get install -y \
+              qt5-qmake qtbase5-dev qtbase5-dev-tools \
+              qtmultimedia5-dev libqt5svg5-dev \
+              libqt5webengine5-dev libqt5webchannel5-dev \
+              libavcodec-dev libavformat-dev libavutil-dev \
+              libswscale-dev libswresample-dev \
+              libmypaint-dev libgperftools-dev \
+              libjson-c-dev libfontconfig1-dev \
+              libfreetype6-dev libpng-dev \
+              curl patch make g++ git
+      - run:
+          name: Build third-party
+          command: make -C third_party
+      - run:
+          name: Build enve
+          command: |
+            mkdir -p build/Release
+            cd build/Release
+            qmake CONFIG+=release ../../enve.pro
+            make -j2
+      - store_artifacts:
+          path: build/Release/src/app/enve
+          destination: enve
+      - store_artifacts:
+          path: build/Release/src/core
+          destination: libenvecore
+
+  build-debian:
+    executor: debian
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apt-get update
+            apt-get install -y \
+              qt5-qmake qtbase5-dev qtbase5-dev-tools \
+              qtmultimedia5-dev libqt5svg5-dev \
+              libqt5webengine5-dev libqt5webchannel5-dev \
+              libavcodec-dev libavformat-dev libavutil-dev \
+              libswscale-dev libswresample-dev \
+              libmypaint-dev libgperftools-dev \
+              libjson-c-dev libfontconfig1-dev \
+              libfreetype6-dev libpng-dev \
+              curl patch make g++ git
+      - run:
+          name: Build third-party
+          command: make -C third_party
+      - run:
+          name: Build enve
+          command: |
+            mkdir -p build/Release
+            cd build/Release
+            qmake CONFIG+=release ../../enve.pro
+            make -j2
+      - store_artifacts:
+          path: build/Release/src/app/enve
+          destination: enve
+      - store_artifacts:
+          path: build/Release/src/core
+          destination: libenvecore
+
+  build-arch:
+    executor: archlinux
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            pacman -Syu --noconfirm \
+              qt5-base qt5-multimedia qt5-svg \
+              qt5-webengine qt5-webchannel \
+              ffmpeg libmypaint gperftools \
+              json-c fontconfig freetype2 libpng \
+              curl patch make gcc git
+      - run:
+          name: Build third-party
+          command: make -C third_party
+      - run:
+          name: Build enve
+          command: |
+            mkdir -p build/Release
+            cd build/Release
+            qmake CONFIG+=release ../../enve.pro
+            make -j2
+      - store_artifacts:
+          path: build/Release/src/app/enve
+          destination: enve
+      - store_artifacts:
+          path: build/Release/src/core
+          destination: libenvecore
+
+  package-appimage:
+    executor: ubuntu
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apt-get update
+            apt-get install -y \
+              qt5-qmake qtbase5-dev qtbase5-dev-tools \
+              qtmultimedia5-dev libqt5svg5-dev \
+              libqt5webengine5-dev libqt5webchannel5-dev \
+              libavcodec-dev libavformat-dev libavutil-dev \
+              libswscale-dev libswresample-dev \
+              libmypaint-dev libgperftools-dev \
+              libjson-c-dev libfontconfig1-dev \
+              libfreetype6-dev libpng-dev \
+              curl patch make g++ git wget fuse
+      - run:
+          name: Build third-party
+          command: make -C third_party
+      - run:
+          name: Build enve
+          command: |
+            mkdir -p build/Release
+            cd build/Release
+            qmake CONFIG+=release ../../enve.pro
+            make -j2
+      - run:
+          name: Download linuxdeploy
+          command: |
+            wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+            chmod +x linuxdeploy-x86_64.AppImage
+            wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+            chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
+      - run:
+          name: Create AppDir
+          command: |
+            mkdir -p appdir/usr/{bin,lib,share/applications,share/icons/hicolor/scalable/apps}
+            cp build/Release/src/app/enve appdir/usr/bin/
+            cp build/Release/src/core/libenvecore.so* appdir/usr/lib/
+      - run:
+          name: Build AppImage
+          command: |
+            ./linuxdeploy-x86_64.AppImage \
+              --appdir appdir \
+              --executable appdir/usr/bin/enve \
+              --library appdir/usr/lib/libenvecore.so \
+              --output appimage \
+              --plugin qt
+      - store_artifacts:
+          path: enve-x86_64.AppImage
+          destination: enve.AppImage
+
+workflows:
+  multi-distro-build:
+    jobs:
+      - build-ubuntu
+      - build-debian
+      - build-arch
+      - package-appimage
