@@ -17,7 +17,8 @@ The current delivery chain is tightly coupled to aging infrastructure and manual
 - A GitHub Actions baseline workflow now exists at `.github/workflows/linux-baseline.yml`.
 - Linux bootstrap scripts now exist in `scripts/ci/`, plus a container recipe at `docker/linux-baseline.Dockerfile`.
 - Preflight validation already runs automatically.
-- The full Linux compile lane is still manual while Skia bootstrap is being stabilized under Python 3.
+- One full branch-side Linux baseline build has already passed end to end.
+- The immediate remaining gate is to validate the same path on `master` and then decide when the full Linux compile lane should become automatic.
 
 ## Decision
 

@@ -6,10 +6,10 @@ Define a reproducible reference build for the current codebase before any depend
 
 ## Current Status
 
-- The repository already includes a Linux bootstrap path in `scripts/ci/` and a draft workflow in `.github/workflows/linux-baseline.yml`.
+- The repository already includes a Linux bootstrap path in `scripts/ci/` and an active workflow in `.github/workflows/linux-baseline.yml`.
 - `preflight` is live on pull requests and pushes for build-related changes.
-- The full compile lane is intentionally manual while vendored Skia helper scripts are still being patched for Python 3 compatibility.
-- This means the baseline definition exists, but the baseline is not yet proven green end to end.
+- A full branch-side Linux baseline build has passed end to end on Ubuntu 22.04 with distro Qt 5.15.x packages.
+- The remaining stabilization work is to validate the same lane on `master` and then decide when to promote it to automatic CI.
 
 ## Scope
 
@@ -17,7 +17,7 @@ This baseline is intentionally conservative:
 
 - Keep qmake as the build generator.
 - Keep vendored third-party dependencies under `third_party/`.
-- Keep the current Qt 5.12.4 lane and current FFmpeg integration.
+- Keep the recovered Ubuntu 22.04 + distro Qt 5.15.x lane and current FFmpeg integration.
 - Do not upgrade APIs, replace dependencies, or migrate packaging in this step.
 
 ## Baseline Success Criteria
@@ -83,14 +83,15 @@ This repository now includes a baseline bootstrap path you can run locally or in
 The workflow uses two layers:
 
 - `preflight` runs automatically on pull requests and pushes for script/workflow changes.
-- Full baseline compile remains manual via `workflow_dispatch` until compile stability is proven.
+- Full baseline compile currently remains manual via `workflow_dispatch` while `master` validation and CI policy decisions are being finalized.
 
-## Current Known Blockers
+## Recently Resolved Blockers
 
-- Skia still expects Python 2 style behavior in a few helper scripts pulled into the Linux build.
-- `third_party/skia/gn/is_clang.py` required a bytes-versus-string patch for Python 3.
-- `third_party/skia/third_party/externals/icu/scripts/make_data_assembly.py` still needs Python 3 shims in the baseline script for byte search, version decoding, and `hexlify(...)` handling.
-- Until these issues stop failing CI, treat the current lane as recovery work rather than a finished baseline.
+- Skia bootstrap needed Python 3 compatibility shims in `is_clang.py` and ICU `make_data_assembly.py`.
+- QScintilla needed an explicit `Qt4Qt5/qscintilla.pro` build target.
+- `graphanimator.h` needed an explicit `<QPainterPath>` include under the recovered Linux/Qt lane.
+- libmypaint needed `-fPIC` for shared-library linkage in the recovered Linux lane.
+- These are now resolved on the successful branch-side baseline path; active stabilization work is now centered on `master` validation and CI policy.
 
 Useful build-script knobs:
 

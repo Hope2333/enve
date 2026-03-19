@@ -2,9 +2,9 @@
 
 ## Status Snapshot
 
-- Phase 0 is in progress: scripts, workflow, and a container lane exist, but the Linux baseline is not green yet.
-- Phase 1 is in progress: GitHub Actions preflight is active, while the full build remains manual until stability improves.
-- Phases 2 through 7 are still planned work and should not start in parallel with baseline recovery.
+- Phase 0 is complete on the recovery branch: one Linux baseline build has passed end to end.
+- Phase 1 is now focused on master validation and CI policy stabilization.
+- Phases 2 through 7 remain planned work and should not be mixed into the current stabilization gate.
 
 ## Phase 0: Baseline Recovery
 
@@ -18,6 +18,7 @@ Goal: recover one reproducible Linux release build using the current qmake and v
 Exit criteria:
 - A clean environment can build `enve` and examples.
 - Build steps are documented without hidden local knowledge.
+- Status: achieved on the branch-side recovery lane; master confirmation still belongs to Phase 1.
 
 ## Phase 1: CI Replacement
 
@@ -25,6 +26,7 @@ Goal: replace Travis with a maintained CI system while preserving current behavi
 
 - Add one Linux release workflow that installs the current dependency set.
 - Upload logs and build artifacts for debugging.
+- Validate the first successful branch baseline on `master`.
 - Keep the full compile job manual until the build is repeatable, then promote it to automatic.
 - Keep packaging as a separate follow-up job unless it is required for parity.
 
@@ -48,8 +50,8 @@ Exit criteria:
 
 Goal: move to a supported compiler and Qt 5 compatibility line without changing the app architecture.
 
-- Raise the Linux compiler baseline.
-- Move from Qt `5.12.4` to a supported Qt `5.15.x` target.
+- Formalize the recovered Ubuntu 22.04 distro compiler lane as the supported Linux baseline.
+- Treat the already-proven Qt `5.15.x` compatibility lane as the current reference, then fix any remaining fallout explicitly.
 - Fix compile or deprecation fallout while keeping behavior stable.
 
 Exit criteria:

@@ -8,7 +8,8 @@ Before substantial work, read:
 
 1. `AGENTS.md`
 2. `docs/ai-relay.md`
-3. The area-specific handoff file for the lane you are touching
+3. `docs/ai-collaboration.md` when multiple AIs are collaborating
+4. The area-specific handoff file for the lane you are touching
 
 Current area-specific handoff:
 
