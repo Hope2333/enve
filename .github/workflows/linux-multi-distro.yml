@@ -5,8 +5,8 @@ on:
   pull_request:
     paths:
       - ".github/workflows/linux-multi-distro.yml"
+      - "Makefile"
       - "scripts/ci/**"
-      - "packaging/**"
       - "*.pro"
       - "src/**/*.pro"
   push:
@@ -15,10 +15,15 @@ on:
       - main
     paths:
       - ".github/workflows/linux-multi-distro.yml"
+      - "Makefile"
       - "scripts/ci/**"
-      - "packaging/**"
       - "*.pro"
       - "src/**/*.pro"
+
+env:
+  PROXY: http://localhost:7890
+  JOBS: 2
+  COMPRESS: 6
 
 jobs:
   build-ubuntu:
@@ -44,18 +49,11 @@ jobs:
             libmypaint-dev libgperftools-dev \
             libjson-c-dev libfontconfig1-dev \
             libfreetype6-dev libpng-dev \
-            curl patch make g++
+            curl patch make g++ wget libfuse2
 
-      - name: Build third-party
+      - name: Build with Makefile
         run: |
-          make -C third_party
-
-      - name: Build enve
-        run: |
-          mkdir -p build/Release
-          cd build/Release
-          qmake CONFIG+=release ../../enve.pro
-          make -j"$(nproc)"
+          make build JOBS=${{ env.JOBS }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -89,18 +87,11 @@ jobs:
             libmypaint-dev libgperftools-dev \
             libjson-c-dev libfontconfig1-dev \
             libfreetype6-dev libpng-dev \
-            curl patch make g++ git
+            curl patch make g++ git wget
 
-      - name: Build third-party
+      - name: Build with Makefile
         run: |
-          make -C third_party
-
-      - name: Build enve
-        run: |
-          mkdir -p build/Release
-          cd build/Release
-          qmake CONFIG+=release ../../enve.pro
-          make -j"$(nproc)"
+          make build JOBS=${{ env.JOBS }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -129,18 +120,11 @@ jobs:
             qt5-webengine qt5-webchannel \
             ffmpeg libmypaint gperftools \
             json-c fontconfig freetype2 libpng \
-            curl patch make gcc git
+            curl patch make gcc git wget
 
-      - name: Build third-party
+      - name: Build with Makefile
         run: |
-          make -C third_party
-
-      - name: Build enve
-        run: |
-          mkdir -p build/Release
-          cd build/Release
-          qmake CONFIG+=release ../../enve.pro
-          make -j"$(nproc)"
+          make build JOBS=${{ env.JOBS }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -160,47 +144,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download Ubuntu build
-        uses: actions/download-artifact@v4
-        with:
-          name: enve-ubuntu-22.04
-          path: appdir/usr/bin
-
-      - name: Setup AppImage tools
+      - name: Install dependencies
         run: |
-          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-          chmod +x linuxdeploy-x86_64.AppImage
-          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
-          chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
+          sudo apt-get update
+          sudo apt-get install -y \
+            qt5-qmake qtbase5-dev qtbase5-dev-tools \
+            qtmultimedia5-dev libqt5svg5-dev \
+            libqt5webengine5-dev libqt5webchannel5-dev \
+            libavcodec-dev libavformat-dev libavutil-dev \
+            libswscale-dev libswresample-dev \
+            libmypaint-dev libgperftools-dev \
+            libjson-c-dev libfontconfig1-dev \
+            libfreetype6-dev libpng-dev \
+            curl patch make g++ wget libfuse2
 
-      - name: Create AppDir structure
+      - name: Build and package with Makefile
         run: |
-          mkdir -p appdir/usr/{lib,share/applications,share/icons/hicolor/scalable/apps}
-          cp build/Release/src/core/libenvecore.so* appdir/usr/lib/
-          # Add desktop file and icon if available
-          if [[ -f org.maurycy.enve.desktop ]]; then
-            cp org.maurycy.enve.desktop appdir/usr/share/applications/
-          fi
-          if [[ -f icons/enve.svg ]]; then
-            cp icons/enve.svg appdir/usr/share/icons/hicolor/scalable/apps/
-          fi
-
-      - name: Build AppImage
-        env:
-          OUTPUT: enve-x86_64.AppImage
-        run: |
-          ./linuxdeploy-x86_64.AppImage \
-            --appdir appdir \
-            --executable appdir/usr/bin/enve \
-            --library appdir/usr/lib/libenvecore.so \
-            --output appimage \
-            --plugin qt
+          make package-appimage JOBS=${{ env.JOBS }} COMPRESS=${{ env.COMPRESS }}
 
       - name: Upload AppImage
         uses: actions/upload-artifact@v4
         with:
           name: enve-x86_64.AppImage
-          path: enve-x86_64.AppImage
+          path: dist/enve-*.AppImage
 
   package-deb:
     name: Debian Package
@@ -212,43 +178,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download Debian build
-        uses: actions/download-artifact@v4
-        with:
-          name: enve-debian-12
-          path: debian-pkg/usr/bin
-
-      - name: Setup Debian package structure
+      - name: Install dependencies
         run: |
-          mkdir -p debian-pkg/usr/{lib,share/applications,share/icons/hicolor/scalable/apps}
-          mkdir -p debian-pkg/DEBIAN
-          cp build/Release/src/core/libenvecore.so* debian-pkg/usr/lib/
-          
-          # Create control file
-          cat > debian-pkg/DEBIAN/control << EOF
-          Package: enve
-          Version: 2.0.0
-          Section: graphics
-          Priority: optional
-          Architecture: amd64
-          Depends: qt5-base, qt5-multimedia, qt5-svg, qt5-webengine, ffmpeg, libmypaint, gperftools
-          Maintainer: enve Project
-          Description: A free and open source 2D animation software
-          EOF
-          
-          chmod +x debian-pkg/usr/bin/enve
+          sudo apt-get update
+          sudo apt-get install -y \
+            qt5-qmake qtbase5-dev qtbase5-dev-tools \
+            qtmultimedia5-dev libqt5svg5-dev \
+            libqt5webengine5-dev libqt5webchannel5-dev \
+            libavcodec-dev libavformat-dev libavutil-dev \
+            libswscale-dev libswresample-dev \
+            libmypaint-dev libgperftools-dev \
+            libjson-c-dev libfontconfig1-dev \
+            libfreetype6-dev libpng-dev \
+            curl patch make g++ wget
 
-      - name: Build .deb package
+      - name: Build and package with Makefile
         run: |
-          dpkg-deb --build debian-pkg enve_2.0.0_amd64.deb
+          make package-deb JOBS=${{ env.JOBS }} COMPRESS=${{ env.COMPRESS }}
 
       - name: Upload .deb package
         uses: actions/upload-artifact@v4
         with:
           name: enve_2.0.0_amd64.deb
-          path: enve_2.0.0_amd64.deb
+          path: dist/enve_*.deb
 
-  package-pkgman:
+  package-pkg:
     name: Arch Package (PKGBUILD)
     needs: [build-arch]
     runs-on: ubuntu-22.04
@@ -259,38 +213,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install packaging tools
+      - name: Install dependencies
         run: |
-          pacman -Syu --noconfirm pacman-dev git base-devel
+          pacman -Syu --noconfirm \
+            qt5-base qt5-multimedia qt5-svg \
+            qt5-webengine qt5-webchannel \
+            ffmpeg libmypaint gperftools \
+            json-c fontconfig freetype2 libpng \
+            curl patch make gcc git wget
 
-      - name: Download Arch build
-        uses: actions/download-artifact@v4
-        with:
-          name: enve-archlinux
-          path: pkgdir/usr/bin
-
-      - name: Setup PKGBUILD environment
+      - name: Build and package with Makefile
         run: |
-          mkdir -p pkgdir/usr/{lib,share/applications,share/icons/hicolor/scalable/apps}
-          cp build/Release/src/core/libenvecore.so* pkgdir/usr/lib/
-          cp packaging/arch/PKGBUILD .
-          
-          # Update PKGBUILD for CI build
-          cat >> PKGBUILD << 'EOF'
-          
-          # CI override
-          package() {
-              cp pkgdir/usr/bin/enve "${pkgdir}/usr/bin/"
-              cp pkgdir/usr/lib/libenvecore.so* "${pkgdir}/usr/lib/"
-          }
-          EOF
-
-      - name: Build package
-        run: |
-          makepkg -d --noconfirm
+          make package-pkg JOBS=${{ env.JOBS }} COMPRESS=${{ env.COMPRESS }}
 
       - name: Upload Arch package
         uses: actions/upload-artifact@v4
         with:
-          name: enve-archlinux.pkg.tar.zst
-          path: enve-*.pkg.tar.zst
+          name: enve-archlinux.pkg.tar.gz
+          path: dist/enve-*.pkg.tar.gz
