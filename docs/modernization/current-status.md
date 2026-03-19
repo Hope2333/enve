@@ -1,7 +1,7 @@
 # Modernization Status
 
 - Last updated: 2026-03-19
-- Overall status: Phase 0 (baseline recovery) and Phase 1 (CI replacement) are in progress.
+- Overall status: Phase 0 (baseline recovery) COMPLETED. Phase 1 (CI replacement) in progress.
 
 ## Landed So Far
 
@@ -19,20 +19,16 @@
 - `preflight` runs automatically on pull requests and pushes that touch workflow or build files.
 - `Build (Linux)` runs only on `workflow_dispatch` until the compile path is stable.
 - Successful build artifacts are expected at `build/Release/src/app/enve` and `build/Release/src/core/libenvecore.so*`.
-- Validation run `23282890827` is in progress for commit `a2d146ff` (libmypaint -fPIC fix).
+- Validation run `23282890827`: **PASSED** ✅
 
 ## Active Blockers
 
-- The vendored Skia lane still pulls Python 2 era helper scripts into a Python 3 environment.
-- The known early blockers in `third_party/skia/gn/is_clang.py` and `third_party/skia/third_party/externals/icu/scripts/make_data_assembly.py` are now patched in the baseline script.
-- The QScintilla `qmake` path bug found in run `23279763328` is now patched in commit `1815ab0d`.
-- The QPainterPath incomplete type issue is now patched in commit `9f4c60d9`.
-- The libmypaint -fPIC link failure is now patched in commit `a2d146ff`.
-- Awaiting CI validation from run `23282890827` to confirm the build unblocks.
+- None! Baseline build is now passing.
+- PR #6 pending merge: https://github.com/Hope2333/enve/pull/6
 
 ## Next Steps
 
-1. Monitor run `23282890827` for completion.
-2. If it passes, open a PR to master and promote the Linux build from manual to automatic.
-3. If it fails, capture the new first compile/link error and apply a minimal fix.
-4. After compile stability, capture a graphical/manual smoke checklist and then begin compiler and Qt 5.15 work.
+1. Merge PR #6 to master.
+2. Trigger linux-baseline.yml on master to confirm stability.
+3. Consider promoting Build (Linux) from manual to automatic trigger.
+4. Begin Phase 1: Qt 5.15 and compiler modernization work.

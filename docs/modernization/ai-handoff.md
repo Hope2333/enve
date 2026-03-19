@@ -1,20 +1,24 @@
 # AI Handoff: Linux Baseline Recovery
 
-- Snapshot time: 2026-03-19 06:35:00 UTC
+- Snapshot time: 2026-03-19 06:50:00 UTC
 - Owner branch: `chore/linux-baseline-actions`
 - Fork remote: `origin` -> `git@github.com:Hope2333/enve.git`
 - Upstream remote: `upstream` -> `git@github.com:MaurycyLiebner/enve.git`
 - Default fork branch: `origin/master`
-- Head commit: `a2d146ff` (Fix libmypaint -fPIC flag for shared library linking.)
+- Head commit: `e5e81771` (Update handoff with libmypaint -fPIC fix status.)
+- PR: #6 (https://github.com/Hope2333/enve/pull/6)
 
 ## What Is Stable Right Now
 
+- ✅ **Linux baseline build PASSES** on GitHub Actions (Ubuntu 22.04 / Qt 5.15)
 - The top-level worktree only has documentation edits plus untracked `.omx/`.
 - If checked with `git status --short --ignore-submodules=none`, several `third_party` submodules appear dirty from local build state (`gperftools`, `libmypaint`, `quazip`, `skia`). Do not reset them blindly during CI recovery.
 - `.omx/` should remain uncommitted.
 - Documentation was already refreshed in commit `22ad984a` (`Refresh modernization documentation.`).
-- The latest CI fix commit is `a2d146ff` (`Fix libmypaint -fPIC flag for shared library linking.`).
-- Previous fixes: `9f4c60d9` (QPainterPath include), `1815ab0d` (QScintilla qmake target).
+- All CI fixes landed:
+  - `a2d146ff` - Fix libmypaint -fPIC flag for shared library linking
+  - `9f4c60d9` - Fix QPainterPath incomplete type in graphanimator.h
+  - `1815ab0d` - Fix QScintilla qmake target in baseline build
 - Build monitor script added: `scripts/ci/watch-build-status.sh` (usage corrected).
 - `scripts/ci/preflight-linux-baseline.sh` passes locally.
 - `.github/workflows/linux-baseline.yml` is the active Linux recovery lane.
@@ -25,11 +29,9 @@
 
 - Latest workflow run: `23282890827`
 - URL: `https://github.com/Hope2333/enve/actions/runs/23282890827`
-- Status at snapshot time: Just triggered
-- Triggered by: commit `a2d146ff` (libmypaint -fPIC fix)
-- Previous run `23282109523`: `completed` / `failure` / failed at link stage: `libmypaint.a` not compiled with `-fPIC`
-- Previous run `23281619400`: `completed` / `failure` / failed at `graphanimator.h:105` - `QPainterPath` incomplete type
-- Previous run `23280524470`: `completed` / `failure` / failed at core compilation due to `QPainterPath` incomplete type
+- Status: `completed`
+- Conclusion: **`success`** ✅
+- PR #6 created from `chore/linux-baseline-actions` to `master`
 
 ## Failure Timeline Already Investigated
 
@@ -107,21 +109,12 @@ Awaiting CI results from run `23282890827` to confirm this fix unblocks the buil
 
 ## Immediate Next Actions
 
-**Current: Monitoring run `23282890827` in progress.**
+**Build PASSED! PR #6 created.**
 
-Use the monitor script to wait for completion:
-```bash
-./scripts/ci/watch-build-status.sh
-```
-
-1. If it passes:
-   - Open a PR from `chore/linux-baseline-actions` to `master`.
-   - Trigger `linux-baseline.yml` on `master` after merge.
-   - Consider promoting `Build (Linux)` from manual to automatic.
-2. If it fails:
-   - Capture the new first compile/link error from the workflow log.
-   - Patch only the minimal next blocker.
-   - Re-run the workflow and repeat.
+1. Merge PR #6 to `master`.
+2. Trigger `linux-baseline.yml` on `master` to confirm the baseline is stable.
+3. Consider promoting `Build (Linux)` from `workflow_dispatch` to automatic trigger on push/PR.
+4. Begin Qt 5.15 and compiler modernization work (Phase 1).
 
 ## Commands Worth Reusing
 
@@ -146,36 +139,20 @@ gh pr list --repo Hope2333/enve --state all --limit 10
 ## Copy-Paste Prompt For The Next AI
 
 ```text
-Continue the Linux baseline CI recovery for /home/miao/develop/enve.
+Linux baseline CI recovery COMPLETED. Build passed in run 23282890827.
 
-Read these files first:
-- docs/modernization/ai-handoff.md
-- docs/modernization/README.md
-- docs/modernization/current-status.md
-- .github/workflows/linux-baseline.yml
-- scripts/ci/build-linux-baseline.sh
-
-Current branch: chore/linux-baseline-actions
-Current fork remote: origin -> git@github.com:Hope2333/enve.git
-Do not commit .omx/.
-
-Known facts:
-- Documentation refresh is already committed as 22ad984a.
-- QPainterPath fix committed as 9f4c60d9.
-- libmypaint -fPIC fix committed as a2d146ff.
-- Workflow run 23282890827 is the validation run for the -fPIC fix.
-- Earlier failures were:
-  - 23277656350: Skia gn/is_clang.py bytes/str issue
-  - 23277985241 / 23278302240 / 23278882899: ICU make_data_assembly.py print syntax
-  - 23279169598: ICU make_data_assembly.py input_data.find("icudt") bytes/str issue
-  - 23279763328: QScintilla build step invoked bare qmake from third_party/qscintilla root
-  - 23280524470: core compile fails because graphanimator.h uses QPainterPath as a complete type without including <QPainterPath>
-  - 23281619400: same QPainterPath error (run started before fix was pushed)
-  - 23282109523: link failure - libmypaint.a not compiled with -fPIC
+Current state:
+- PR #6 created: https://github.com/Hope2333/enve/pull/6
+- Branch: chore/linux-baseline-actions -> master
+- All fixes validated and passing
 
 Your task:
-1. Check the status of run 23282890827.
-2. If it passed, open a PR to master and trigger the workflow on master.
-3. If it failed, capture the new first compile/link error and patch only the minimal next blocker.
-4. Keep the work focused on Linux baseline recovery only.
+1. After PR merge, trigger linux-baseline.yml on master to confirm stability.
+2. Consider promoting Build (Linux) from workflow_dispatch to automatic trigger.
+3. Begin Phase 1 work: Qt 5.15 and compiler modernization.
+
+Read these files for context:
+- docs/modernization/ai-handoff.md
+- docs/modernization/README.md
+- docs/modernization/adr-001-build-and-dependency-modernization.md
 ```
