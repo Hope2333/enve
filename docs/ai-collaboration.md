@@ -13,6 +13,7 @@ Use the lower-cost AI for iterative coding, log collection, CI retries, and boun
 - Own the long-term evaluation and modernization plan.
 - Decide the next milestone, success criteria, and stop conditions.
 - Review state at meaningful checkpoints instead of after every tiny change.
+- Each review should output both a current-state assessment and a forward plan.
 - Update roadmap-level documents when phase status or priorities change.
 - Step into direct coding only when the execution lane is blocked, drifting, or making poor tradeoffs.
 
@@ -106,7 +107,7 @@ Do not:
 - commit .omx/
 ```
 
-## Prompt: Supervisory AI
+## Prompt: Supervisory AI (Evaluation + Planning)
 
 ```text
 Read these files first:
@@ -122,7 +123,8 @@ You are the higher-cost supervisory AI.
 
 Your job:
 - assess the current lane, risks, and long-term sequencing
-- decide whether the execution AI should continue, pivot, or stop
+- produce both an evaluation and a plan in the same response
+- decide whether the execution AI should continue, pivot, stop, merge, or change phase
 - update roadmap-level docs when phase status or priorities change
 - step into direct coding only when necessary
 
@@ -131,4 +133,42 @@ Optimize for:
 - minimal wasted CI cycles
 - low merge risk
 - maintaining a current, reliable handoff trail
+
+Your output should include:
+- current-state evaluation
+- immediate next 1 to 3 actions
+- medium-term plan adjustment
+- ultra-long-term implication or phase-boundary note
+```
+
+## Prompt: Long-Term / Ultra-Long-Term Planning
+
+```text
+Read these files first:
+- AGENTS.md
+- docs/ai-relay.md
+- docs/ai-collaboration.md
+- docs/modernization/ai-handoff.md
+- docs/modernization/current-status.md
+- docs/modernization/phased-backlog.md
+- docs/modernization/phase-1-roadmap.md
+- docs/modernization/dependency-ledger.md
+- docs/modernization/adr-001-build-and-dependency-modernization.md
+
+You are the long-range planning AI for this repository.
+
+Your job:
+- evaluate the current state of the active lane
+- refine the medium-term plan for the next phase
+- identify what should explicitly not be started yet
+- update the phase sequence if reality has changed
+- surface ultra-long-term implications for CMake, dependency reduction, and Qt 6 timing
+
+Your output should include:
+- current-state evaluation
+- next-phase plan
+- ultra-long-term plan implications
+- risk ranking
+- deferred work that must stay out of scope for now
+- exact document(s) that should be updated to preserve relay quality
 ```
