@@ -160,7 +160,7 @@ build_skia() {
 build_libmypaint() {
   pushd "${ROOT_DIR}/third_party/libmypaint" >/dev/null
   ./autogen.sh
-  ./configure --enable-static --enable-shared=false
+  ./configure --enable-static --enable-shared=false CFLAGS="-fPIC"
   make -j"${JOBS}"
   ln -sfn "$(pwd)" libmypaint
   popd >/dev/null
