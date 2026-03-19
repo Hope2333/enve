@@ -123,9 +123,9 @@ apply_skia_pre_sync_python3_fixes_if_needed() {
 
 apply_skia_post_sync_python3_fixes_if_needed() {
   local icu_make_data_py="${ROOT_DIR}/third_party/skia/third_party/externals/icu/scripts/make_data_assembly.py"
-  if [[ -f "${icu_make_data_py}" ]] && grep -q '^    print "Generated " + output_file$' "${icu_make_data_py}"; then
+  if [[ -f "${icu_make_data_py}" ]] && grep -q 'print "Generated " + output_file' "${icu_make_data_py}"; then
     echo "Applying Skia Python 3 compatibility fix (make_data_assembly.py)..."
-    sed -i 's/^    print "Generated " + output_file$/    print("Generated " + output_file)/' "${icu_make_data_py}"
+    sed -i 's/^[[:space:]]*print "Generated " + output_file$/print("Generated " + output_file)/' "${icu_make_data_py}"
   fi
 }
 
