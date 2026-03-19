@@ -112,7 +112,7 @@ If continuing from the latest failure:
 If the next rerun succeeds:
 
 1. Open a new PR from `chore/linux-baseline-actions` to `master`.
-2. Merge the PR only after confirming the branch run corresponds to commit `3f6ec35d`.
+2. Merge the PR only after confirming the branch run corresponds to the latest validated branch fix commit.
 3. Trigger `linux-baseline.yml` on `master`.
 4. If `master` also passes, then consider promoting `Build (Linux)` from manual to automatic.
 
