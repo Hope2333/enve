@@ -52,9 +52,18 @@ jobs:
             libfreetype6-dev libpng-dev \
             curl patch make g++ wget libfuse2
 
-      - name: Build with Makefile
+      - name: Build with Makefile (default)
         run: |
           make build VER=${{ env.VER }} JOBS=${{ env.JOBS }}
+
+      - name: Build with minimal dependencies
+        run: |
+          make clean
+          make build VER=${{ env.VER }} JOBS=${{ env.JOBS }} \
+            ENVE_USE_GPERFTOOLS=0 \
+            ENVE_USE_WEBENGINE=0 \
+            ENVE_USE_QSCINTILLA=0 \
+            ENVE_USE_OPENMP=0
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -147,7 +156,6 @@ jobs:
     needs: [build-debian]
     runs-on: ubuntu-22.04
     timeout-minutes: 60
-    if: false  # Temporarily disabled - libmypaint header issues
 
     steps:
       - name: Checkout
@@ -169,7 +177,8 @@ jobs:
 
       - name: Build and package with Makefile
         run: |
-          make all VER=${{ env.VER }} PKG=deb JOBS=${{ env.JOBS }} COMPRESS=${{ env.COMPRESS }}
+          make all VER=${{ env.VER }} PKG=deb JOBS=${{ env.JOBS }} COMPRESS=${{ env.COMPRESS }} \
+            ENVE_USE_SYSTEM_LIBMYPAINT=1
 
       - name: Upload .deb package
         uses: actions/upload-artifact@v4
@@ -183,7 +192,6 @@ jobs:
     runs-on: ubuntu-22.04
     container: archlinux:latest
     timeout-minutes: 60
-    if: false  # Temporarily disabled - libmypaint header issues
 
     steps:
       - name: Install git in container
@@ -203,7 +211,8 @@ jobs:
 
       - name: Build and package with Makefile
         run: |
-          make all VER=${{ env.VER }} PKG=pkg JOBS=${{ env.JOBS }} COMPRESS=${{ env.COMPRESS }}
+          make all VER=${{ env.VER }} PKG=pkg JOBS=${{ env.JOBS }} COMPRESS=${{ env.COMPRESS }} \
+            ENVE_USE_SYSTEM_LIBMYPAINT=1
 
       - name: Upload Arch package
         uses: actions/upload-artifact@v4

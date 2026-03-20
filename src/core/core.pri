@@ -21,8 +21,20 @@ QUAZIP_FOLDER = $$THIRD_PARTY_FOLDER/quazip
 INCLUDEPATH += $$SKIA_FOLDER
 QMAKE_CFLAGS += -isystem $$SKIA_FOLDER
 
-INCLUDEPATH += $$LIBMYPAINT_FOLDER
-LIBS += -L$$LIBMYPAINT_FOLDER/.libs -lmypaint
+# libmypaint is optional - can use vendored or system package
+# Default: use vendored version for backwards compatibility
+USE_SYSTEM_LIBMYPAINT = $$[ENVE_USE_SYSTEM_LIBMYPAINT]
+isEmpty(USE_SYSTEM_LIBMYPAINT): USE_SYSTEM_LIBMYPAINT = 0
+equals(USE_SYSTEM_LIBMYPAINT, 1) {
+    # Use system libmypaint (for CI packaging)
+    LIBS += -lmypaint
+    message("Using system libmypaint")
+} else {
+    # Use vendored libmypaint
+    INCLUDEPATH += $$LIBMYPAINT_FOLDER
+    LIBS += -L$$LIBMYPAINT_FOLDER/.libs -lmypaint
+    message("Using vendored libmypaint")
+}
 
 INCLUDEPATH += $$QUAZIP_FOLDER
 LIBS += -L$$QUAZIP_FOLDER/quazip -lquazip
