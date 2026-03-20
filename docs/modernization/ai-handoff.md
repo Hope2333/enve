@@ -32,25 +32,21 @@
 
 ## Current Live CI State
 
-- Active validation run: `23324646178`
-- URL: `https://github.com/Hope2333/enve/actions/runs/23324646178`
-- Event: `workflow_dispatch`
-- Branch: `chore/linux-baseline-actions`
-- Status: **COMPLETED**
-  - Ubuntu 22.04 default build: ✅ `success`
-  - Ubuntu 22.04 minimal-dependency build: ✅ `success` (NEW - tests all flags disabled)
-  - Arch Linux build: ✅ `success`
-  - Debian 12 build: ✅ `success`
-  - Arch package: ❌ `failure` (packaging follow-up lane)
-  - Debian package: ❌ `failure` (packaging follow-up lane)
-- Interpretation:
-  - Phase 2 build-flag validation: **PASSED**
-  - Packaging jobs: moved to follow-up lane (not Phase 2 blockers)
-- PR #8: OPEN - MERGEABLE - CI PASSED
-  - Title: "Phase 2: Dependency boundary hardening"
-  - URL: `https://github.com/Hope2333/enve/pull/8`
-  - Linux Baseline Build: ✅ success
-  - Multi-Distro Build: ✅ success
+- Phase 2 merge to master: **COMPLETE**
+- PR #8: **MERGED** - "Phase 2: Dependency boundary hardening (#8)"
+- Master automatic build triggered: **YES**
+- Master validation runs:
+  - Linux Baseline Build (run 23353037094): ✅ **success**
+  - Multi-Distro Build (run 23353037134): ✅ **success**
+    - Ubuntu 22.04: ✅ success
+    - Debian 12: ✅ success
+    - Arch Linux: ✅ success
+    - Arch Package: ⏸️ skipped (packaging follow-up lane)
+    - Debian Package: ⏸️ skipped (packaging follow-up lane)
+- Phase 2 status: **COMPLETE AND MERGED TO MASTER**
+- Phase 3 status: **IN PROGRESS** (toolchain survey complete)
+- Latest commit: `cbd91a54` - "Phase 3: Add toolchain survey"
+- Next phase: **Phase 3 - Toolchain Consolidation Prep**
 
 ## Practical Interpretation
 
@@ -61,30 +57,32 @@
 
 ## Immediate Next Actions
 
-**Phase 2 READY FOR MERGE.**
+**Phase 2 COMPLETE AND MERGED. Phase 3 IN PROGRESS.**
 
-1. ✅ Run `23324646178` completed:
-   - Ubuntu default build: ✅ success
-   - Ubuntu minimal build: ✅ success (all flags disabled)
-   - Arch build: ✅ success
-   - Debian build: ✅ success
-2. ✅ Packaging failures classified:
-   - Not Phase 2 blockers
-   - Moved to packaging follow-up lane
-3. ✅ Phase 2 feature flags validated:
-   - All 6 flags working correctly
-   - Default builds (all enabled): pass
-   - Minimal builds (all disabled): pass
-4. Next: Prepare Phase 2 merge to master
+1. ✅ PR #8 merged to master
+2. ✅ Master automatic build triggered (run 23353037094, 23353037134)
+3. ✅ All builds passed:
+   - Linux Baseline: success
+   - Multi-Distro: success (Ubuntu/Debian/Arch)
+4. ✅ Phase 2 feature flags now on master
+5. ✅ Phase 3 toolchain survey complete
 
-Phase 2 exit criteria (met):
-- ✅ Build-flag implementation complete
-- ✅ Default build validation: pass
-- ✅ Minimal build validation: pass
-- ✅ Multi-distro build validation: pass (Ubuntu/Debian/Arch)
-- ✅ Documentation updated (dependency-ledger.md, ai-handoff.md)
+**Phase 3 progress:**
+- ✅ Toolchain survey completed (phase-3-toolchain-survey.md)
+- ✅ Documented qmake structure and Makefile orchestration
+- ✅ Documented third-party build systems
+- ✅ Identified 5 consolidation opportunities
+- ✅ Prepared CMake migration structure outline
+- 🔄 Next: Document feature flag semantics
 
-Packaging follow-up lane (separate from Phase 2):
+**Consolidation opportunities:**
+1. Feature flag consistency (validation, documentation)
+2. Build output organization (centralize under build/)
+3. Third-party build caching (stamp files)
+4. Include path management (centralize in core.pri)
+5. Library linkage documentation (dependency diagram)
+
+Packaging Follow-up Lane (parallel, optional):
 - Fix Skia header paths in package jobs
 - Re-enable Debian and Arch package steps
 - Test end-to-end packaging workflow
@@ -114,24 +112,15 @@ gh api repos/Hope2333/enve/branches/master --jq '.commit.sha'
 ## Copy-Paste Prompt For The Next AI
 
 ```text
-Phase 2 is READY FOR MERGE via PR #8. CI PASSED.
+Phase 2 is COMPLETE AND MERGED TO MASTER. Phase 3 IN PROGRESS.
 
 Current state:
-- Phase 1: COMPLETE (run 23306463704 proved auto-build on push)
-- Phase 2: COMPLETE on branch chore/linux-baseline-actions
-- PR #8: OPEN - MERGEABLE - CI PASSED
-  - Title: Phase 2: Dependency boundary hardening
-  - URL: https://github.com/Hope2333/enve/pull/8
-  - Linux Baseline Build: ✅ success
-  - Multi-Distro Build: ✅ success
-- Run 23324646178 (branch validation):
-  - Ubuntu default build: ✅ success
-  - Ubuntu minimal build: ✅ success (all flags disabled)
-  - Arch build: ✅ success
-  - Debian build: ✅ success
-  - Arch/Debian packages: ❌ failure (packaging follow-up)
+- Phase 1: COMPLETE (auto-build on push proven)
+- Phase 2: COMPLETE AND MERGED (PR #8 merged, runs 23353037094/23353037134 passed)
+- Phase 3: IN PROGRESS (toolchain survey complete)
+- Latest commit: cbd91a54 - "Phase 3: Add toolchain survey"
 
-Phase 2 feature flags (all validated):
+Phase 2 feature flags (on master):
 1. ENVE_USE_GPERFTOOLS (app.pro + core.pri + Makefile)
 2. ENVE_USE_OPENMP (core.pri + Makefile)
 3. ENVE_USE_WEBENGINE (app.pro + Makefile)
@@ -139,19 +128,28 @@ Phase 2 feature flags (all validated):
 5. ENVE_BUILD_EXAMPLES (Makefile)
 6. ENVE_USE_SYSTEM_LIBMYPAINT (core.pri + Makefile)
 
-Your task:
-1. Merge PR #8 (squash merge recommended)
-2. Watch for automatic master build trigger (new run should appear within 1-2 min)
-3. Verify master build success
-4. Start Phase 3: toolchain consolidation prep
+Phase 3 progress:
+✅ Toolchain survey completed (phase-3-toolchain-survey.md)
+✅ Documented qmake structure and Makefile orchestration
+✅ Documented third-party build systems
+✅ Identified 5 consolidation opportunities
+✅ Prepared CMake migration structure outline
+🔄 Next: Document feature flag semantics
+
+Your task (continue Phase 3):
+1. Document feature flag semantics (validation, defaults, interactions)
+2. Create CMakeLists.txt skeleton for src/core/
+3. Test CMake build alongside qmake
+4. Document any build output organization issues
 
 Do NOT start:
-- CMake migration (Phase 3 prep first)
-- Qt 6 migration (after Phase 3)
-- dependency replacement (evidence-driven after Phase 2)
+- CMake migration (prep only, no full implementation)
+- Qt 6 migration (after toolchain consolidation)
+- Dependency replacement (evidence-driven)
 
 Read these files for context:
 - docs/modernization/ai-handoff.md (this file)
-- docs/modernization/phase-2-roadmap.md
+- docs/modernization/phase-3-toolchain-survey.md (NEW)
+- docs/modernization/phased-backlog.md (Phase 3 section)
 - docs/modernization/dependency-ledger.md
 ```
