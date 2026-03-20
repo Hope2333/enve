@@ -65,24 +65,27 @@ Goal: formalize the already-recovered Linux reference lane and pay down the rema
 - ✅ Toolchain survey completed (phase-3-toolchain-survey.md)
 - ✅ Documented qmake structure and Makefile orchestration
 - ✅ Documented third-party build systems
-- ✅ Identified consolidation opportunities
+- ✅ Identified 5 consolidation opportunities
 - ✅ Prepared CMake migration structure outline
-- 🔄 Next: Document feature flag semantics
+- ✅ Feature flag semantics documented (feature-flag-semantics.md)
+- ✅ CMakeLists.txt skeleton created (root, src/core, src/app, examples)
+- ✅ FindQScintilla.cmake module created
+- 🔄 Next: Test CMake build alongside qmake (requires Skia pre-build)
 
 **Consolidation opportunities identified:**
-1. Feature flag consistency (validation, documentation)
-2. Build output organization (centralize under build/)
-3. Third-party build caching (stamp files)
-4. Include path management (centralize in core.pri)
-5. Library linkage documentation (dependency diagram)
+1. Feature flag consistency (validation, documentation) - ✅ DONE
+2. Build output organization (centralize under build/) - ⏳ PENDING
+3. Third-party build caching (stamp files) - ⏳ PENDING
+4. Include path management (centralize in core.pri) - ⏳ PENDING
+5. Library linkage documentation (dependency diagram) - ⏳ PENDING
 
 Exit criteria:
 - CI passes on the new compiler and Qt 5 lane.
 - Smoke verification shows no regression in startup, rendering, media, or scripting flows.
 - ✅ Toolchain survey complete
-- 🔄 Feature flag semantics documented
-- ⏳ CMakeLists.txt skeleton created
-- ⏳ CMake build tested alongside qmake
+- ✅ Feature flag semantics documented
+- ✅ CMakeLists.txt skeleton created
+- 🔄 CMake build tested alongside qmake (BLOCKED: requires Skia pre-build setup)
 
 ## Phase 4: Verification Upgrade
 

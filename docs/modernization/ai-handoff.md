@@ -73,7 +73,10 @@
 - ✅ Documented third-party build systems
 - ✅ Identified 5 consolidation opportunities
 - ✅ Prepared CMake migration structure outline
-- 🔄 Next: Document feature flag semantics
+- ✅ Feature flag semantics documented (feature-flag-semantics.md)
+- ✅ CMakeLists.txt skeleton created (root, src/core, src/app, examples)
+- ✅ FindQScintilla.cmake module created
+- 🔄 Next: Test CMake build (BLOCKED: requires Skia pre-build setup)
 
 **Consolidation opportunities:**
 1. Feature flag consistency (validation, documentation)
@@ -117,8 +120,8 @@ Phase 2 is COMPLETE AND MERGED TO MASTER. Phase 3 IN PROGRESS.
 Current state:
 - Phase 1: COMPLETE (auto-build on push proven)
 - Phase 2: COMPLETE AND MERGED (PR #8 merged, runs 23353037094/23353037134 passed)
-- Phase 3: IN PROGRESS (toolchain survey complete)
-- Latest commit: cbd91a54 - "Phase 3: Add toolchain survey"
+- Phase 3: IN PROGRESS (CMake skeleton created)
+- Latest commit: ee4cb34b - "Phase 3: Add CMake skeleton and feature flag docs"
 
 Phase 2 feature flags (on master):
 1. ENVE_USE_GPERFTOOLS (app.pro + core.pri + Makefile)
@@ -133,23 +136,33 @@ Phase 3 progress:
 ✅ Documented qmake structure and Makefile orchestration
 ✅ Documented third-party build systems
 ✅ Identified 5 consolidation opportunities
-✅ Prepared CMake migration structure outline
-🔄 Next: Document feature flag semantics
+✅ Feature flag semantics documented (feature-flag-semantics.md)
+✅ CMakeLists.txt skeleton created:
+   - CMakeLists.txt (root)
+   - src/core/CMakeLists.txt
+   - src/app/CMakeLists.txt
+   - examples/CMakeLists.txt
+✅ FindQScintilla.cmake module created
+🔄 Next: Test CMake build (BLOCKED: requires Skia pre-build setup)
 
 Your task (continue Phase 3):
-1. Document feature flag semantics (validation, defaults, interactions)
-2. Create CMakeLists.txt skeleton for src/core/
-3. Test CMake build alongside qmake
-4. Document any build output organization issues
+1. Set up Skia pre-build for CMake (see phase-3-toolchain-survey.md)
+2. Test CMake build alongside qmake
+3. Document any build output organization issues
+4. Complete remaining consolidation opportunities:
+   - Build output organization
+   - Third-party build caching
+   - Include path management
+   - Library linkage documentation
 
 Do NOT start:
-- CMake migration (prep only, no full implementation)
+- Full CMake migration (skeleton only for now)
 - Qt 6 migration (after toolchain consolidation)
 - Dependency replacement (evidence-driven)
 
 Read these files for context:
 - docs/modernization/ai-handoff.md (this file)
-- docs/modernization/phase-3-toolchain-survey.md (NEW)
+- docs/modernization/phase-3-toolchain-survey.md
+- docs/modernization/feature-flag-semantics.md (NEW)
 - docs/modernization/phased-backlog.md (Phase 3 section)
-- docs/modernization/dependency-ledger.md
 ```
