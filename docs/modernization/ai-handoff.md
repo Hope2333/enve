@@ -61,28 +61,31 @@
 6. ✅ Phase 2 STARTED: dependency-boundary hardening in progress.
 
 Phase 2 progress (dependency boundaries):
-✅ COMPLETED (all 5 flags):
+✅ COMPLETED (all 5 flags + 1 packaging flag):
 1. gperftools - ENVE_USE_GPERFTOOLS flag (app.pro + core.pri + Makefile)
 2. OpenMP - ENVE_USE_OPENMP flag (core.pri + Makefile)
 3. WebEngine - ENVE_USE_WEBENGINE flag (app.pro + Makefile)
 4. QScintilla - ENVE_USE_QSCINTILLA flag (app.pro + Makefile)
 5. Examples - ENVE_BUILD_EXAMPLES flag (Makefile, already existed)
+6. System libmypaint - ENVE_USE_SYSTEM_LIBMYPAINT flag (core.pri + Makefile)
 
 🔄 IN PROGRESS:
-1. Test dependency flags (blocked by libmypaint build issues)
-2. Fix Multi-Distro packaging (libmypaint header paths)
+1. CI testing (run `23324646178`):
+   - Testing minimal dependency build
+   - Testing Debian and Arch packaging
 
 Phase 2 approach:
 - Add build flags to enable/disable each optional dependency
 - Keep default as "all enabled" for backwards compatibility
+- Use system libmypaint for CI packaging (avoid vendored build issues)
 - Update dependency-ledger.md with ownership and default state
 - Do NOT start CMake migration yet
 - Do NOT start Qt 6 migration yet
 - Do NOT start dependency replacement yet
 
 Multi-Distro Build notes:
-- Package steps temporarily disabled (libmypaint header issues)
-- Will be fixed when we add proper include paths or use system libmypaint
+- Package steps ENABLED (using system libmypaint)
+- Test run: `23324646178`
 
 ## Commands Worth Reusing
 
@@ -118,29 +121,31 @@ Current state:
   - Arch Linux: ✅ success
 - Automatic Build (Linux) on push: PROVEN working
 - Master commit: latest on chore/linux-baseline-actions
+- CI testing in progress: run 23324646178
 
 Phase 2 progress (dependency boundaries):
-✅ COMPLETED (all 5 flags):
+✅ COMPLETED (all 6 flags):
 1. gperftools - ENVE_USE_GPERFTOOLS flag (app.pro + core.pri + Makefile)
 2. OpenMP - ENVE_USE_OPENMP flag (core.pri + Makefile)
 3. WebEngine - ENVE_USE_WEBENGINE flag (app.pro + Makefile)
 4. QScintilla - ENVE_USE_QSCINTILLA flag (app.pro + Makefile)
 5. Examples - ENVE_BUILD_EXAMPLES flag (Makefile)
+6. System libmypaint - ENVE_USE_SYSTEM_LIBMYPAINT flag (core.pri + Makefile)
 
-Your task (choose one):
-1. Test dependency flags (requires fixing libmypaint build):
-   - make build ENVE_USE_GPERFTOOLS=0
-   - make build ENVE_USE_OPENMP=0
-   - Verify builds complete successfully
+Your task:
+1. Check CI run 23324646178 results:
+   - Did minimal dependency build pass?
+   - Did Debian packaging pass?
+   - Did Arch packaging pass?
 
-2. Fix Multi-Distro packaging:
-   - Package steps disabled due to libmypaint header issues
-   - Option A: Add proper include paths for mypaint-brush-settings-gen.h
-   - Option B: Use system libmypaint-dev package instead of vendored
+2. If CI passes:
+   - Document feature flags in README.md or BUILDING.md
+   - Consider Phase 2 complete
 
-3. Document feature flags:
-   - Add ENVE_USE_* flags to README.md
-   - Create BUILDING.md with flag combinations
+3. If CI fails:
+   - Check error logs
+   - Apply minimal fix
+   - Re-trigger CI
 
 Do NOT start:
 - CMake migration (wait until all feature flags are tested)
@@ -153,7 +158,5 @@ Read these files for context:
 - docs/modernization/phased-backlog.md (Phase 2 section)
 - Makefile (feature flag definitions)
 - src/app/app.pro (WebEngine, QScintilla, gperftools flags)
-- src/core/core.pri (OpenMP flag)
-```
-- docs/modernization/dependency-ledger.md
+- src/core/core.pri (OpenMP, libmypaint flags)
 ```
