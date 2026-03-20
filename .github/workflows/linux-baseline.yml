@@ -55,17 +55,25 @@ jobs:
       - name: Install Linux build dependencies
         run: scripts/ci/install-linux-build-deps.sh
 
-      - name: Cache skia release output
-        id: cache-skia
+      - name: Cache third-party builds
+        id: cache-third-party
         uses: actions/cache@v4
         with:
-          path: third_party/skia/out/Release
-          key: ${{ runner.os }}-skia-release-${{ hashFiles('third_party/Makefile', '.gitmodules', 'scripts/ci/build-linux-baseline.sh') }}
+          path: |
+            build/Release/stamps/third_party
+            third_party/skia/out/Release
+            third_party/libmypaint/.libs
+            third_party/libmypaint/libmypaint
+            third_party/quazip/quazip
+            third_party/gperftools/.libs
+            third_party/qscintilla/Qt4Qt5
+          key: ${{ runner.os }}-third-party-${{ hashFiles('third_party/Makefile', 'third_party/**/Makefile', 'third_party/**/configure', 'third_party/**/configure.ac') }}
+          restore-keys: |
+            ${{ runner.os }}-third-party-
 
       - name: Build baseline
         env:
           ENVE_JOBS: "2"
-          ENVE_USE_PREBUILT_SKIA: ${{ steps.cache-skia.outputs.cache-hit == 'true' && '1' || '0' }}
         run: scripts/ci/build-linux-baseline.sh
 
       - name: Smoke checks

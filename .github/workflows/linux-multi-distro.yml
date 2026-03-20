@@ -52,6 +52,22 @@ jobs:
             libfreetype6-dev libpng-dev \
             curl patch make g++ wget libfuse2
 
+      - name: Cache third-party builds
+        id: cache-third-party
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/Release/stamps/third_party
+            third_party/skia/out/Release
+            third_party/libmypaint/.libs
+            third_party/libmypaint/libmypaint
+            third_party/quazip/quazip
+            third_party/gperftools/.libs
+            third_party/qscintilla/Qt4Qt5
+          key: ${{ runner.os }}-third-party-${{ hashFiles('third_party/Makefile', 'third_party/**/Makefile') }}
+          restore-keys: |
+            ${{ runner.os }}-third-party-
+
       - name: Build with Makefile (default)
         run: |
           make build VER=${{ env.VER }} JOBS=${{ env.JOBS }}
@@ -103,6 +119,22 @@ jobs:
             libfreetype6-dev libpng-dev \
             curl patch make g++ wget
 
+      - name: Cache third-party builds
+        id: cache-third-party
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/Release/stamps/third_party
+            third_party/skia/out/Release
+            third_party/libmypaint/.libs
+            third_party/libmypaint/libmypaint
+            third_party/quazip/quazip
+            third_party/gperftools/.libs
+            third_party/qscintilla/Qt4Qt5
+          key: Debian-12-third-party-${{ hashFiles('third_party/Makefile', 'third_party/**/Makefile') }}
+          restore-keys: |
+            Debian-12-third-party-
+
       - name: Build with Makefile
         run: |
           make build VER=${{ env.VER }} JOBS=${{ env.JOBS }}
@@ -138,6 +170,22 @@ jobs:
             ffmpeg libmypaint gperftools \
             json-c fontconfig freetype2 libpng \
             curl patch make gcc git wget
+
+      - name: Cache third-party builds
+        id: cache-third-party
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/Release/stamps/third_party
+            third_party/skia/out/Release
+            third_party/libmypaint/.libs
+            third_party/libmypaint/libmypaint
+            third_party/quazip/quazip
+            third_party/gperftools/.libs
+            third_party/qscintilla/Qt4Qt5
+          key: Arch-Linux-third-party-${{ hashFiles('third_party/Makefile', 'third_party/**/Makefile') }}
+          restore-keys: |
+            Arch-Linux-third-party-
 
       - name: Build with Makefile
         run: |
