@@ -51,21 +51,26 @@
 
 ## Immediate Next Actions
 
-**Phase 1 COMPLETE! Phase 2 in progress.**
+**Phase 1 COMPLETE! Phase 2 IN PROGRESS.**
 
 1. ✅ Root cause diagnosed: workflow fix was committed AFTER PR #6 merge.
 2. ✅ PR #7 created and MERGED.
 3. ✅ First automatic build run `23306463704`: SUCCESS.
 4. ✅ Phase 1 exit criteria PROVEN: automatic Build (Linux) on push is working.
 5. ✅ Multi-Distro Build: SUCCESS (Ubuntu/Debian/Arch all building).
-6. ✅ Phase 2 started: dependency-boundary hardening in progress.
+6. ✅ Phase 2 STARTED: dependency-boundary hardening in progress.
 
 Phase 2 progress (dependency boundaries):
-1. ✅ `gperftools` - `ENVE_USE_GPERFTOOLS` flag added to app.pro and Makefile
-2. ✅ `OpenMP` - `ENVE_USE_OPENMP` flag added to core.pri and Makefile
-3. ✅ `WebEngine` - `ENVE_USE_WEBENGINE` flag added to Makefile (pending core.pri if needed)
-4. ✅ `QScintilla` - `ENVE_USE_QSCINTILLA` flag added to Makefile (app.pro already uses it)
-5. ✅ `Examples` - `ENVE_BUILD_EXAMPLES` flag already existed
+✅ COMPLETED (all 5 flags):
+1. gperftools - ENVE_USE_GPERFTOOLS flag (app.pro + core.pri + Makefile)
+2. OpenMP - ENVE_USE_OPENMP flag (core.pri + Makefile)
+3. WebEngine - ENVE_USE_WEBENGINE flag (app.pro + Makefile)
+4. QScintilla - ENVE_USE_QSCINTILLA flag (app.pro + Makefile)
+5. Examples - ENVE_BUILD_EXAMPLES flag (Makefile, already existed)
+
+🔄 IN PROGRESS:
+1. Test dependency flags (blocked by libmypaint build issues)
+2. Fix Multi-Distro packaging (libmypaint header paths)
 
 Phase 2 approach:
 - Add build flags to enable/disable each optional dependency
@@ -77,7 +82,7 @@ Phase 2 approach:
 
 Multi-Distro Build notes:
 - Package steps temporarily disabled (libmypaint header issues)
-- Will be fixed in Phase 2 when we add proper include paths
+- Will be fixed when we add proper include paths or use system libmypaint
 
 ## Commands Worth Reusing
 
@@ -102,7 +107,7 @@ gh api repos/Hope2333/enve/branches/master --jq '.commit.sha'
 ## Copy-Paste Prompt For The Next AI
 
 ```text
-Phase 1 COMPLETE! Phase 2 in progress.
+Phase 1 COMPLETE! Phase 2 IN PROGRESS.
 
 Current state:
 - Phase 0: COMPLETE (manual validation run 23288361000: success)
@@ -115,26 +120,27 @@ Current state:
 - Master commit: latest on chore/linux-baseline-actions
 
 Phase 2 progress (dependency boundaries):
-✅ COMPLETED:
-1. gperftools - ENVE_USE_GPERFTOOLS flag (app.pro + Makefile)
+✅ COMPLETED (all 5 flags):
+1. gperftools - ENVE_USE_GPERFTOOLS flag (app.pro + core.pri + Makefile)
 2. OpenMP - ENVE_USE_OPENMP flag (core.pri + Makefile)
-3. WebEngine - ENVE_USE_WEBENGINE flag (Makefile)
-4. QScintilla - ENVE_USE_QSCINTILLA flag (Makefile)
-5. Examples - ENVE_BUILD_EXAMPLES flag (already existed)
+3. WebEngine - ENVE_USE_WEBENGINE flag (app.pro + Makefile)
+4. QScintilla - ENVE_USE_QSCINTILLA flag (app.pro + Makefile)
+5. Examples - ENVE_BUILD_EXAMPLES flag (Makefile)
 
 Your task (choose one):
-1. Test dependency flags:
+1. Test dependency flags (requires fixing libmypaint build):
    - make build ENVE_USE_GPERFTOOLS=0
    - make build ENVE_USE_OPENMP=0
    - Verify builds complete successfully
 
 2. Fix Multi-Distro packaging:
    - Package steps disabled due to libmypaint header issues
-   - Add proper include paths for mypaint-brush-settings-gen.h
+   - Option A: Add proper include paths for mypaint-brush-settings-gen.h
+   - Option B: Use system libmypaint-dev package instead of vendored
 
-3. Continue Phase 2:
-   - Add ENVE_USE_WEBENGINE to app.pro (if used there)
-   - Document feature flags in README
+3. Document feature flags:
+   - Add ENVE_USE_* flags to README.md
+   - Create BUILDING.md with flag combinations
 
 Do NOT start:
 - CMake migration (wait until all feature flags are tested)
@@ -146,9 +152,8 @@ Read these files for context:
 - docs/modernization/dependency-ledger.md (flag status)
 - docs/modernization/phased-backlog.md (Phase 2 section)
 - Makefile (feature flag definitions)
+- src/app/app.pro (WebEngine, QScintilla, gperftools flags)
+- src/core/core.pri (OpenMP flag)
 ```
-- docs/modernization/current-status.md
-- docs/modernization/phase-1-roadmap.md
-- docs/modernization/phased-backlog.md
 - docs/modernization/dependency-ledger.md
 ```
