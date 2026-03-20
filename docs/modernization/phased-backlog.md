@@ -70,14 +70,16 @@ Goal: formalize the already-recovered Linux reference lane and pay down the rema
 - ✅ Feature flag semantics documented (feature-flag-semantics.md)
 - ✅ CMakeLists.txt skeleton created (root, src/core, src/app, examples)
 - ✅ FindQScintilla.cmake module created
-- 🔄 Next: Test CMake build alongside qmake (requires Skia pre-build)
+- ✅ Build output organization documented (build-output-organization.md)
+- ✅ Library linkage documented (library-linkage.md)
+- 🔄 Next: Implement stamp files for third_party builds
 
 **Consolidation opportunities identified:**
 1. Feature flag consistency (validation, documentation) - ✅ DONE
-2. Build output organization (centralize under build/) - ⏳ PENDING
-3. Third-party build caching (stamp files) - ⏳ PENDING
+2. Build output organization (centralize under build/) - ✅ DOCUMENTED
+3. Third-party build caching (stamp files) - ⏳ PENDING IMPLEMENTATION
 4. Include path management (centralize in core.pri) - ⏳ PENDING
-5. Library linkage documentation (dependency diagram) - ⏳ PENDING
+5. Library linkage documentation (dependency diagram) - ✅ DONE
 
 Exit criteria:
 - CI passes on the new compiler and Qt 5 lane.
@@ -85,7 +87,10 @@ Exit criteria:
 - ✅ Toolchain survey complete
 - ✅ Feature flag semantics documented
 - ✅ CMakeLists.txt skeleton created
+- ✅ Build output organization documented
+- ✅ Library linkage documented
 - 🔄 CMake build tested alongside qmake (BLOCKED: requires Skia pre-build setup)
+- 🔄 Stamp files for third_party builds (NEXT)
 
 ## Phase 4: Verification Upgrade
 

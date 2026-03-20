@@ -76,7 +76,9 @@
 - ✅ Feature flag semantics documented (feature-flag-semantics.md)
 - ✅ CMakeLists.txt skeleton created (root, src/core, src/app, examples)
 - ✅ FindQScintilla.cmake module created
-- 🔄 Next: Test CMake build (BLOCKED: requires Skia pre-build setup)
+- ✅ Build output organization documented (build-output-organization.md)
+- ✅ Library linkage documented (library-linkage.md)
+- 🔄 Next: Implement stamp files for third_party builds
 
 **Consolidation opportunities:**
 1. Feature flag consistency (validation, documentation)
@@ -115,13 +117,13 @@ gh api repos/Hope2333/enve/branches/master --jq '.commit.sha'
 ## Copy-Paste Prompt For The Next AI
 
 ```text
-Phase 2 is COMPLETE AND MERGED TO MASTER. Phase 3 IN PROGRESS.
+Phase 2 is COMPLETE AND MERGED TO MASTER. Phase 3 NEAR COMPLETION.
 
 Current state:
 - Phase 1: COMPLETE (auto-build on push proven)
 - Phase 2: COMPLETE AND MERGED (PR #8 merged, runs 23353037094/23353037134 passed)
-- Phase 3: IN PROGRESS (CMake skeleton created)
-- Latest commit: ee4cb34b - "Phase 3: Add CMake skeleton and feature flag docs"
+- Phase 3: NEAR COMPLETION (documentation complete, stamp files pending)
+- Latest commit: 7bc0e89b - "Update handoff: Phase 3 CMake skeleton complete"
 
 Phase 2 feature flags (on master):
 1. ENVE_USE_GPERFTOOLS (app.pro + core.pri + Makefile)
@@ -137,23 +139,24 @@ Phase 3 progress:
 ✅ Documented third-party build systems
 ✅ Identified 5 consolidation opportunities
 ✅ Feature flag semantics documented (feature-flag-semantics.md)
-✅ CMakeLists.txt skeleton created:
-   - CMakeLists.txt (root)
-   - src/core/CMakeLists.txt
-   - src/app/CMakeLists.txt
-   - examples/CMakeLists.txt
+✅ CMakeLists.txt skeleton created (root, src/core, src/app, examples)
 ✅ FindQScintilla.cmake module created
-🔄 Next: Test CMake build (BLOCKED: requires Skia pre-build setup)
+✅ Build output organization documented (build-output-organization.md)
+✅ Library linkage documented (library-linkage.md)
+🔄 Next: Implement stamp files for third_party builds
+
+Consolidation opportunities status:
+1. Feature flag consistency - ✅ DONE
+2. Build output organization - ✅ DOCUMENTED
+3. Third-party build caching (stamp files) - 🔄 NEXT
+4. Include path management - ⏳ PENDING
+5. Library linkage documentation - ✅ DONE
 
 Your task (continue Phase 3):
-1. Set up Skia pre-build for CMake (see phase-3-toolchain-survey.md)
-2. Test CMake build alongside qmake
-3. Document any build output organization issues
-4. Complete remaining consolidation opportunities:
-   - Build output organization
-   - Third-party build caching
-   - Include path management
-   - Library linkage documentation
+1. Implement stamp files for third_party builds (see build-output-organization.md)
+2. Update third_party/Makefile with stamp file support
+3. Test incremental builds (skip unchanged dependencies)
+4. Optionally: Implement include path management consolidation
 
 Do NOT start:
 - Full CMake migration (skeleton only for now)
@@ -163,6 +166,8 @@ Do NOT start:
 Read these files for context:
 - docs/modernization/ai-handoff.md (this file)
 - docs/modernization/phase-3-toolchain-survey.md
-- docs/modernization/feature-flag-semantics.md (NEW)
+- docs/modernization/feature-flag-semantics.md
+- docs/modernization/build-output-organization.md (NEW)
+- docs/modernization/library-linkage.md (NEW)
 - docs/modernization/phased-backlog.md (Phase 3 section)
 ```
