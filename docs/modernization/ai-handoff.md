@@ -36,16 +36,18 @@
 - URL: `https://github.com/Hope2333/enve/actions/runs/23324646178`
 - Event: `workflow_dispatch`
 - Branch: `chore/linux-baseline-actions`
-- Status at snapshot time: **COMPLETED**
+- Status: **COMPLETED**
   - Ubuntu 22.04 default build: ✅ `success`
   - Ubuntu 22.04 minimal-dependency build: ✅ `success` (NEW - tests all flags disabled)
   - Arch Linux build: ✅ `success`
   - Debian 12 build: ✅ `success`
-  - Arch package: ❌ `failure` (Skia header not found - packaging lane issue)
-  - Debian package: ❌ `failure` (Skia header not found - packaging lane issue)
+  - Arch package: ❌ `failure` (packaging follow-up lane)
+  - Debian package: ❌ `failure` (packaging follow-up lane)
 - Interpretation:
   - Phase 2 build-flag validation: **PASSED**
   - Packaging jobs: moved to follow-up lane (not Phase 2 blockers)
+- PR #8: CREATED - "Phase 2: Dependency boundary hardening"
+- URL: `https://github.com/Hope2333/enve/pull/8`
 
 ## Practical Interpretation
 
@@ -109,11 +111,13 @@ gh api repos/Hope2333/enve/branches/master --jq '.commit.sha'
 ## Copy-Paste Prompt For The Next AI
 
 ```text
-Phase 2 is READY FOR MERGE.
+Phase 2 is READY FOR MERGE via PR #8.
 
 Current state:
 - Phase 1: COMPLETE (run 23306463704 proved auto-build on push)
 - Phase 2: COMPLETE on branch chore/linux-baseline-actions
+- PR #8: CREATED - "Phase 2: Dependency boundary hardening"
+- URL: https://github.com/Hope2333/enve/pull/8
 - Run 23324646178 results:
   - Ubuntu default build: ✅ success
   - Ubuntu minimal build: ✅ success (all flags disabled)
@@ -130,8 +134,8 @@ Phase 2 feature flags (all validated):
 6. ENVE_USE_SYSTEM_LIBMYPAINT (core.pri + Makefile)
 
 Your task:
-1. Merge Phase 2 to master (PR #8)
-2. Verify master auto-build triggers (run should appear)
+1. Review and merge PR #8
+2. Verify master auto-build triggers (new run should appear)
 3. Start Phase 3: toolchain consolidation prep
 
 Do NOT start:
