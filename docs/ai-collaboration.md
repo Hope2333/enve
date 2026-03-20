@@ -20,10 +20,31 @@ Use the lower-cost AI for iterative coding, log collection, CI retries, and boun
 ### Lower-Cost Execution AI
 
 - Execute the current lane with the smallest correct change.
+- Use a few subagents when they clearly reduce idle time on simple side tasks.
+- Read the active roadmap before coding and derive a layered TODO list:
+  - lane goal
+  - current batch
+  - immediate next tasks
 - Run local verification, trigger CI, inspect logs, and make narrow follow-up fixes.
+- Stay patient during long-running builds or CI; prefer repo-safe wait loops over bouncing back to the human early.
 - Keep commits small and single-purpose.
 - Update the active handoff docs after each meaningful state change.
 - Return to the supervisory AI at defined review gates instead of endlessly pushing local optimizations.
+
+## Lower-Cost Subagent Guardrails
+
+The lower-cost AI may use subagents, but only under tight limits:
+
+- at most 3 parallel subagents at one time
+- reserve them for simple, bounded, mostly read-only tasks
+- good fits:
+  - `explorer` for codebase search, file mapping, and symbol lookup
+  - `researcher` as the closest match to a librarian or oracle role for documentation, references, and external facts
+  - `verifier` or a similar read-mostly checker for confirmation work
+- do not delegate the immediate blocking implementation step if the main AI needs that result next
+- do not fan out speculative work just because more work is visible
+- prefer subagents for sidecar tasks that can run while the main AI keeps the critical path moving
+- if subagents are used, fold their findings back into the layered TODO state instead of leaving them as detached notes
 
 ## Shared Source Of Truth
 
@@ -49,6 +70,21 @@ Default loop:
    - narrows or changes the next target
    - takes over directly for a hard blocker or plan correction
 
+## Long-Run Lower-Cost Pattern
+
+When the lower-cost AI is expected to run with low supervision:
+
+1. Read the active handoff and roadmap first.
+2. Extract a layered TODO list before coding:
+   - lane goal
+   - current batch
+   - immediate next tasks
+3. Work through that list until a review gate, a real blocker, or a terminal build result appears.
+4. If simple sidecar questions appear, use up to 3 lightweight subagents for exploration, research, or verification while the main AI keeps moving.
+5. For GitHub Actions waits, use `scripts/ci/watch-build-status.sh`.
+6. For local long-running logs, use `scripts/ci/wait-log-pattern.sh` with explicit success and error markers.
+7. Hand back only when there is a meaningful state change, not just because a build is still running.
+
 ## Mandatory Review Gates
 
 Return to the supervisory AI immediately when any of these happens:
@@ -66,6 +102,10 @@ When handing back, include:
 
 - current branch
 - current head commit
+- current layered TODO state
+  - lane goal
+  - current batch
+  - immediate next tasks
 - latest relevant workflow run and conclusion
 - first confirmed blocker or confirmation of green status
 - local verification performed
@@ -84,27 +124,38 @@ When handing back, include:
 ## Prompt: Lower-Cost Execution AI
 
 ```text
-Read these files first:
-- AGENTS.md
-- docs/ai-relay.md
-- docs/ai-collaboration.md
-- docs/modernization/ai-handoff.md
-- docs/modernization/current-status.md
-- docs/modernization/phase-2-roadmap.md
+Read AGENTS.md, docs/ai-relay.md, docs/ai-collaboration.md, and the active lane handoff/status/roadmap docs listed in docs/ai-relay.md.
 
 You are the lower-cost execution AI.
 
 Your job:
+- read the active roadmap before coding and derive a layered TODO list with:
+  - lane goal
+  - current batch
+  - immediate next tasks
 - stay inside the active lane
 - make the smallest correct change
+- work through the layered TODO list autonomously instead of waiting for human nudges after every sub-step
 - run local verification
 - trigger or inspect CI as needed
+- use subagents sparingly for simple sidecar tasks such as exploration, reference lookup, or verification
+- keep subagent fanout small: at most 3 parallel subagents
+- do not delegate the critical-path implementation step just because delegation is available
+- for GitHub Actions waits, use `scripts/ci/watch-build-status.sh`
+- for long-running local logs, use `scripts/ci/wait-log-pattern.sh`
+- wait patiently instead of returning early just because a build or workflow is still running
 - update handoff docs after any meaningful state change
 - hand back after 5 to 10 meaningful steps, or immediately on a new blocker / first green build / PR readiness point
+
+When handing back, include the current layered TODO state:
+- lane goal
+- current batch
+- immediate next tasks
 
 Do not:
 - start a new phase on your own
 - broaden scope just because more work is visible
+- ask the human to babysit a running build when a safe wait loop would do
 - leave the handoff docs stale
 - commit .omx/
 ```

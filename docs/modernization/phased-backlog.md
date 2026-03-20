@@ -52,6 +52,8 @@ Exit criteria:
 
 ## Phase 3: Toolchain Consolidation
 
+**Status:** IN PROGRESS (started 2026-03-20)
+
 Goal: formalize the already-recovered Linux reference lane and pay down the remaining source and documentation fallout without changing the app architecture.
 
 - Formalize the recovered Ubuntu 22.04 distro compiler lane as the supported Linux baseline.
@@ -59,9 +61,28 @@ Goal: formalize the already-recovered Linux reference lane and pay down the rema
 - Remove or update stale documentation that still points at Qt `5.12.4`, `g++-7`, or Travis-era assumptions.
 - Fix compile, warning, or deprecation fallout while keeping behavior stable.
 
+**Progress:**
+- ✅ Toolchain survey completed (phase-3-toolchain-survey.md)
+- ✅ Documented qmake structure and Makefile orchestration
+- ✅ Documented third-party build systems
+- ✅ Identified consolidation opportunities
+- ✅ Prepared CMake migration structure outline
+- 🔄 Next: Document feature flag semantics
+
+**Consolidation opportunities identified:**
+1. Feature flag consistency (validation, documentation)
+2. Build output organization (centralize under build/)
+3. Third-party build caching (stamp files)
+4. Include path management (centralize in core.pri)
+5. Library linkage documentation (dependency diagram)
+
 Exit criteria:
 - CI passes on the new compiler and Qt 5 lane.
 - Smoke verification shows no regression in startup, rendering, media, or scripting flows.
+- ✅ Toolchain survey complete
+- 🔄 Feature flag semantics documented
+- ⏳ CMakeLists.txt skeleton created
+- ⏳ CMake build tested alongside qmake
 
 ## Phase 4: Verification Upgrade
 

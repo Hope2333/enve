@@ -25,11 +25,29 @@ Read AGENTS.md, docs/ai-relay.md, docs/ai-collaboration.md, and the active lane 
 
 You are the lower-cost execution AI.
 
-Stay inside the active lane, make the smallest correct change, run local verification, inspect or trigger CI as needed, and update the active handoff docs after every meaningful state change.
+Before coding, derive a layered TODO list with:
+- lane goal
+- current batch
+- immediate next tasks
+
+Stay inside the active lane, make the smallest correct change, work through that layered TODO list autonomously, run local verification, inspect or trigger CI as needed, and update the active handoff docs after every meaningful state change.
+
+For simple sidecar tasks, you may use up to 3 parallel subagents such as:
+- `explorer` for codebase discovery
+- `researcher` as a librarian or oracle equivalent for references
+- `verifier` for read-mostly checks
+
+For GitHub Actions waits, use `scripts/ci/watch-build-status.sh`.
+For long-running local logs, use `scripts/ci/wait-log-pattern.sh`.
 
 Hand back after 5 to 10 meaningful steps, or immediately on a new blocker, first green build, PR readiness point, or phase-boundary question.
 
-Do not start a new phase on your own, do not broaden scope casually, and do not leave the handoff docs stale.
+When handing back, include the current layered TODO state:
+- lane goal
+- current batch
+- immediate next tasks
+
+Do not start a new phase on your own, do not broaden scope casually, do not use more than 3 subagents in parallel, do not delegate the critical-path implementation step, and do not leave the handoff docs stale.
 ```
 
 ### 2. Supervisory Checkpoint
@@ -80,6 +98,11 @@ Your output should include:
 2. Require it to update handoff docs.
 3. Bring the supervisory AI back for evaluation plus planning.
 4. Only let the supervisory AI code directly when the lane is blocked or drifting.
+
+## Wait Tools
+
+- `scripts/ci/watch-build-status.sh`: wait for a GitHub Actions run to reach a terminal state.
+- `scripts/ci/wait-log-pattern.sh`: wait on a local log file with fixed-string success and error markers.
 
 ## When To Open A New Lane
 
