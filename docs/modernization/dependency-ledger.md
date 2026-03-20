@@ -9,7 +9,7 @@ This ledger records the current build and runtime dependencies, their coupling l
 | Dependency | Evidence | Current role | Coupling | Recommended first action |
 | --- | --- | --- | --- | --- |
 | Travis CI | `.travis.yml` | Legacy Linux/macOS build and packaging orchestration | High | Replace with GitHub Actions or equivalent before version upgrades |
-| GitHub Actions | `.github/workflows/linux-baseline.yml` | Current Linux baseline and Phase 2 validation lane | High | Automatic `master` push builds are proven; use the branch-side matrix to validate feature-boundary work without letting package fallout silently redefine the phase |
+| GitHub Actions | `.github/workflows/linux-baseline.yml`, `.github/workflows/linux-multi-distro.yml` | Current Linux baseline, compile-compatibility, and Phase 4 verification lane | High | Keep the baseline workflow focused on repeatable verification; keep multi-distro as compile compatibility evidence until a separate packaging/distribution lane is intentionally opened |
 | qmake | `enve.pro`, `src/src.pro`, `src/app/app.pro`, `src/core/core.pro` | Primary build generator | High | Keep during baseline recovery; extract target and feature boundaries before any CMake migration |
 | Historical Qt 5.12.4 lane | `.travis.yml`, `Source and building info.md` | Legacy documented UI/runtime baseline | High | Replace legacy documentation with the recovered Ubuntu 22.04 distro Qt 5.15.x reference lane |
 | Historical `g++-7` / old macOS toolchain | `.travis.yml`, `Source and building info.md` | Legacy documented compiler baseline | Medium | Replace legacy documentation with the recovered Ubuntu 22.04 distro compiler lane before broader upgrades |
@@ -38,13 +38,11 @@ This ledger records the current build and runtime dependencies, their coupling l
 ## Immediate Priorities
 
 1. Phase 1 is complete: automatic `master` push build proven by run `23306463704`.
-2. Phase 2 implementation is present on the branch and is being validated in run `23324646178`.
-3. Immediate branch-side concern: determine whether packaging failures remain inside the Phase 2 exit gate or move to a narrower follow-up lane.
-4. Document the flags, defaults, and ownership before merge:
-   - `ENVE_USE_GPERFTOOLS`
-   - `ENVE_USE_WEBENGINE`
-   - `ENVE_USE_QSCINTILLA`
-   - `ENVE_USE_OPENMP`
-   - `ENVE_BUILD_EXAMPLES`
-   - `ENVE_USE_SYSTEM_LIBMYPAINT`
-5. Do not start CMake or Qt 6 work until the feature-boundary work is merged and the default baseline remains stable.
+2. Phase 2 is complete and merged to `master`; the flagged dependency boundaries are now part of the baseline.
+3. Phase 3 is complete and validated on `master` by runs `23357140865`, `23357140871`, `23357156824`, and `23357158851`.
+4. Phase 4 is now active:
+   - strengthen repeatable verification
+   - keep CI cost low
+   - keep compile compatibility distinct from packaging completeness
+5. Treat `PROXY` support as optional environment handling, not as a mandatory default baseline requirement.
+6. Do not start packaging expansion, CMake migration, Qt 6 work, dependency replacement, multilingual UI work, KDE/Plasma integration, or file-format redesign in the active lane.

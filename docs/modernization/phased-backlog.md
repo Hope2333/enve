@@ -4,9 +4,12 @@
 
 - Phase 0 is complete on the recovery branch: one Linux baseline build has passed end to end.
 - Phase 1 is complete: automatic `push` builds on `master` are proven by run `23306463704`.
-- Phase 2 is active on `chore/linux-baseline-actions`: feature flags are implemented and branch-side CI validation is in progress.
-- Phases 3 through 7 remain planned work and should not be mixed into the current Phase 2 validation gate.
+- Phase 2 is complete and merged to `master`: dependency-boundary flags are landed.
+- Phase 3 is complete on `master`: toolchain consolidation outputs are landed and validated by runs `23357140865`, `23357140871`, `23357156824`, and `23357158851`.
+- Phase 4 is now the active lane: verification upgrade.
+- Phases 5 through 7 remain planned work and should not be mixed into the current Phase 4 verification gate.
 - The recovered Ubuntu 22.04 + Qt 5.15.x lane is no longer hypothetical future work; later phases should treat it as the baseline to formalize and harden.
+- Packaging and distribution hardening remain a deferred follow-up lane candidate, not the current phase.
 
 ## Phase 0: Baseline Recovery
 
@@ -52,7 +55,7 @@ Exit criteria:
 
 ## Phase 3: Toolchain Consolidation
 
-**Status:** IN PROGRESS (started 2026-03-20)
+**Status:** COMPLETE
 
 Goal: formalize the already-recovered Linux reference lane and pay down the remaining source and documentation fallout without changing the app architecture.
 
@@ -61,7 +64,7 @@ Goal: formalize the already-recovered Linux reference lane and pay down the rema
 - Remove or update stale documentation that still points at Qt `5.12.4`, `g++-7`, or Travis-era assumptions.
 - Fix compile, warning, or deprecation fallout while keeping behavior stable.
 
-**Progress:**
+**Delivered:**
 - ✅ Toolchain survey completed (phase-3-toolchain-survey.md)
 - ✅ Documented qmake structure and Makefile orchestration
 - ✅ Documented third-party build systems
@@ -75,7 +78,11 @@ Goal: formalize the already-recovered Linux reference lane and pay down the rema
 - ✅ Stamp files for third_party builds implemented
 - ✅ Main Makefile updated to use stamp files
 - ✅ CI caching for third-party builds configured
-- 🔄 CI validation in progress (runs 23357156824, 23357158851)
+- ✅ CI validation passed:
+  - `23357140865` Linux Baseline Build (`push`)
+  - `23357140871` Multi-Distro Build (`push`)
+  - `23357156824` Linux Baseline Build (`workflow_dispatch`)
+  - `23357158851` Multi-Distro Build (`workflow_dispatch`)
 
 **Consolidation opportunities identified:**
 1. Feature flag consistency (validation, documentation) - ✅ DONE
@@ -93,19 +100,34 @@ Exit criteria:
 - ✅ Build output organization documented
 - ✅ Library linkage documented
 - ✅ Stamp files for third_party builds implemented
-- 🔄 CI validation with stamp files (IN PROGRESS)
+- ✅ CI validation with stamp files
 
 ## Phase 4: Verification Upgrade
+
+**Status:** IN PROGRESS
 
 Goal: reduce reliance on ad hoc manual testing.
 
 - Add repeatable smoke checks for startup and artifact existence.
 - Add focused regression checks for import/export, render, and media code paths.
 - Define what must be manually verified for GPU-sensitive changes.
+- Keep CI cost low by extending existing scripts before adding new matrix fan-out.
+- Treat Multi-Distro Build as compile-compatibility evidence, not as packaging completeness.
+- Keep proxy handling optional; do not assume `PROXY` is required outside restricted environments.
 
 Exit criteria:
 - Core change types have a defined verification path.
 - Contributors can tell whether a modernization change is safe before merging.
+- Packaging, AppImage, Flatpak, and distro-matrix expansion remain outside the exit gate.
+
+## Deferred Parallel Lane Candidate: Packaging And Distribution Hardening
+
+Goal: harden release artifact coverage after verification work is less ad hoc.
+
+- Revisit Debian and Arch package jobs once they are a release priority again.
+- Decide whether AppImage is a real supported format or only local tooling residue.
+- Evaluate whether Flatpak belongs in project scope after the baseline verification contract is stable.
+- Only expand distro coverage when there is a packaging or release reason, not just because the matrix can grow.
 
 ## Phase 5: Build-System Migration
 
@@ -160,4 +182,5 @@ Exit criteria:
 - Avoid combining build-system migration with Qt major-version migration.
 - Avoid changing packaging and runtime dependency strategy in the same phase as compiler or Qt upgrades.
 - Avoid starting the first CMake lane before Phase 2 has made the optional-feature boundaries explicit, or the initial CMake graph will inherit avoidable complexity.
-- Avoid letting packaging fallout silently expand Phase 2 until it stops being about dependency boundaries at all; if needed, split packaging follow-up into a narrower lane.
+- Avoid letting packaging or distro-matrix growth silently expand Phase 4.
+- Avoid treating proxy-specific networking assumptions as part of the default baseline unless logs prove they are required.

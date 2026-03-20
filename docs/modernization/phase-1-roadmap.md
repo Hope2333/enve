@@ -1,7 +1,7 @@
 # Phase 1 Roadmap
 
 > Historical note:
-> Phase 1 is complete. The active medium-term execution plan now lives in `docs/modernization/phase-2-roadmap.md`.
+> Phase 1 is complete. The active medium-term execution plan now lives in `docs/modernization/phase-4-roadmap.md`.
 
 ## Goal
 

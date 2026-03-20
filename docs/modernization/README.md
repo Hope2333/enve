@@ -8,7 +8,9 @@ This directory tracks the staged recovery of a reproducible build before larger 
 - [AI collaboration protocol](../ai-collaboration.md): role split, cadence, and prompt templates for supervisory and execution AIs.
 - [AI handoff](ai-handoff.md): timestamped coding handoff with run history, current branch state, and a copy-paste continuation prompt.
 - [Current status](current-status.md): what is already landed, what still fails, and what should happen next.
-- [Phase 2 roadmap](phase-2-roadmap.md): active medium-term plan for dependency-boundary hardening.
+- [Phase 4 roadmap](phase-4-roadmap.md): active medium-term plan for verification upgrade.
+- [Phase 3 toolchain survey](phase-3-toolchain-survey.md): latest completed upstream phase output and CMake-skeleton context.
+- [Phase 2 roadmap](phase-2-roadmap.md): historical plan for dependency-boundary hardening.
 - [Phase 1 roadmap](phase-1-roadmap.md): historical plan for CI replacement and baseline formalization.
 - [ADR 001](adr-001-build-and-dependency-modernization.md): the migration strategy and why it is phased.
 - [Baseline build specification](baseline-build-spec.md): the target Linux baseline, scripts, and success criteria.
@@ -19,8 +21,10 @@ This directory tracks the staged recovery of a reproducible build before larger 
 
 - Linux is the first recovery target; do not mix Linux baseline work with Windows or macOS changes.
 - `scripts/ci/build-linux-baseline.sh` is the source of truth for the current bootstrap flow.
-- `.github/workflows/linux-baseline.yml` is the active CI lane. `preflight` runs automatically and the main Linux build is proven on `push` to `master`.
+- `.github/workflows/linux-baseline.yml` is the active baseline CI lane. `preflight` runs automatically, the main Linux build is proven on `push` to `master`, and the next phase goal is better verification rather than more build fan-out.
+- `.github/workflows/linux-multi-distro.yml` is currently compile-compatibility evidence for Ubuntu, Debian, and Arch; it is not yet the release-packaging lane.
 - `docker/linux-baseline.Dockerfile` mirrors the CI package lane and is the easiest clean-room starting point.
+- `PROXY` support exists for restricted environments, but it is not a mandatory baseline assumption.
 
 ## Quick Commands
 

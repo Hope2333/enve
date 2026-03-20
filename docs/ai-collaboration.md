@@ -56,8 +56,9 @@ Every collaborating AI should treat these as the current project memory:
 4. `docs/modernization/ai-handoff.md`
 5. `docs/modernization/current-status.md`
 6. `docs/modernization/phased-backlog.md`
-7. `docs/modernization/phase-2-roadmap.md`
-8. `docs/modernization/phase-1-roadmap.md` as historical context when needed
+7. `docs/modernization/phase-4-roadmap.md`
+8. `docs/modernization/phase-3-toolchain-survey.md` as the latest completed upstream phase output
+9. `docs/modernization/phase-2-roadmap.md` and `docs/modernization/phase-1-roadmap.md` as historical context when needed
 
 ## Language Contract
 
@@ -126,8 +127,9 @@ When handing back, include:
 - Supervisory AI owns long-term sequencing and phase boundaries.
 - Lower-cost AI owns tactical execution inside the current lane.
 - `docs/modernization/phased-backlog.md` stays as the phase map.
-- `docs/modernization/phase-2-roadmap.md` is the current medium-term execution plan while Phase 2 is active.
-- `docs/modernization/phase-1-roadmap.md` is now historical context for the closed CI-replacement phase.
+- `docs/modernization/phase-4-roadmap.md` is the current medium-term execution plan while Phase 4 is active.
+- `docs/modernization/phase-3-toolchain-survey.md` is the latest completed upstream phase reference.
+- `docs/modernization/phase-2-roadmap.md` and `docs/modernization/phase-1-roadmap.md` are historical context for the closed earlier phases.
 - `docs/modernization/ai-handoff.md` stays the tactical source of truth.
 
 ## Prompt: Lower-Cost Execution AI
@@ -155,6 +157,7 @@ Your job:
 - use subagents sparingly for simple sidecar tasks such as exploration, reference lookup, or verification
 - keep subagent fanout small: at most 3 parallel subagents
 - do not delegate the critical-path implementation step just because delegation is available
+- treat proxy or other environment-specific networking helpers as optional unless the active lane docs or logs prove they are required
 - for GitHub Actions waits, use `scripts/ci/watch-build-status.sh`
 - for long-running local logs, use `scripts/ci/wait-log-pattern.sh`
 - wait patiently instead of returning early just because a build or workflow is still running
@@ -184,7 +187,8 @@ Read these files first:
 - docs/modernization/ai-handoff.md
 - docs/modernization/current-status.md
 - docs/modernization/phased-backlog.md
-- docs/modernization/phase-2-roadmap.md
+- docs/modernization/phase-4-roadmap.md
+- docs/modernization/phase-3-toolchain-survey.md
 
 You are the higher-cost supervisory AI.
 
@@ -223,7 +227,8 @@ Read these files first:
 - docs/modernization/ai-handoff.md
 - docs/modernization/current-status.md
 - docs/modernization/phased-backlog.md
-- docs/modernization/phase-2-roadmap.md
+- docs/modernization/phase-4-roadmap.md
+- docs/modernization/phase-3-toolchain-survey.md
 - docs/modernization/dependency-ledger.md
 - docs/modernization/adr-001-build-and-dependency-modernization.md
 

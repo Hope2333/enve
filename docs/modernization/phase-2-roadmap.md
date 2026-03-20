@@ -1,5 +1,7 @@
 # Phase 2 Roadmap
 
+Phase 2 is complete. The active medium-term execution plan now lives in `docs/modernization/phase-4-roadmap.md`.
+
 ## Goal
 
 Turn the newly added dependency-boundary flags into a documented, CI-validated, merge-ready baseline without changing dependency providers by default and without broadening into CMake or Qt 6 work.

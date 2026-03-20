@@ -16,7 +16,7 @@ Before substantial work, read:
 - Modernization / CI lane
   - handoff: `docs/modernization/ai-handoff.md`
   - status: `docs/modernization/current-status.md`
-  - roadmap: `docs/modernization/phase-2-roadmap.md`
+  - roadmap: `docs/modernization/phase-4-roadmap.md`
 
 ## New Lane Rule
 

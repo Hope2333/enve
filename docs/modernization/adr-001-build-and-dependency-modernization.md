@@ -15,12 +15,15 @@ The current delivery chain is tightly coupled to aging infrastructure and manual
 ## Implementation Status
 
 - A GitHub Actions baseline workflow now exists at `.github/workflows/linux-baseline.yml`.
+- A GitHub Actions multi-distro workflow now exists at `.github/workflows/linux-multi-distro.yml`.
 - Linux bootstrap scripts now exist in `scripts/ci/`, plus a container recipe at `docker/linux-baseline.Dockerfile`.
 - Preflight validation already runs automatically.
 - One full branch-side Linux baseline build has already passed end to end.
 - One full manual `master` validation run has now passed end to end.
 - Automatic non-manual `master` push builds are now proven through run `23306463704`.
-- The active implementation lane is now Phase 2 dependency-boundary hardening on `chore/linux-baseline-actions`, with branch-side CI validating the new feature flags.
+- Phase 2 dependency-boundary hardening is complete and merged to `master`.
+- Phase 3 toolchain consolidation is complete on `master`, including stamp files, CI caching, and the initial CMake skeleton/reference docs.
+- The active implementation lane is now Phase 4 verification upgrade, with current evidence coming from baseline and multi-distro green runs on `master`.
 
 ## Decision
 

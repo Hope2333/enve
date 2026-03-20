@@ -1,13 +1,15 @@
-# AI Handoff: Phase 2 Dependency Boundary Hardening
+# AI Handoff: Phase 4 Verification Upgrade
 
-- Snapshot time: 2026-03-20 01:15:12 UTC
-- Active working branch: `chore/linux-baseline-actions`
-- Latest branch commit: `51f22373` (`Update handoff: CI testing in progress`)
-- Latest confirmed `master` commit: `ad9df455` (`chore: Enable automatic Build (Linux) on push`)
+- Snapshot time: 2026-03-20 22:34:52 UTC
+- Active branch for next work: create a short-lived branch from `master`
+- Current checked-out branch at snapshot: `master`
+- Latest confirmed `master` commit: `0b123778` (`Phase 3 COMPLETE - Ready for Phase 4`)
+- Last merged Phase 2 commit on `master`: `0f03ff85` (`Phase 2: Dependency boundary hardening (#8)`)
 - Fork remote: `origin` -> `git@github.com:Hope2333/enve.git`
 - Upstream remote: `upstream` -> `git@github.com:MaurycyLiebner/enve.git`
 - PR #6: `MERGED`
 - PR #7: `MERGED`
+- PR #8: `MERGED`
 
 ## What Is Stable Right Now
 
@@ -15,180 +17,133 @@
 - ✅ Phase 1 is complete:
   - manual `master` validation run `23288361000` passed
   - automatic `push` build on `master` run `23306463704` passed
-- ✅ Multi-distro build run `23310875934` passed for build jobs:
+- ✅ Phase 2 is complete and merged to `master` via PR #8.
+- ✅ Phase 3 is complete on `master`:
+  - push validation runs:
+    - Linux Baseline Build `23357140865`: `success`
+    - Multi-Distro Build `23357140871`: `success`
+  - manual follow-up validation runs:
+    - Linux Baseline Build `23357156824`: `success`
+    - Multi-Distro Build `23357158851`: `success`
+- ✅ Multi-distro compile compatibility is proven for the current scope:
   - Ubuntu 22.04 build: `success`
+  - Ubuntu 22.04 minimal-dependency build: `success`
   - Debian 12 build: `success`
-  - Arch build: `success`
-- ✅ Phase 2 implementation exists on the branch:
-  - `ENVE_USE_GPERFTOOLS`
-  - `ENVE_USE_WEBENGINE`
-  - `ENVE_USE_QSCINTILLA`
-  - `ENVE_USE_OPENMP`
-  - `ENVE_BUILD_EXAMPLES`
-  - `ENVE_USE_SYSTEM_LIBMYPAINT`
+  - Arch Linux build: `success`
+- ⏸️ Package jobs are intentionally outside the active lane right now:
+  - Debian Package: `skipped`
+  - Arch Package: `skipped`
 - Local worktree caveat:
   - `git status --short --ignore-submodules=none` still shows dirty `third_party` submodules from local build state (`gperftools`, `libmypaint`, `qscintilla`, `quazip`, `skia`)
   - do not reset them blindly
 
-## Current Live CI State
+## Latest Relevant Workflow Runs
 
-- Phase 2 merge to master: **COMPLETE**
-- PR #8: **MERGED** - "Phase 2: Dependency boundary hardening (#8)"
-- Master automatic build triggered: **YES**
-- Master validation runs:
-  - Linux Baseline Build (run 23353037094): ✅ **success**
-  - Multi-Distro Build (run 23353037134): ✅ **success**
-    - Ubuntu 22.04: ✅ success
-    - Debian 12: ✅ success
-    - Arch Linux: ✅ success
-    - Arch Package: ⏸️ skipped (packaging follow-up lane)
-    - Debian Package: ⏸️ skipped (packaging follow-up lane)
-- Phase 2 status: **COMPLETE AND MERGED TO MASTER**
-- Phase 3 status: **IN PROGRESS** (toolchain survey complete)
-- Latest commit: `cbd91a54` - "Phase 3: Add toolchain survey"
-- Next phase: **Phase 3 - Toolchain Consolidation Prep**
+- Linux Baseline Build `23357140865`
+  - event: `push`
+  - branch: `master`
+  - url: `https://github.com/Hope2333/enve/actions/runs/23357140865`
+- Multi-Distro Build `23357140871`
+  - event: `push`
+  - branch: `master`
+  - url: `https://github.com/Hope2333/enve/actions/runs/23357140871`
+- Linux Baseline Build `23357156824`
+  - event: `workflow_dispatch`
+  - branch: `master`
+  - url: `https://github.com/Hope2333/enve/actions/runs/23357156824`
+- Multi-Distro Build `23357158851`
+  - event: `workflow_dispatch`
+  - branch: `master`
+  - url: `https://github.com/Hope2333/enve/actions/runs/23357158851`
 
-## Practical Interpretation
+## What Was Verified Locally
 
-- The active lane has changed from Phase 1 closure to Phase 2 dependency-boundary hardening.
-- The core Phase 2 build-flag work is materially implemented on the branch.
-- The remaining uncertainty is not whether the flags exist; it is whether the current validation matrix and package jobs should be treated as Phase 2 blockers or as a narrower follow-up lane.
-- The most important planning decision now is to keep packaging fallout from silently redefining the phase boundary.
+- `git branch --show-current` confirmed the snapshot was taken on `master`.
+- `git log --oneline --decorate -n 12` confirmed `0b123778` is the current `master` head.
+- `gh pr list --repo Hope2333/enve --state all --limit 12` confirmed PR #8 is merged.
+- `gh run list --repo Hope2333/enve --limit 20` confirmed the latest successful baseline and multi-distro runs on `master`.
+- `gh run view 23357156824 --repo Hope2333/enve --json status,conclusion,event,headBranch,headSha,url,jobs` confirmed baseline smoke still passes after the Phase 3 changes.
+- `gh run view 23357158851 --repo Hope2333/enve --json status,conclusion,event,headBranch,headSha,url,jobs` confirmed Ubuntu, Debian, and Arch build jobs succeed while package jobs stay skipped by design.
+- `git status --short --ignore-submodules=none` confirmed the dirty `third_party` submodule caveat still applies.
+- Local source inspection confirmed:
+  - `Makefile` still defaults `PROXY` to `http://localhost:7890`
+  - `.github/workflows/linux-multi-distro.yml` still treats package jobs as disabled follow-up work
+  - the app has import/link entry points for `*.ev`, `*.xev`, `*.svg`, `*.ora`, and `*.kra`
+  - there is no real translation-resource pipeline yet; only locale-aware numeric formatting and limited RTL support are visible
+
+## Current Lane Boundary
+
+- The active lane is now **Phase 4: Verification Upgrade**.
+- Another implementation lane should **not** be opened yet.
+- The next execution AI should work on verification coverage only:
+  - startup and artifact smoke checks
+  - focused import/export, render, and media regression coverage
+  - documented manual verification for GPU-sensitive flows
+- Packaging and distribution are **not** part of the active lane:
+  - do not re-open Debian or Arch package jobs here
+  - do not start AppImage or Flatpak work here
+  - do not expand the distro matrix here
+- `PROXY` support exists in `Makefile` and `.github/workflows/linux-multi-distro.yml`, but it is an environment aid, not a baseline requirement.
+  - do not assume `http://localhost:7890` is needed
+  - only use or debug proxy behavior if logs prove the environment is network-restricted
 
 ## Immediate Next Actions
 
-**Phase 2 COMPLETE AND MERGED. Phase 3 IN PROGRESS.**
-
-1. ✅ PR #8 merged to master
-2. ✅ Master automatic build triggered (run 23353037094, 23353037134)
-3. ✅ All builds passed:
-   - Linux Baseline: success
-   - Multi-Distro: success (Ubuntu/Debian/Arch)
-4. ✅ Phase 2 feature flags now on master
-5. ✅ Phase 3 toolchain survey complete
-
-**Phase 3 progress:**
-- ✅ Toolchain survey completed (phase-3-toolchain-survey.md)
-- ✅ Documented qmake structure and Makefile orchestration
-- ✅ Documented third-party build systems
-- ✅ Identified 5 consolidation opportunities
-- ✅ Prepared CMake migration structure outline
-- ✅ Feature flag semantics documented (feature-flag-semantics.md)
-- ✅ CMakeLists.txt skeleton created (root, src/core, src/app, examples)
-- ✅ FindQScintilla.cmake module created
-- ✅ Build output organization documented (build-output-organization.md)
-- ✅ Library linkage documented (library-linkage.md)
-- ✅ Stamp files for third_party builds implemented
-- ✅ Main Makefile updated to use stamp files
-- ✅ CI caching for third-party builds configured
-- ✅ CI validation passed (runs 23357156824, 23357158851)
-- ✅ Phase 3 COMPLETE
-
-**Consolidation opportunities:**
-1. Feature flag consistency (validation, documentation) - ✅ DONE
-2. Build output organization (centralize under build/) - ✅ DOCUMENTED + IMPLEMENTED
-3. Third-party build caching (stamp files) - ✅ IMPLEMENTED + CI VALIDATED
-4. Include path management (centralize in core.pri) - ⏳ PENDING (Phase 4)
-5. Library linkage documentation (dependency diagram) - ✅ DONE
-
-**Phase 3 Exit Criteria (MET):**
-- ✅ CI passes on new compiler and Qt 5 lane
-- ✅ Stamp files working (incremental builds enabled)
-- ✅ CI caching configured and tested
-- ✅ Toolchain survey complete
-- ✅ Feature flag semantics documented
-- ✅ CMakeLists.txt skeleton created
-- ✅ Build output organization documented
-- ✅ Library linkage documented
-
-**Phase 4: Verification Upgrade (NEXT)**
-- Add repeatable smoke checks for startup and artifact existence
-- Add focused regression checks for import/export, render, and media
-- Define manual verification for GPU-sensitive changes
-
-Packaging Follow-up Lane (parallel, optional):
-- Fix Skia header paths in package jobs
-- Re-enable Debian and Arch package steps
-- Test end-to-end packaging workflow
-
-## Commands Worth Reusing
-
-```sh
-git status --short --ignore-submodules=none
-git log --oneline --decorate -n 15
-gh pr list --repo Hope2333/enve --state all --limit 12
-gh run list --repo Hope2333/enve --workflow linux-baseline.yml --limit 15
-gh run view 23306463704 --repo Hope2333/enve --json status,conclusion,event,headBranch,url,jobs
-gh run view 23310875934 --repo Hope2333/enve --json status,conclusion,event,headBranch,url,jobs
-gh run view 23324646178 --repo Hope2333/enve --json status,conclusion,event,headBranch,url,jobs
-gh api repos/Hope2333/enve/branches/master --jq '.commit.sha'
-```
+1. Audit the current verification surface:
+   - `scripts/ci/smoke-linux-baseline.sh`
+   - artifact existence checks in baseline CI
+   - current absence of focused import/export, render, and media checks
+2. Design the smallest repeatable verification additions with low CI cost.
+   - prioritize log collection and blocker isolation first
+   - prefer extending existing scripts before adding new workflow fan-out
+3. Stop after the next green verification expansion and hand back for supervisory review.
 
 ## Guardrails
 
 - Do not commit `.omx/`.
 - Do not reset dirty vendored submodules unless the user explicitly asks.
-- Do not start CMake migration yet.
+- Do not broaden Phase 4 into packaging or distribution hardening.
+- Do not treat Multi-Distro Build as release-packaging completeness; right now it is compile-compatibility evidence.
+- Do not treat `PROXY` as mandatory.
+- Do not expand the existing CMake skeleton into a real migration lane yet.
 - Do not start Qt 6 work yet.
-- Do not let packaging/provider experiments silently become the new default Linux baseline.
-- Treat `ENVE_USE_SYSTEM_LIBMYPAINT` as a packaging/CI aid until its baseline role is documented and intentionally accepted.
+- Do not start dependency replacement yet.
+- Do not start multilingual UI implementation, KDE/Plasma theme integration, file-format redesign, Blender integration, or AE-coverage work in this lane.
 
 ## Copy-Paste Prompt For The Next AI
 
 ```text
-Phase 3 is COMPLETE. Ready for Phase 4: Verification Upgrade.
+Phase 4 is ACTIVE on master. Work only on verification upgrade.
 
 Current state:
-- Phase 1: COMPLETE (auto-build on push proven)
-- Phase 2: COMPLETE AND MERGED (PR #8 merged)
-- Phase 3: COMPLETE (CI validation passed)
-- Latest commit: [check git log]
+- Phase 1: COMPLETE
+- Phase 2: COMPLETE AND MERGED
+- Phase 3: COMPLETE ON MASTER
+- Active lane: Phase 4 Verification Upgrade
+- Latest master commit: 0b123778
+- Latest validation runs:
+  - 23357140865 (Linux Baseline Build push) success
+  - 23357140871 (Multi-Distro Build push) success
+  - 23357156824 (Linux Baseline Build manual) success
+  - 23357158851 (Multi-Distro Build manual) success
 
-Phase 2 feature flags (on master):
-1. ENVE_USE_GPERFTOOLS (app.pro + core.pri + Makefile)
-2. ENVE_USE_OPENMP (core.pri + Makefile)
-3. ENVE_USE_WEBENGINE (app.pro + Makefile)
-4. ENVE_USE_QSCINTILLA (app.pro + Makefile)
-5. ENVE_BUILD_EXAMPLES (Makefile)
-6. ENVE_USE_SYSTEM_LIBMYPAINT (core.pri + Makefile)
+Your task:
+1. Audit the current smoke/verification coverage
+2. Add the smallest high-signal repeatable checks for startup, artifact existence, and one or two focused regression paths
+3. Define the manual verification contract for GPU-sensitive flows
+4. Keep CI cost low and pause after the next green verification improvement
 
-Phase 3 deliverables:
-✅ Toolchain survey (phase-3-toolchain-survey.md)
-✅ Feature flag semantics (feature-flag-semantics.md)
-✅ CMakeLists.txt skeleton (CMakeLists.txt, src/*/CMakeLists.txt)
-✅ Build output organization (build-output-organization.md)
-✅ Library linkage documentation (library-linkage.md)
-✅ Stamp files for third_party builds (third_party/Makefile)
-✅ CI caching configured (linux-baseline.yml, linux-multi-distro.yml)
-✅ CI validation passed (runs 23357156824, 23357158851)
+Important scope rules:
+- Do not start packaging, AppImage, Flatpak, or more distro work here
+- Do not start CMake migration beyond the existing skeleton
+- Do not start Qt 6 or dependency replacement
+- PROXY support is optional; only touch it if logs prove it is required
 
-Your task (Phase 4: Verification Upgrade):
-1. Add repeatable smoke checks for startup and artifact existence
-2. Add focused regression checks for import/export, render, and media
-3. Define manual verification for GPU-sensitive changes
-4. Optionally: Complete include path management consolidation
-
-Do NOT start:
-- Full CMake migration (skeleton only for now)
-- Qt 6 migration (after toolchain consolidation)
-- Dependency replacement (evidence-driven)
-
-Read these files for context:
-- docs/modernization/ai-handoff.md (this file)
-- docs/modernization/phased-backlog.md (Phase 4 section)
+Read these files first:
+- docs/modernization/ai-handoff.md
+- docs/modernization/current-status.md
+- docs/modernization/phased-backlog.md
+- docs/modernization/phase-4-roadmap.md
 - docs/modernization/phase-3-toolchain-survey.md
-- docs/modernization/feature-flag-semantics.md
-- docs/modernization/build-output-organization.md
-- docs/modernization/library-linkage.md
-- docs/modernization/stamp-files.md
-```
-
-Read these files for context:
-- docs/modernization/ai-handoff.md (this file)
-- docs/modernization/phase-3-toolchain-survey.md
-- docs/modernization/feature-flag-semantics.md
-- docs/modernization/build-output-organization.md
-- docs/modernization/library-linkage.md
-- docs/modernization/stamp-files.md (NEW)
-- docs/modernization/phased-backlog.md (Phase 3 section)
+- docs/modernization/dependency-ledger.md
 ```
