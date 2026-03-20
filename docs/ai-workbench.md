@@ -123,7 +123,7 @@ Your output should include:
 
 ## Wait Tools
 
-- `scripts/ci/watch-build-status.sh`: wait for a GitHub Actions run to reach a terminal state.
+- `scripts/ci/watch-build-status.sh`: wait for a GitHub Actions run to reach a terminal state. Parameter order is `REPO RUN_ID INTERVAL`, for example `scripts/ci/watch-build-status.sh Hope2333/enve 23365762835 45`.
 - `scripts/ci/wait-log-pattern.sh`: wait on a local log file with fixed-string success and error markers.
 
 ## When To Open A New Lane

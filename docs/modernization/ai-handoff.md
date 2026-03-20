@@ -39,6 +39,12 @@
 
 ## Latest Relevant Workflow Runs
 
+- Linux Baseline Build `23365762835`
+  - event: `workflow_dispatch`
+  - branch: `master`
+  - url: `https://github.com/Hope2333/enve/actions/runs/23365762835`
+  - conclusion: `success`
+  - notes: Extended smoke checks passed (artifact sizes, startup, examples)
 - Linux Baseline Build `23357140865`
   - event: `push`
   - branch: `master`
@@ -89,14 +95,14 @@
 
 ## Immediate Next Actions
 
-1. Audit the current verification surface:
-   - `scripts/ci/smoke-linux-baseline.sh`
-   - artifact existence checks in baseline CI
-   - current absence of focused import/export, render, and media checks
-2. Design the smallest repeatable verification additions with low CI cost.
-   - prioritize log collection and blocker isolation first
-   - prefer extending existing scripts before adding new workflow fan-out
-3. Stop after the next green verification expansion and hand back for supervisory review.
+1. ✅ Audit current smoke coverage - COMPLETE
+2. ✅ Extend smoke-linux-baseline.sh with high-signal checks - COMPLETE
+   - Artifact size reporting
+   - App startup check
+   - Example file detection
+3. ✅ Create manual verification contract - COMPLETE
+4. 🔄 CI validation of extended smoke - COMPLETE (run 23365762835 passed)
+5. Next: Pause and hand back for supervisory review (Phase 4 exit criteria progress)
 
 ## Guardrails
 
@@ -113,37 +119,36 @@
 ## Copy-Paste Prompt For The Next AI
 
 ```text
-Phase 4 is ACTIVE on master. Work only on verification upgrade.
+Phase 4 Verification Upgrade: 3/4 tasks complete.
 
 Current state:
 - Phase 1: COMPLETE
 - Phase 2: COMPLETE AND MERGED
 - Phase 3: COMPLETE ON MASTER
-- Active lane: Phase 4 Verification Upgrade
-- Latest master commit: 0b123778
-- Latest validation runs:
-  - 23357140865 (Linux Baseline Build push) success
-  - 23357140871 (Multi-Distro Build push) success
-  - 23357156824 (Linux Baseline Build manual) success
-  - 23357158851 (Multi-Distro Build manual) success
+- Phase 4: IN PROGRESS (smoke extended, manual contract created)
+- Latest master commit: 1b7af1e8
+- CI validation:
+  - 23365762835 (Linux Baseline Build): ✅ success
+
+Phase 4 progress:
+✅ Smoke coverage audited
+✅ smoke-linux-baseline.sh extended:
+  - Artifact size reporting
+  - App startup check (--help/--version)
+  - Example file detection
+✅ Manual verification contract created (manual-verification-contract.md)
+✅ CI validation passed (23365762835)
+🔄 Next: Supervisory review for Phase 4 exit criteria
 
 Your task:
-1. Audit the current smoke/verification coverage
-2. Add the smallest high-signal repeatable checks for startup, artifact existence, and one or two focused regression paths
-3. Define the manual verification contract for GPU-sensitive flows
-4. Keep CI cost low and pause after the next green verification improvement
+1. Review Phase 4 exit criteria progress
+2. Decide if additional verification is needed before Phase 4 complete
+3. Plan Phase 5 preparation (CMake migration) OR continue Phase 4 gaps
 
-Important scope rules:
-- Do not start packaging, AppImage, Flatpak, or more distro work here
-- Do not start CMake migration beyond the existing skeleton
-- Do not start Qt 6 or dependency replacement
-- PROXY support is optional; only touch it if logs prove it is required
-
-Read these files first:
-- docs/modernization/ai-handoff.md
+Read these files:
+- docs/modernization/ai-handoff.md (this file)
 - docs/modernization/current-status.md
 - docs/modernization/phased-backlog.md
 - docs/modernization/phase-4-roadmap.md
-- docs/modernization/phase-3-toolchain-survey.md
-- docs/modernization/dependency-ledger.md
+- docs/modernization/manual-verification-contract.md
 ```

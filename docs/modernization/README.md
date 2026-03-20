@@ -47,3 +47,18 @@ Trigger the GitHub Actions build manually:
 ```sh
 gh workflow run linux-baseline.yml --ref master
 ```
+
+Wait for a GitHub Actions run to finish:
+
+```sh
+scripts/ci/watch-build-status.sh Hope2333/enve 23365762835 45
+```
+
+Important:
+- parameter order is `REPO RUN_ID INTERVAL`
+- do not swap `Hope2333/enve` and the numeric run ID
+- if you want to sleep before watching, keep the same order:
+
+```sh
+sleep 120 && scripts/ci/watch-build-status.sh Hope2333/enve 23365762835 45
+```
