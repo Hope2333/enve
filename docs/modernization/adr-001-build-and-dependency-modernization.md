@@ -19,7 +19,8 @@ The current delivery chain is tightly coupled to aging infrastructure and manual
 - Preflight validation already runs automatically.
 - One full branch-side Linux baseline build has already passed end to end.
 - One full manual `master` validation run has now passed end to end.
-- The immediate remaining gate is to prove that the automatic non-manual Linux compile lane actually executes as intended on normal change flow.
+- Automatic non-manual `master` push builds are now proven through run `23306463704`.
+- The active implementation lane is now Phase 2 dependency-boundary hardening on `chore/linux-baseline-actions`, with branch-side CI validating the new feature flags.
 
 ## Decision
 

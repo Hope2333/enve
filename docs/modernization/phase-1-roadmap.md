@@ -1,5 +1,8 @@
 # Phase 1 Roadmap
 
+> Historical note:
+> Phase 1 is complete. The active medium-term execution plan now lives in `docs/modernization/phase-2-roadmap.md`.
+
 ## Goal
 
 Turn the first successful branch-side Linux baseline build into a stable, repeatable, and policy-backed CI lane, then formalize the recovered toolchain as the new working reference.

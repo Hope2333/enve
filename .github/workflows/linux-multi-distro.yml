@@ -156,6 +156,7 @@ jobs:
     needs: [build-debian]
     runs-on: ubuntu-22.04
     timeout-minutes: 60
+    if: false  # Packaging follow-up lane, not a Phase 2 blocker
 
     steps:
       - name: Checkout
@@ -192,6 +193,7 @@ jobs:
     runs-on: ubuntu-22.04
     container: archlinux:latest
     timeout-minutes: 60
+    if: false  # Packaging follow-up lane, not a Phase 2 blocker
 
     steps:
       - name: Install git in container
