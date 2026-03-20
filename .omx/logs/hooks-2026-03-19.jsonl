@@ -31,3 +31,5 @@
 {"timestamp":"2026-03-19T09:07:48.975Z","type":"hook_dispatch","event":"turn-complete","source":"native","enabled":false,"reason":"plugins_disabled"}
 {"timestamp":"2026-03-19T09:18:26.861Z","type":"hook_dispatch","event":"turn-complete","source":"native","enabled":false,"reason":"plugins_disabled"}
 {"timestamp":"2026-03-19T09:18:26.881Z","type":"hook_dispatch","event":"handoff-needed","source":"derived","enabled":false,"reason":"plugins_disabled"}
+{"timestamp":"2026-03-19T11:43:13.704Z","type":"hook_dispatch","event":"turn-complete","source":"native","enabled":false,"reason":"plugins_disabled"}
+{"timestamp":"2026-03-19T11:43:13.714Z","type":"hook_dispatch","event":"handoff-needed","source":"derived","enabled":false,"reason":"plugins_disabled"}

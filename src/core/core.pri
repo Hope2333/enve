@@ -21,8 +21,20 @@ QUAZIP_FOLDER = $$THIRD_PARTY_FOLDER/quazip
 INCLUDEPATH += $$SKIA_FOLDER
 QMAKE_CFLAGS += -isystem $$SKIA_FOLDER
 
-INCLUDEPATH += $$LIBMYPAINT_FOLDER
-LIBS += -L$$LIBMYPAINT_FOLDER/.libs -lmypaint
+# libmypaint is optional - can use vendored or system package
+# Default: use vendored version for backwards compatibility
+USE_SYSTEM_LIBMYPAINT = $$[ENVE_USE_SYSTEM_LIBMYPAINT]
+isEmpty(USE_SYSTEM_LIBMYPAINT): USE_SYSTEM_LIBMYPAINT = 0
+equals(USE_SYSTEM_LIBMYPAINT, 1) {
+    # Use system libmypaint (for CI packaging)
+    LIBS += -lmypaint
+    message("Using system libmypaint")
+} else {
+    # Use vendored libmypaint
+    INCLUDEPATH += $$LIBMYPAINT_FOLDER
+    LIBS += -L$$LIBMYPAINT_FOLDER/.libs -lmypaint
+    message("Using vendored libmypaint")
+}
 
 INCLUDEPATH += $$QUAZIP_FOLDER
 LIBS += -L$$QUAZIP_FOLDER/quazip -lquazip
@@ -44,10 +56,18 @@ win32 { # Windows
     QMAKE_CFLAGS_RELEASE += /O2 -O2 /GL
     QMAKE_CXXFLAGS_RELEASE += /O2 -O2 /GL
 
-    QMAKE_CFLAGS += -openmp
-    QMAKE_CXXFLAGS += -openmp
-
-    LIBS += -L"C:\Program Files\LLVM\lib" -llibomp
+    # OpenMP is optional - controlled by ENVE_USE_OPENMP
+    # Default: enabled for backwards compatibility
+    OPENMP_ENABLED = $$[ENVE_USE_OPENMP]
+    isEmpty(OPENMP_ENABLED): OPENMP_ENABLED = 1
+    equals(OPENMP_ENABLED, 1) {
+        QMAKE_CFLAGS += -openmp
+        QMAKE_CXXFLAGS += -openmp
+        LIBS += -L"C:\Program Files\LLVM\lib" -llibomp
+        message("OpenMP enabled")
+    } else {
+        message("OpenMP disabled")
+    }
     LIBS += -luser32 -lopengl32
 
     CONFIG -= debug_and_release
@@ -70,7 +90,16 @@ win32 { # Windows
         QMAKE_CFLAGS_RELEASE += -m64 -O3
         QMAKE_CXXFLAGS_RELEASE += -m64 -O3
 
-        QMAKE_CXXFLAGS += -fopenmp
-        LIBS += -lpthread -lfontconfig -lfreetype -lpng -ldl -fopenmp
+        # OpenMP is optional - controlled by ENVE_USE_OPENMP
+        # Default: enabled for backwards compatibility
+        OPENMP_ENABLED = $$[ENVE_USE_OPENMP]
+        isEmpty(OPENMP_ENABLED): OPENMP_ENABLED = 1
+        equals(OPENMP_ENABLED, 1) {
+            QMAKE_CXXFLAGS += -fopenmp
+            LIBS += -lpthread -lfontconfig -lfreetype -lpng -ldl -fopenmp
+            message("OpenMP enabled")
+        } else {
+            message("OpenMP disabled")
+        }
     }
 }

@@ -1,6 +1,6 @@
 # AI Collaboration Protocol
 
-This file defines how a higher-cost supervisory AI and a lower-cost execution AI should collaborate in this repository.
+This file defines how a higher-cost supervisory AI and a lower-cost execution AI should collaborate in this repository. Human-facing quick entrypoint: `docs/ai-workbench.md`.
 
 ## Purpose
 
@@ -35,7 +35,8 @@ Every collaborating AI should treat these as the current project memory:
 4. `docs/modernization/ai-handoff.md`
 5. `docs/modernization/current-status.md`
 6. `docs/modernization/phased-backlog.md`
-7. `docs/modernization/phase-1-roadmap.md`
+7. `docs/modernization/phase-2-roadmap.md`
+8. `docs/modernization/phase-1-roadmap.md` as historical context when needed
 
 ## Review Cadence
 
@@ -76,7 +77,8 @@ When handing back, include:
 - Supervisory AI owns long-term sequencing and phase boundaries.
 - Lower-cost AI owns tactical execution inside the current lane.
 - `docs/modernization/phased-backlog.md` stays as the phase map.
-- `docs/modernization/phase-1-roadmap.md` is the current medium-term execution plan.
+- `docs/modernization/phase-2-roadmap.md` is the current medium-term execution plan while Phase 2 is active.
+- `docs/modernization/phase-1-roadmap.md` is now historical context for the closed CI-replacement phase.
 - `docs/modernization/ai-handoff.md` stays the tactical source of truth.
 
 ## Prompt: Lower-Cost Execution AI
@@ -88,7 +90,7 @@ Read these files first:
 - docs/ai-collaboration.md
 - docs/modernization/ai-handoff.md
 - docs/modernization/current-status.md
-- docs/modernization/phase-1-roadmap.md
+- docs/modernization/phase-2-roadmap.md
 
 You are the lower-cost execution AI.
 
@@ -117,7 +119,7 @@ Read these files first:
 - docs/modernization/ai-handoff.md
 - docs/modernization/current-status.md
 - docs/modernization/phased-backlog.md
-- docs/modernization/phase-1-roadmap.md
+- docs/modernization/phase-2-roadmap.md
 
 You are the higher-cost supervisory AI.
 
@@ -151,7 +153,7 @@ Read these files first:
 - docs/modernization/ai-handoff.md
 - docs/modernization/current-status.md
 - docs/modernization/phased-backlog.md
-- docs/modernization/phase-1-roadmap.md
+- docs/modernization/phase-2-roadmap.md
 - docs/modernization/dependency-ledger.md
 - docs/modernization/adr-001-build-and-dependency-modernization.md
 

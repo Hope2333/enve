@@ -18,7 +18,9 @@ The current delivery chain is tightly coupled to aging infrastructure and manual
 - Linux bootstrap scripts now exist in `scripts/ci/`, plus a container recipe at `docker/linux-baseline.Dockerfile`.
 - Preflight validation already runs automatically.
 - One full branch-side Linux baseline build has already passed end to end.
-- The immediate remaining gate is to validate the same path on `master` and then decide when the full Linux compile lane should become automatic.
+- One full manual `master` validation run has now passed end to end.
+- Automatic non-manual `master` push builds are now proven through run `23306463704`.
+- The active implementation lane is now Phase 2 dependency-boundary hardening on `chore/linux-baseline-actions`, with branch-side CI validating the new feature flags.
 
 ## Decision
 

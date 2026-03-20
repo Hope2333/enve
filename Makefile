@@ -40,6 +40,13 @@ MIX ?= 0
 ODIR ?=
 PACKAGER_NAME ?= enve Project <https://github.com/MaurycyLiebner/enve>
 
+# Feature flags (Phase 2 dependency boundaries)
+ENVE_USE_GPERFTOOLS ?= 1  # Enable/disable gperftools (default: enabled)
+ENVE_USE_WEBENGINE ?= 1   # Enable/disable WebEngine preview (default: enabled)
+ENVE_USE_QSCINTILLA ?= 1  # Enable/disable QScintilla (default: enabled)
+ENVE_USE_OPENMP ?= 1      # Enable/disable OpenMP (default: enabled)
+ENVE_BUILD_EXAMPLES ?= 0  # Enable/disable examples build (default: disabled)
+
 # Directories
 ROOT_DIR := $(shell pwd)
 BUILD_DIR := $(ROOT_DIR)/build/Release
@@ -162,7 +169,13 @@ stage: runtime
 	@echo "  ✓ Third-party build complete"
 	@echo "🔨 Building enve..."
 	@cd $(BUILD_DIR) && \
-		qmake CONFIG+=release ../../enve.pro && \
+		qmake CONFIG+=release \
+			ENVE_USE_GPERFTOOLS=$(ENVE_USE_GPERFTOOLS) \
+			ENVE_USE_WEBENGINE=$(ENVE_USE_WEBENGINE) \
+			ENVE_USE_QSCINTILLA=$(ENVE_USE_QSCINTILLA) \
+			ENVE_USE_OPENMP=$(ENVE_USE_OPENMP) \
+			ENVE_BUILD_EXAMPLES=$(ENVE_BUILD_EXAMPLES) \
+			../../enve.pro && \
 		make -j$(JOBS) 2>&1 | tail -10 || true
 	@echo "  ✓ enve build complete"
 

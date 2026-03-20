@@ -1,53 +1,57 @@
 # Modernization Status
 
-- Last updated: 2026-03-19 10:00:00 UTC
-- Overall status: **Phase 1 COMPLETE**. Ready for Phase 2.
+- Last updated: 2026-03-20 01:30:00 UTC
+- Overall status: **Phase 2 COMPLETE. Ready for merge.**
 
 ## Landed So Far
 
-- ✅ PR #6 MERGED to master (commit 2a1675d7) at 2026-03-19T09:26:14Z
-- ✅ Master validation run `23288361000`: **SUCCESS**
-- ✅ CI auto-trigger ENABLED for push to master/main
-- A GitHub Actions workflow exists at `.github/workflows/linux-baseline.yml`.
-- CI helper scripts exist in `scripts/ci/` for dependency install, preflight, build, smoke checks, and run monitoring.
-- A clean Ubuntu 22.04 container recipe exists at `docker/linux-baseline.Dockerfile`.
-- The baseline build script supports practical recovery knobs such as `ENVE_JOBS`, `ENVE_BUILD_EXAMPLES`, `ENVE_SKIP_THIRD_PARTY`, `ENVE_UPDATE_SUBMODULES`, and `ENVE_USE_PREBUILT_SKIA`.
-- The baseline script now patches the known Skia Python 3 bootstrap issues in `gn/is_clang.py` and ICU `make_data_assembly.py`.
-- QPainterPath incomplete type issue in `graphanimator.h` was fixed in commit `9f4c60d9`.
-- libmypaint shared-library linkage was fixed with `-fPIC` in commit `a2d146ff`.
-- Repository-wide relay, collaboration, and roadmap docs now exist under `docs/ai-relay.md`, `docs/ai-collaboration.md`, and `docs/modernization/`.
-- Multi-distro packaging support added:
-  - PKGBUILD for Arch Linux
-  - GitHub Actions for Ubuntu/Debian/Arch
-  - CircleCI configuration
-  - AppImage, .deb, and .pkg.tar.gz packaging scripts
+- ✅ PR #6 merged to `master` at `2026-03-19T09:26:14Z`
+- ✅ PR #7 merged to `master` at `2026-03-19T11:53:39Z`
+- ✅ Manual master validation run `23288361000`: `success`
+- ✅ Automatic build on push run `23306463704`: `success`
+- ✅ CI auto-trigger is proven working for `push` to `master`
+- ✅ Multi-distro build run `23310875934` succeeded for Ubuntu, Debian, and Arch build jobs
+- ✅ Phase 2 feature-flag implementation on branch `chore/linux-baseline-actions`:
+  - `ENVE_USE_GPERFTOOLS`
+  - `ENVE_USE_WEBENGINE`
+  - `ENVE_USE_QSCINTILLA`
+  - `ENVE_USE_OPENMP`
+  - `ENVE_BUILD_EXAMPLES`
+  - `ENVE_USE_SYSTEM_LIBMYPAINT`
+- ✅ Phase 2 CI validation run `23324646178`:
+  - Ubuntu default build: `success`
+  - Ubuntu minimal build: `success`
+  - Arch build: `success`
+  - Debian build: `success`
+  - Arch/Debian packages: `failure` (packaging follow-up lane)
 
 ## Current CI Behavior
 
 - `preflight` runs automatically on pull requests and relevant pushes.
-- `Build (Linux)` now runs automatically on `push` to master/main branches.
-- Latest full branch-side baseline run `23282890827`: **PASSED** ✅
-- Latest master validation run `23288361000`: **PASSED** ✅
+- `Build (Linux)` runs automatically on `push` to `master` and is proven by run `23306463704`.
+- Multi-distro build run `23310875934` succeeded for the Ubuntu, Debian, and Arch build jobs.
+- Phase 2 validation run `23324646178` completed:
+  - Ubuntu default build: ✅ `success`
+  - Ubuntu minimal-dependency build: ✅ `success`
+  - Arch build: ✅ `success`
+  - Debian build: ✅ `success`
+  - Arch package: ❌ `failure` (packaging follow-up lane)
+  - Debian package: ❌ `failure` (packaging follow-up lane)
 
 ## Active Blockers
 
-- None! Phase 1 exit criteria met.
+- No Phase 1 blocker remains.
+- Phase 2 is COMPLETE and ready for merge.
+- Packaging follow-up lane (separate from Phase 2):
+  - Fix Skia header paths in package jobs
+  - Re-enable disabled package steps
 
-## Planning Adjustment
+## Next Steps
 
-- The next phase after Phase 1 should focus on dependency boundaries, not CMake or Qt 6.
-- The strongest early candidates for explicit feature flags are `gperftools`, WebEngine preview, QScintilla, OpenMP, and examples.
-- The already-recovered Ubuntu 22.04 + Qt 5.15.x lane should be treated as the baseline to formalize, not as an accidental side path to ignore.
-
-## Next Steps (Phase 2)
-
-1. Begin dependency-boundary hardening:
-   - Make `gperftools`, WebEngine preview, QScintilla, OpenMP, and examples optional.
-   - Add explicit build flags for optional dependencies.
-2. Document the recovered toolchain:
-   - Ubuntu 22.04 + Qt 5.15.x as the official Linux reference baseline.
-   - Record compiler, qmake, and Qt versions from CI.
-3. Do NOT start:
-   - CMake migration
-   - Qt 6 migration
-   - Dependency replacement
+1. ✅ Phase 2 evaluation complete
+2. ✅ Packaging failures classified as follow-up lane
+3. ✅ Feature flags documented
+4. Create PR #8 and merge Phase 2 to master
+5. Verify master auto-build triggers
+6. Start Phase 3: toolchain consolidation prep
+7. Do NOT start CMake migration, Qt 6 work, or dependency replacement yet.

@@ -3,8 +3,9 @@
 ## Status Snapshot
 
 - Phase 0 is complete on the recovery branch: one Linux baseline build has passed end to end.
-- Phase 1 is now focused on master validation and CI policy stabilization.
-- Phases 2 through 7 remain planned work and should not be mixed into the current stabilization gate.
+- Phase 1 is complete: automatic `push` builds on `master` are proven by run `23306463704`.
+- Phase 2 is active on `chore/linux-baseline-actions`: feature flags are implemented and branch-side CI validation is in progress.
+- Phases 3 through 7 remain planned work and should not be mixed into the current Phase 2 validation gate.
 - The recovered Ubuntu 22.04 + Qt 5.15.x lane is no longer hypothetical future work; later phases should treat it as the baseline to formalize and harden.
 
 ## Phase 0: Baseline Recovery
@@ -29,6 +30,7 @@ Goal: replace Travis with a maintained CI system while preserving current behavi
 - Upload logs and build artifacts for debugging.
 - Validate the first successful branch baseline on `master`.
 - Keep the full compile job manual until the build is repeatable, then promote it to automatic.
+- After the trigger policy changes, verify at least one real non-manual full build executes as intended.
 - Keep packaging as a separate follow-up job unless it is required for parity.
 
 Exit criteria:
@@ -126,3 +128,4 @@ Exit criteria:
 - Avoid combining build-system migration with Qt major-version migration.
 - Avoid changing packaging and runtime dependency strategy in the same phase as compiler or Qt upgrades.
 - Avoid starting the first CMake lane before Phase 2 has made the optional-feature boundaries explicit, or the initial CMake graph will inherit avoidable complexity.
+- Avoid letting packaging fallout silently expand Phase 2 until it stops being about dependency boundaries at all; if needed, split packaging follow-up into a narrower lane.
