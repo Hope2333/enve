@@ -11,9 +11,21 @@ Before substantial work, read:
 3. `docs/ai-collaboration.md` when multiple AIs are collaborating
 4. The area-specific handoff file for the lane you are touching
 
-Current area-specific handoff:
+## Active Lane Registry
 
-- Build and dependency modernization: `docs/modernization/ai-handoff.md`
+- Modernization / CI lane
+  - handoff: `docs/modernization/ai-handoff.md`
+  - status: `docs/modernization/current-status.md`
+  - roadmap: `docs/modernization/phase-2-roadmap.md`
+
+## New Lane Rule
+
+When a new major feature lane starts, do not solve it by pasting a longer prompt. Instead:
+
+1. Create `docs/features/<lane>/ai-handoff.md` from `docs/templates/feature-lane-handoff.template.md`.
+2. Create `docs/features/<lane>/roadmap.md` from `docs/templates/feature-roadmap.template.md`.
+3. Register the lane here.
+4. Point prompts to `docs/ai-relay.md` so the active lane list, not the human clipboard, stays authoritative.
 
 ## Required Update Rule
 
@@ -44,4 +56,4 @@ Keep the active handoff file current with:
 - Keep prompts and instructions copy-paste ready.
 - Do not commit `.omx/`.
 - Do not overwrite or reset dirty vendored submodules unless the user explicitly asks.
-- If the active lane changes, update this file so the next AI knows which area-specific handoff to read first.
+- If the active lane changes, update this file so the next AI knows which lane docs to read first.

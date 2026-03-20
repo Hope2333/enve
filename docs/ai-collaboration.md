@@ -1,6 +1,6 @@
 # AI Collaboration Protocol
 
-This file defines how a higher-cost supervisory AI and a lower-cost execution AI should collaborate in this repository.
+This file defines how a higher-cost supervisory AI and a lower-cost execution AI should collaborate in this repository. Human-facing quick entrypoint: `docs/ai-workbench.md`.
 
 ## Purpose
 
