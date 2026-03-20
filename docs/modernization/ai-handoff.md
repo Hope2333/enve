@@ -46,8 +46,11 @@
 - Interpretation:
   - Phase 2 build-flag validation: **PASSED**
   - Packaging jobs: moved to follow-up lane (not Phase 2 blockers)
-- PR #8: CREATED - "Phase 2: Dependency boundary hardening"
-- URL: `https://github.com/Hope2333/enve/pull/8`
+- PR #8: OPEN - MERGEABLE - CI PASSED
+  - Title: "Phase 2: Dependency boundary hardening"
+  - URL: `https://github.com/Hope2333/enve/pull/8`
+  - Linux Baseline Build: ✅ success
+  - Multi-Distro Build: ✅ success
 
 ## Practical Interpretation
 
@@ -111,19 +114,22 @@ gh api repos/Hope2333/enve/branches/master --jq '.commit.sha'
 ## Copy-Paste Prompt For The Next AI
 
 ```text
-Phase 2 is READY FOR MERGE via PR #8.
+Phase 2 is READY FOR MERGE via PR #8. CI PASSED.
 
 Current state:
 - Phase 1: COMPLETE (run 23306463704 proved auto-build on push)
 - Phase 2: COMPLETE on branch chore/linux-baseline-actions
-- PR #8: CREATED - "Phase 2: Dependency boundary hardening"
-- URL: https://github.com/Hope2333/enve/pull/8
-- Run 23324646178 results:
+- PR #8: OPEN - MERGEABLE - CI PASSED
+  - Title: Phase 2: Dependency boundary hardening
+  - URL: https://github.com/Hope2333/enve/pull/8
+  - Linux Baseline Build: ✅ success
+  - Multi-Distro Build: ✅ success
+- Run 23324646178 (branch validation):
   - Ubuntu default build: ✅ success
   - Ubuntu minimal build: ✅ success (all flags disabled)
   - Arch build: ✅ success
   - Debian build: ✅ success
-  - Arch/Debian packages: ❌ failure (packaging follow-up, not Phase 2 blocker)
+  - Arch/Debian packages: ❌ failure (packaging follow-up)
 
 Phase 2 feature flags (all validated):
 1. ENVE_USE_GPERFTOOLS (app.pro + core.pri + Makefile)
@@ -134,9 +140,10 @@ Phase 2 feature flags (all validated):
 6. ENVE_USE_SYSTEM_LIBMYPAINT (core.pri + Makefile)
 
 Your task:
-1. Review and merge PR #8
-2. Verify master auto-build triggers (new run should appear)
-3. Start Phase 3: toolchain consolidation prep
+1. Merge PR #8 (squash merge recommended)
+2. Watch for automatic master build trigger (new run should appear within 1-2 min)
+3. Verify master build success
+4. Start Phase 3: toolchain consolidation prep
 
 Do NOT start:
 - CMake migration (Phase 3 prep first)
