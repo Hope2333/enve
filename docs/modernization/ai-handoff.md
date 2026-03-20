@@ -102,33 +102,50 @@ gh api repos/Hope2333/enve/branches/master --jq '.commit.sha'
 ## Copy-Paste Prompt For The Next AI
 
 ```text
-Phase 1 COMPLETE! Ready for Phase 2.
+Phase 1 COMPLETE! Phase 2 in progress.
 
 Current state:
 - Phase 0: COMPLETE (manual validation run 23288361000: success)
 - Phase 1: COMPLETE (automatic build run 23306463704: success)
+- Multi-Distro Build: SUCCESS (run 23310875934)
+  - Ubuntu 22.04: ✅ success
+  - Debian 12: ✅ success
+  - Arch Linux: ✅ success
 - Automatic Build (Linux) on push: PROVEN working
-- Master commit: ad9df455 (PR #7 merged)
+- Master commit: latest on chore/linux-baseline-actions
 
-Your task:
-1. Begin Phase 2: dependency-boundary hardening.
-   - Start with gperftools (lowest coupling, highest maintenance)
-   - Add build flag to enable/disable
-   - Keep default as enabled for backwards compatibility
-2. Update dependency-ledger.md with:
-   - Ownership (core vs optional)
-   - Default state (on/off)
-   - Upgrade notes
-3. Do NOT start:
-   - CMake migration (wait until qmake feature boundaries extracted)
-   - Qt 6 migration (wait until after Phase 2)
-   - Dependency replacement (Phase 2 is about boundaries, not replacement)
+Phase 2 progress (dependency boundaries):
+✅ COMPLETED:
+1. gperftools - ENVE_USE_GPERFTOOLS flag (app.pro + Makefile)
+2. OpenMP - ENVE_USE_OPENMP flag (core.pri + Makefile)
+3. WebEngine - ENVE_USE_WEBENGINE flag (Makefile)
+4. QScintilla - ENVE_USE_QSCINTILLA flag (Makefile)
+5. Examples - ENVE_BUILD_EXAMPLES flag (already existed)
+
+Your task (choose one):
+1. Test dependency flags:
+   - make build ENVE_USE_GPERFTOOLS=0
+   - make build ENVE_USE_OPENMP=0
+   - Verify builds complete successfully
+
+2. Fix Multi-Distro packaging:
+   - Package steps disabled due to libmypaint header issues
+   - Add proper include paths for mypaint-brush-settings-gen.h
+
+3. Continue Phase 2:
+   - Add ENVE_USE_WEBENGINE to app.pro (if used there)
+   - Document feature flags in README
+
+Do NOT start:
+- CMake migration (wait until all feature flags are tested)
+- Qt 6 migration (wait until after Phase 2)
+- Dependency replacement (Phase 2 is about boundaries, not replacement)
 
 Read these files for context:
 - docs/modernization/ai-handoff.md (this file)
+- docs/modernization/dependency-ledger.md (flag status)
 - docs/modernization/phased-backlog.md (Phase 2 section)
-- docs/modernization/dependency-ledger.md
-- docs/modernization/phase-1-roadmap.md (completed work)
+- Makefile (feature flag definitions)
 ```
 - docs/modernization/current-status.md
 - docs/modernization/phase-1-roadmap.md
