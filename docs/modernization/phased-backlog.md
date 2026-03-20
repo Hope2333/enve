@@ -74,12 +74,13 @@ Goal: formalize the already-recovered Linux reference lane and pay down the rema
 - ✅ Library linkage documented (library-linkage.md)
 - ✅ Stamp files for third_party builds implemented
 - ✅ Main Makefile updated to use stamp files
-- 🔄 Next: Test incremental builds in CI
+- ✅ CI caching for third-party builds configured
+- 🔄 CI validation in progress (runs 23357156824, 23357158851)
 
 **Consolidation opportunities identified:**
 1. Feature flag consistency (validation, documentation) - ✅ DONE
 2. Build output organization (centralize under build/) - ✅ DOCUMENTED + IMPLEMENTED
-3. Third-party build caching (stamp files) - ✅ IMPLEMENTED
+3. Third-party build caching (stamp files) - ✅ IMPLEMENTED + CI CACHING
 4. Include path management (centralize in core.pri) - ⏳ PENDING
 5. Library linkage documentation (dependency diagram) - ✅ DONE
 
@@ -92,7 +93,7 @@ Exit criteria:
 - ✅ Build output organization documented
 - ✅ Library linkage documented
 - ✅ Stamp files for third_party builds implemented
-- 🔄 CI validation with stamp files (NEXT)
+- 🔄 CI validation with stamp files (IN PROGRESS)
 
 ## Phase 4: Verification Upgrade
 

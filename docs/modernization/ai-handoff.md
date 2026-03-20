@@ -80,7 +80,8 @@
 - ✅ Library linkage documented (library-linkage.md)
 - ✅ Stamp files for third_party builds implemented
 - ✅ Main Makefile updated to use stamp files
-- 🔄 Next: Test incremental builds in CI
+- ✅ CI caching for third-party builds configured
+- 🔄 CI validation in progress (runs 23357156824, 23357158851)
 
 **Consolidation opportunities:**
 1. Feature flag consistency (validation, documentation)
