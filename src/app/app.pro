@@ -22,7 +22,19 @@
 
 # VERSION = 0.0.0
 
-QT += multimedia core gui svg opengl sql qml xml concurrent webenginewidgets
+# Qt modules - WebEngine is optional for SVG preview
+QT += multimedia core gui svg opengl sql qml xml concurrent
+# WebEngine is optional - controlled by ENVE_USE_WEBENGINE
+# Default: enabled for backwards compatibility
+WEBENGINE_ENABLED = $$[ENVE_USE_WEBENGINE]
+isEmpty(WEBENGINE_ENABLED): WEBENGINE_ENABLED = 1
+equals(WEBENGINE_ENABLED, 1) {
+    QT += webenginewidgets
+    message("Qt WebEngine enabled")
+} else {
+    message("Qt WebEngine disabled")
+}
+
 LIBS += -lavutil -lavformat -lavcodec -lswscale -lswresample
 CONFIG += c++14
 DEFINES += QT_NO_FOREACH
@@ -37,9 +49,18 @@ INCLUDEPATH += $$ENVE_CORE_FOLDER
 DEPENDPATH += $$ENVE_CORE_FOLDER
 LIBS += -L$$OUT_PWD/../core -lenvecore
 
-DEFINES += QSCINTILLA_DLL
-INCLUDEPATH += $$QSCINTILLA_FOLDER
-LIBS += -L$$QSCINTILLA_FOLDER -lqscintilla2_qt5
+# QScintilla is optional - controlled by ENVE_USE_QSCINTILLA
+# Default: enabled for backwards compatibility
+QSCINTILLA_ENABLED = $$[ENVE_USE_QSCINTILLA]
+isEmpty(QSCINTILLA_ENABLED): QSCINTILLA_ENABLED = 1
+equals(QSCINTILLA_ENABLED, 1) {
+    DEFINES += QSCINTILLA_DLL
+    INCLUDEPATH += $$QSCINTILLA_FOLDER
+    LIBS += -L$$QSCINTILLA_FOLDER -lqscintilla2_qt5
+    message("QScintilla enabled")
+} else {
+    message("QScintilla disabled")
+}
 
 win32 { # Windows
     CONFIG -= debug_and_release

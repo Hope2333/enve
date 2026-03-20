@@ -22,16 +22,16 @@ This ledger records the current build and runtime dependencies, their coupling l
 | Skia | `.gitmodules`, `src/core/core.pri`, `src/core/canvas.cpp`, `src/app/GUI/glwindow.cpp` | Core rendering, path ops, image and GPU surfaces | Very high | Keep vendored and pinned until the baseline build and CI are stable | ✅ Pinned |
 | libmypaint | `.gitmodules`, `src/core/libmypaintincludes.h`, `src/core/Paint/`, `src/app/brushes/` | Brush engine and bundled brush presets | Very high | Keep vendored; document exact ABI/build assumptions before any upgrade | ✅ Pinned |
 | QuaZip | `.gitmodules`, `src/core/zipfileloader.cpp`, `src/core/zipfilesaver.cpp` | Zip-backed file I/O | Medium | Candidate to replace with a maintained package source after CI is restored | ✅ Pinned |
-| QScintilla | `.gitmodules`, `src/app/GUI/Expressions/expressiondialog.cpp` | Script/expression editor autocompletion | Low to medium | Treat as an optional UI feature and add an explicit build boundary | 🔄 `ENVE_USE_QSCINTILLA` flag added |
-| gperftools / tcmalloc | `.gitmodules`, `third_party/Makefile`, `src/app/memorychecker.cpp` | Memory stats and allocator tuning on Unix | Medium | Make optional behind a build flag | ✅ `ENVE_USE_GPERFTOOLS` flag added |
+| QScintilla | `.gitmodules`, `src/app/GUI/Expressions/expressiondialog.cpp` | Script/expression editor autocompletion | Low to medium | Treat as an optional UI feature and add an explicit build boundary | ✅ `ENVE_USE_QSCINTILLA` flag added (app.pro + Makefile) |
+| gperftools / tcmalloc | `.gitmodules`, `third_party/Makefile`, `src/app/memorychecker.cpp` | Memory stats and allocator tuning on Unix | Medium | Make optional behind a build flag | ✅ `ENVE_USE_GPERFTOOLS` flag added (app.pro + Makefile) |
 
 ## System and Feature Dependencies
 
 | Dependency | Evidence | Used for | Coupling | Recommended first action | Status |
 | --- | --- | --- | --- | --- | --- |
 | FFmpeg | `src/app/app.pro`, `src/core/core.pro`, `src/app/videoencoder.cpp`, `src/core/FileCacheHandlers/` | Audio/video decode and encode | High | Pin a known working version and record API assumptions before any upgrade | ✅ Pinned |
-| Qt WebEngineWidgets | `src/app/app.pro`, `src/app/GUI/Dialogs/exportsvgdialog.cpp` | SVG preview UI | Low, but heavy to package | Add a feature flag before any Qt 6 spike | 🔄 `ENVE_USE_WEBENGINE` flag added |
-| OpenMP | `src/core/core.pri`, `src/core/Paint/drawableautotiledsurface.cpp`, `src/core/Paint/autotiledsurface.cpp` | Paint-path parallelism | Medium | Make the toggle explicit in qmake now | 🔄 `ENVE_USE_OPENMP` flag added |
+| Qt WebEngineWidgets | `src/app/app.pro`, `src/app/GUI/Dialogs/exportsvgdialog.cpp` | SVG preview UI | Low, but heavy to package | Add a feature flag before any Qt 6 spike | ✅ `ENVE_USE_WEBENGINE` flag added (app.pro + Makefile) |
+| OpenMP | `src/core/core.pri`, `src/core/Paint/drawableautotiledsurface.cpp`, `src/core/Paint/autotiledsurface.cpp` | Paint-path parallelism | Medium | Make the toggle explicit in qmake now | ✅ `ENVE_USE_OPENMP` flag added (core.pri + Makefile) |
 | GLib, json-c, fontconfig, freetype, libpng | `src/core/core.pri` | Linux-side native support for current rendering/paint stack | Medium | Pin in the baseline environment first | ✅ Pinned |
 | Examples | `src/app/app.pro` | Sample effects and boxes | Low | Already has `ENVE_BUILD_EXAMPLES` flag | ✅ `ENVE_BUILD_EXAMPLES` flag exists |
 
