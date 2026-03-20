@@ -81,14 +81,30 @@
 - ✅ Stamp files for third_party builds implemented
 - ✅ Main Makefile updated to use stamp files
 - ✅ CI caching for third-party builds configured
-- 🔄 CI validation in progress (runs 23357156824, 23357158851)
+- ✅ CI validation passed (runs 23357156824, 23357158851)
+- ✅ Phase 3 COMPLETE
 
 **Consolidation opportunities:**
-1. Feature flag consistency (validation, documentation)
-2. Build output organization (centralize under build/)
-3. Third-party build caching (stamp files)
-4. Include path management (centralize in core.pri)
-5. Library linkage documentation (dependency diagram)
+1. Feature flag consistency (validation, documentation) - ✅ DONE
+2. Build output organization (centralize under build/) - ✅ DOCUMENTED + IMPLEMENTED
+3. Third-party build caching (stamp files) - ✅ IMPLEMENTED + CI VALIDATED
+4. Include path management (centralize in core.pri) - ⏳ PENDING (Phase 4)
+5. Library linkage documentation (dependency diagram) - ✅ DONE
+
+**Phase 3 Exit Criteria (MET):**
+- ✅ CI passes on new compiler and Qt 5 lane
+- ✅ Stamp files working (incremental builds enabled)
+- ✅ CI caching configured and tested
+- ✅ Toolchain survey complete
+- ✅ Feature flag semantics documented
+- ✅ CMakeLists.txt skeleton created
+- ✅ Build output organization documented
+- ✅ Library linkage documented
+
+**Phase 4: Verification Upgrade (NEXT)**
+- Add repeatable smoke checks for startup and artifact existence
+- Add focused regression checks for import/export, render, and media
+- Define manual verification for GPU-sensitive changes
 
 Packaging Follow-up Lane (parallel, optional):
 - Fix Skia header paths in package jobs
@@ -120,13 +136,13 @@ gh api repos/Hope2333/enve/branches/master --jq '.commit.sha'
 ## Copy-Paste Prompt For The Next AI
 
 ```text
-Phase 2 is COMPLETE AND MERGED TO MASTER. Phase 3 ALMOST COMPLETE.
+Phase 3 is COMPLETE. Ready for Phase 4: Verification Upgrade.
 
 Current state:
 - Phase 1: COMPLETE (auto-build on push proven)
-- Phase 2: COMPLETE AND MERGED (PR #8 merged, runs 23353037094/23353037134 passed)
-- Phase 3: ALMOST COMPLETE (stamp files implemented, CI validation pending)
-- Latest commit: [will be updated after merge]
+- Phase 2: COMPLETE AND MERGED (PR #8 merged)
+- Phase 3: COMPLETE (CI validation passed)
+- Latest commit: [check git log]
 
 Phase 2 feature flags (on master):
 1. ENVE_USE_GPERFTOOLS (app.pro + core.pri + Makefile)
@@ -136,37 +152,36 @@ Phase 2 feature flags (on master):
 5. ENVE_BUILD_EXAMPLES (Makefile)
 6. ENVE_USE_SYSTEM_LIBMYPAINT (core.pri + Makefile)
 
-Phase 3 progress:
-✅ Toolchain survey completed (phase-3-toolchain-survey.md)
-✅ Documented qmake structure and Makefile orchestration
-✅ Documented third-party build systems
-✅ Identified 5 consolidation opportunities
-✅ Feature flag semantics documented (feature-flag-semantics.md)
-✅ CMakeLists.txt skeleton created (root, src/core, src/app, examples)
-✅ FindQScintilla.cmake module created
-✅ Build output organization documented (build-output-organization.md)
-✅ Library linkage documented (library-linkage.md)
-✅ Stamp files for third_party builds implemented
-✅ Main Makefile updated to use stamp files
-🔄 Next: Test incremental builds in CI
+Phase 3 deliverables:
+✅ Toolchain survey (phase-3-toolchain-survey.md)
+✅ Feature flag semantics (feature-flag-semantics.md)
+✅ CMakeLists.txt skeleton (CMakeLists.txt, src/*/CMakeLists.txt)
+✅ Build output organization (build-output-organization.md)
+✅ Library linkage documentation (library-linkage.md)
+✅ Stamp files for third_party builds (third_party/Makefile)
+✅ CI caching configured (linux-baseline.yml, linux-multi-distro.yml)
+✅ CI validation passed (runs 23357156824, 23357158851)
 
-Consolidation opportunities status:
-1. Feature flag consistency - ✅ DONE
-2. Build output organization - ✅ DOCUMENTED + IMPLEMENTED
-3. Third-party build caching (stamp files) - ✅ IMPLEMENTED
-4. Include path management - ⏳ PENDING
-5. Library linkage documentation - ✅ DONE
-
-Your task (continue Phase 3):
-1. Update CI workflow to use stamp files and cache third_party builds
-2. Test incremental builds (verify unchanged deps are skipped)
-3. Optionally: Implement include path management consolidation
-4. Complete Phase 3 exit criteria and prepare for Phase 4
+Your task (Phase 4: Verification Upgrade):
+1. Add repeatable smoke checks for startup and artifact existence
+2. Add focused regression checks for import/export, render, and media
+3. Define manual verification for GPU-sensitive changes
+4. Optionally: Complete include path management consolidation
 
 Do NOT start:
 - Full CMake migration (skeleton only for now)
 - Qt 6 migration (after toolchain consolidation)
 - Dependency replacement (evidence-driven)
+
+Read these files for context:
+- docs/modernization/ai-handoff.md (this file)
+- docs/modernization/phased-backlog.md (Phase 4 section)
+- docs/modernization/phase-3-toolchain-survey.md
+- docs/modernization/feature-flag-semantics.md
+- docs/modernization/build-output-organization.md
+- docs/modernization/library-linkage.md
+- docs/modernization/stamp-files.md
+```
 
 Read these files for context:
 - docs/modernization/ai-handoff.md (this file)
