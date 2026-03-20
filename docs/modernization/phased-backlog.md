@@ -72,12 +72,14 @@ Goal: formalize the already-recovered Linux reference lane and pay down the rema
 - ✅ FindQScintilla.cmake module created
 - ✅ Build output organization documented (build-output-organization.md)
 - ✅ Library linkage documented (library-linkage.md)
-- 🔄 Next: Implement stamp files for third_party builds
+- ✅ Stamp files for third_party builds implemented
+- ✅ Main Makefile updated to use stamp files
+- 🔄 Next: Test incremental builds in CI
 
 **Consolidation opportunities identified:**
 1. Feature flag consistency (validation, documentation) - ✅ DONE
-2. Build output organization (centralize under build/) - ✅ DOCUMENTED
-3. Third-party build caching (stamp files) - ⏳ PENDING IMPLEMENTATION
+2. Build output organization (centralize under build/) - ✅ DOCUMENTED + IMPLEMENTED
+3. Third-party build caching (stamp files) - ✅ IMPLEMENTED
 4. Include path management (centralize in core.pri) - ⏳ PENDING
 5. Library linkage documentation (dependency diagram) - ✅ DONE
 
@@ -89,8 +91,8 @@ Exit criteria:
 - ✅ CMakeLists.txt skeleton created
 - ✅ Build output organization documented
 - ✅ Library linkage documented
-- 🔄 CMake build tested alongside qmake (BLOCKED: requires Skia pre-build setup)
-- 🔄 Stamp files for third_party builds (NEXT)
+- ✅ Stamp files for third_party builds implemented
+- 🔄 CI validation with stamp files (NEXT)
 
 ## Phase 4: Verification Upgrade
 

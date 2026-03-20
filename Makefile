@@ -165,7 +165,7 @@ runtime:
 # Stage: build third-party and enve
 stage: runtime
 	@echo "🔨 Building third-party dependencies..."
-	@cd $(ROOT_DIR) && $(MAKE) -C $(THIRD_PARTY_DIR) -j$(JOBS) 2>&1 | tail -5 || true
+	@cd $(ROOT_DIR) && $(MAKE) -C $(THIRD_PARTY_DIR) BUILD_DIR=$(BUILD_DIR) -j$(JOBS) 2>&1 | tail -5 || true
 	@echo "  ✓ Third-party build complete"
 	@echo "🔨 Building enve..."
 	@cd $(BUILD_DIR) && \

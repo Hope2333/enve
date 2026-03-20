@@ -78,7 +78,9 @@
 - ✅ FindQScintilla.cmake module created
 - ✅ Build output organization documented (build-output-organization.md)
 - ✅ Library linkage documented (library-linkage.md)
-- 🔄 Next: Implement stamp files for third_party builds
+- ✅ Stamp files for third_party builds implemented
+- ✅ Main Makefile updated to use stamp files
+- 🔄 Next: Test incremental builds in CI
 
 **Consolidation opportunities:**
 1. Feature flag consistency (validation, documentation)
@@ -117,13 +119,13 @@ gh api repos/Hope2333/enve/branches/master --jq '.commit.sha'
 ## Copy-Paste Prompt For The Next AI
 
 ```text
-Phase 2 is COMPLETE AND MERGED TO MASTER. Phase 3 NEAR COMPLETION.
+Phase 2 is COMPLETE AND MERGED TO MASTER. Phase 3 ALMOST COMPLETE.
 
 Current state:
 - Phase 1: COMPLETE (auto-build on push proven)
 - Phase 2: COMPLETE AND MERGED (PR #8 merged, runs 23353037094/23353037134 passed)
-- Phase 3: NEAR COMPLETION (documentation complete, stamp files pending)
-- Latest commit: 7bc0e89b - "Update handoff: Phase 3 CMake skeleton complete"
+- Phase 3: ALMOST COMPLETE (stamp files implemented, CI validation pending)
+- Latest commit: [will be updated after merge]
 
 Phase 2 feature flags (on master):
 1. ENVE_USE_GPERFTOOLS (app.pro + core.pri + Makefile)
@@ -143,20 +145,22 @@ Phase 3 progress:
 ✅ FindQScintilla.cmake module created
 ✅ Build output organization documented (build-output-organization.md)
 ✅ Library linkage documented (library-linkage.md)
-🔄 Next: Implement stamp files for third_party builds
+✅ Stamp files for third_party builds implemented
+✅ Main Makefile updated to use stamp files
+🔄 Next: Test incremental builds in CI
 
 Consolidation opportunities status:
 1. Feature flag consistency - ✅ DONE
-2. Build output organization - ✅ DOCUMENTED
-3. Third-party build caching (stamp files) - 🔄 NEXT
+2. Build output organization - ✅ DOCUMENTED + IMPLEMENTED
+3. Third-party build caching (stamp files) - ✅ IMPLEMENTED
 4. Include path management - ⏳ PENDING
 5. Library linkage documentation - ✅ DONE
 
 Your task (continue Phase 3):
-1. Implement stamp files for third_party builds (see build-output-organization.md)
-2. Update third_party/Makefile with stamp file support
-3. Test incremental builds (skip unchanged dependencies)
-4. Optionally: Implement include path management consolidation
+1. Update CI workflow to use stamp files and cache third_party builds
+2. Test incremental builds (verify unchanged deps are skipped)
+3. Optionally: Implement include path management consolidation
+4. Complete Phase 3 exit criteria and prepare for Phase 4
 
 Do NOT start:
 - Full CMake migration (skeleton only for now)
@@ -167,7 +171,8 @@ Read these files for context:
 - docs/modernization/ai-handoff.md (this file)
 - docs/modernization/phase-3-toolchain-survey.md
 - docs/modernization/feature-flag-semantics.md
-- docs/modernization/build-output-organization.md (NEW)
-- docs/modernization/library-linkage.md (NEW)
+- docs/modernization/build-output-organization.md
+- docs/modernization/library-linkage.md
+- docs/modernization/stamp-files.md (NEW)
 - docs/modernization/phased-backlog.md (Phase 3 section)
 ```

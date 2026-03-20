@@ -14,6 +14,13 @@ If you only want one document to look at before talking to an AI, use this one.
 - Active status summary: `docs/modernization/current-status.md`
 - Active medium-term plan: `docs/modernization/phase-2-roadmap.md`
 
+## Default Language Split
+
+- AI-to-AI relay content, prompts, commands, file paths, and technical evidence: English
+- Human-facing summaries, evaluations, plans, and final conclusions: Chinese by default
+- Technical identifiers such as paths, commit IDs, workflow IDs, and code symbols stay in original English form
+- If you want a different language for one run, override it in a human addendum instead of rewriting the whole prompt
+
 ## Which Prompt To Use
 
 ### 1. Lower-Cost Execution
@@ -24,6 +31,11 @@ Use when you want the cheaper AI to keep coding inside the current lane.
 Read AGENTS.md, docs/ai-relay.md, docs/ai-collaboration.md, and the active lane docs listed in docs/ai-relay.md.
 
 You are the lower-cost execution AI.
+
+Language contract:
+- use English for relay-file updates, task instructions, code references, commands, and technical evidence
+- use Chinese for the final summary to the human
+- keep file paths, commit IDs, workflow IDs, and code identifiers in their original English form
 
 Before coding, derive a layered TODO list with:
 - lane goal
@@ -59,6 +71,11 @@ Read AGENTS.md, docs/ai-relay.md, docs/ai-collaboration.md, and the active lane 
 
 You are the higher-cost supervisory AI.
 
+Language contract:
+- use English for relay-file updates, task instructions, and technical evidence
+- use Chinese for the human-facing evaluation and planning output
+- keep file paths, commit IDs, workflow IDs, and code identifiers in their original English form
+
 Produce both:
 - a current-state evaluation
 - a forward plan
@@ -80,6 +97,11 @@ Use when you want route changes, phase reordering, or long-horizon product and a
 Read AGENTS.md, docs/ai-relay.md, docs/ai-collaboration.md, and the active lane docs listed in docs/ai-relay.md, plus any roadmap or dependency docs referenced there.
 
 You are the long-range planning AI.
+
+Language contract:
+- use English for relay-file updates, roadmap references, and technical evidence
+- use Chinese for the human-facing planning output
+- keep file paths, commit IDs, workflow IDs, and code identifiers in their original English form
 
 Evaluate the current state of the active lane, refine the next-phase plan, identify what must stay out of scope, and surface ultra-long-term implications for architecture, dependency strategy, and future major migrations.
 
@@ -128,3 +150,16 @@ When a new lane is needed:
 ## Human Rule Of Thumb
 
 If you find yourself pasting more than one block of prompt plus more than one block of repo status by hand, stop and update the lane docs instead. The prompts should stay stable; the docs should carry the moving state.
+
+## Human Addendum Template
+
+Paste a stable prompt first, then append a short addendum such as:
+
+```text
+===== HUMAN ADDENDUM =====
+- Use Chinese for the final summary to me.
+- Keep relay updates in the lane docs.
+- Do not broaden scope beyond the active lane unless the docs clearly require it.
+```
+
+The addendum is where you change language, scope, urgency, or lane-specific emphasis for one run.

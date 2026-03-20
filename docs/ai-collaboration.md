@@ -59,6 +59,15 @@ Every collaborating AI should treat these as the current project memory:
 7. `docs/modernization/phase-2-roadmap.md`
 8. `docs/modernization/phase-1-roadmap.md` as historical context when needed
 
+## Language Contract
+
+Default language split:
+
+- use English for prompts, code-task instructions, relay files, identifiers, commands, and technical evidence
+- use Chinese for human-facing summaries, evaluations, plans, checkpoint conclusions, and final wrap-ups
+- keep file paths, commit IDs, workflow IDs, code symbols, and command snippets in their original English form
+- if the human adds a language override in the addendum, follow that override for the current session
+
 ## Review Cadence
 
 Default loop:
@@ -128,6 +137,11 @@ Read AGENTS.md, docs/ai-relay.md, docs/ai-collaboration.md, and the active lane 
 
 You are the lower-cost execution AI.
 
+Language contract:
+- use English for relay-file updates, task instructions, code references, commands, and technical evidence
+- use Chinese for the final summary to the human
+- keep file paths, commit IDs, workflow IDs, and code identifiers in their original English form
+
 Your job:
 - read the active roadmap before coding and derive a layered TODO list with:
   - lane goal
@@ -174,6 +188,11 @@ Read these files first:
 
 You are the higher-cost supervisory AI.
 
+Language contract:
+- use English for relay-file updates, task instructions, and technical evidence
+- use Chinese for the human-facing evaluation and planning output
+- keep file paths, commit IDs, workflow IDs, and code identifiers in their original English form
+
 Your job:
 - assess the current lane, risks, and long-term sequencing
 - produce both an evaluation and a plan in the same response
@@ -209,6 +228,11 @@ Read these files first:
 - docs/modernization/adr-001-build-and-dependency-modernization.md
 
 You are the long-range planning AI for this repository.
+
+Language contract:
+- use English for relay-file updates, roadmap references, and technical evidence
+- use Chinese for the human-facing planning output
+- keep file paths, commit IDs, workflow IDs, and code identifiers in their original English form
 
 Your job:
 - evaluate the current state of the active lane
