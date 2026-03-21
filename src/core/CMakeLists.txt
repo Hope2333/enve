@@ -742,8 +742,7 @@ target_include_directories(envecore PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_SOURCE_DIR}/third_party/skia
     ${CMAKE_SOURCE_DIR}/third_party/skia/include
-    ${CMAKE_SOURCE_DIR}/third_party/libmypaint
-    ${CMAKE_BINARY_DIR}/third_party/libmypaint
+    ${CMAKE_SOURCE_DIR}/third_party
     ${CMAKE_SOURCE_DIR}/third_party/quazip
     ${FFMPEG_INCLUDE_DIRS}
 )
