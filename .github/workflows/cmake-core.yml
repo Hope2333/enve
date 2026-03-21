@@ -60,7 +60,7 @@ jobs:
           cd third_party/libmypaint
           ./autogen.sh
           ./configure --disable-static --enable-shared
-          make -j2
+          make -j4
           # Generated mypaint-config.h is already in source dir
           ls -la mypaint-config.h
           cd ../..
@@ -73,7 +73,7 @@ jobs:
 
       - name: Build envecore
         run: |
-          cmake --build build/cmake --target envecore -j2
+          cmake --build build/cmake --target envecore -j4
 
       - name: Upload envecore artifact
         uses: actions/upload-artifact@v4
