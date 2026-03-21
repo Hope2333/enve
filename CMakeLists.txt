@@ -138,7 +138,21 @@ if(ENVE_USE_SYSTEM_LIBMYPAINT)
     endif()
 else()
     message(STATUS "Using vendored libmypaint")
-    # TODO: Add vendored libmypaint build
+    # Build vendored libmypaint
+    include(ExternalProject)
+    ExternalProject_Add(libmypaint_build
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/third_party/libmypaint
+        CONFIGURE_COMMAND ${CMAKE_SOURCE_DIR}/third_party/libmypaint/autogen.sh
+        COMMAND ${CMAKE_SOURCE_DIR}/third_party/libmypaint/configure
+            --prefix=${CMAKE_BINARY_DIR}/third_party/libmypaint
+            --disable-static
+            --enable-shared
+        BUILD_COMMAND $(MAKE)
+        INSTALL_COMMAND ""
+        BUILD_IN_SOURCE 1
+        BUILD_BYPRODUCTS ${CMAKE_SOURCE_DIR}/third_party/libmypaint/mypaint-config.h
+        ${CMAKE_SOURCE_DIR}/third_party/libmypaint/.libs/libmypaint.a
+    )
 endif()
 
 # FFmpeg (required)
