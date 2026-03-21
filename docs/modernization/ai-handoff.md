@@ -42,6 +42,13 @@
   - url: `https://github.com/Hope2333/enve/actions/runs/23372328779`
   - conclusion: `success`
   - notes: Ubuntu/Debian/Arch compile-compatibility green; package jobs skipped by design
+- CMake Core Build (Phase 5) `23377916687`
+  - event: `workflow_dispatch`
+  - branch: `master`
+  - head sha: `c394ea70`
+  - url: `https://github.com/Hope2333/enve/actions/runs/23377916687`
+  - conclusion: `success` ✅
+  - notes: **-j4 verification passed** (~4 vCPU public runner); FFmpeg 6.x CMake/core validated
 - CMake Core Build (Phase 5) `23377739478`
   - event: `workflow_dispatch`
   - branch: `master`
