@@ -51,14 +51,12 @@ The lower-cost AI may use subagents, but only under tight limits:
 Every collaborating AI should treat these as the current project memory:
 
 1. `AGENTS.md`
-2. `docs/ai-relay.md`
-3. `docs/ai-collaboration.md`
-4. `docs/modernization/ai-handoff.md`
-5. `docs/modernization/current-status.md`
-6. `docs/modernization/phased-backlog.md`
-7. `docs/modernization/phase-4-roadmap.md`
-8. `docs/modernization/phase-3-toolchain-survey.md` as the latest completed upstream phase output
-9. `docs/modernization/phase-2-roadmap.md` and `docs/modernization/phase-1-roadmap.md` as historical context when needed
+2. `.ai/README.md`
+3. `docs/ai-relay.md`
+4. `docs/ai-collaboration.md`
+5. The active lane handoff, status, and roadmap files listed in `docs/ai-relay.md`
+6. `docs/modernization/phase-3-toolchain-survey.md` as the current CMake-skeleton and toolchain reference
+7. Any older `.ai/modernization/phase-*.md` files the active lane docs identify as required historical context
 
 ## Language Contract
 
@@ -91,8 +89,8 @@ When the lower-cost AI is expected to run with low supervision:
    - immediate next tasks
 3. Work through that list until a review gate, a real blocker, or a terminal build result appears.
 4. If simple sidecar questions appear, use up to 3 lightweight subagents for exploration, research, or verification while the main AI keeps moving.
-5. For GitHub Actions waits, use `scripts/ci/watch-build-status.sh`.
-6. For local long-running logs, use `scripts/ci/wait-log-pattern.sh` with explicit success and error markers.
+5. For GitHub Actions waits, use `.ai/tools/watch-build-status.sh`.
+6. For local long-running logs, use `.ai/tools/wait-log-pattern.sh` with explicit success and error markers.
 7. Hand back only when there is a meaningful state change, not just because a build is still running.
 
 ## Mandatory Review Gates
@@ -126,16 +124,15 @@ When handing back, include:
 
 - Supervisory AI owns long-term sequencing and phase boundaries.
 - Lower-cost AI owns tactical execution inside the current lane.
-- `docs/modernization/phased-backlog.md` stays as the phase map.
-- `docs/modernization/phase-4-roadmap.md` is the current medium-term execution plan while Phase 4 is active.
-- `docs/modernization/phase-3-toolchain-survey.md` is the latest completed upstream phase reference.
-- `docs/modernization/phase-2-roadmap.md` and `docs/modernization/phase-1-roadmap.md` are historical context for the closed earlier phases.
-- `docs/modernization/ai-handoff.md` stays the tactical source of truth.
+- `docs/ai-relay.md` decides which lane is active.
+- The active lane handoff, status, and roadmap files listed there are the operational source of truth.
+- `docs/modernization/phase-3-toolchain-survey.md` remains the stable toolchain and CMake-skeleton reference.
+- Older `.ai/modernization/phase-*.md` files are historical context only when the active lane docs call them out.
 
 ## Prompt: Lower-Cost Execution AI
 
 ```text
-Read AGENTS.md, docs/ai-relay.md, docs/ai-collaboration.md, and the active lane handoff/status/roadmap docs listed in docs/ai-relay.md.
+Read AGENTS.md, .ai/README.md, docs/ai-relay.md, docs/ai-collaboration.md, and the active lane handoff/status/roadmap docs listed in docs/ai-relay.md.
 
 You are the lower-cost execution AI.
 
@@ -158,8 +155,8 @@ Your job:
 - keep subagent fanout small: at most 3 parallel subagents
 - do not delegate the critical-path implementation step just because delegation is available
 - treat proxy or other environment-specific networking helpers as optional unless the active lane docs or logs prove they are required
-- for GitHub Actions waits, use `scripts/ci/watch-build-status.sh`
-- for long-running local logs, use `scripts/ci/wait-log-pattern.sh`
+- for GitHub Actions waits, use `.ai/tools/watch-build-status.sh`
+- for long-running local logs, use `.ai/tools/wait-log-pattern.sh`
 - wait patiently instead of returning early just because a build or workflow is still running
 - update handoff docs after any meaningful state change
 - hand back after 5 to 10 meaningful steps, or immediately on a new blocker / first green build / PR readiness point
@@ -182,13 +179,11 @@ Do not:
 ```text
 Read these files first:
 - AGENTS.md
+- .ai/README.md
 - docs/ai-relay.md
 - docs/ai-collaboration.md
-- docs/modernization/ai-handoff.md
-- docs/modernization/current-status.md
-- docs/modernization/phased-backlog.md
-- docs/modernization/phase-4-roadmap.md
-- docs/modernization/phase-3-toolchain-survey.md
+- the active lane docs listed in docs/ai-relay.md
+- docs/modernization/phase-3-toolchain-survey.md when CMake/toolchain context matters
 
 You are the higher-cost supervisory AI.
 
@@ -222,14 +217,12 @@ Your output should include:
 ```text
 Read these files first:
 - AGENTS.md
+- .ai/README.md
 - docs/ai-relay.md
 - docs/ai-collaboration.md
-- docs/modernization/ai-handoff.md
-- docs/modernization/current-status.md
-- docs/modernization/phased-backlog.md
-- docs/modernization/phase-4-roadmap.md
-- docs/modernization/phase-3-toolchain-survey.md
-- docs/modernization/dependency-ledger.md
+- the active lane docs listed in docs/ai-relay.md
+- docs/modernization/phase-3-toolchain-survey.md when CMake/toolchain context matters
+- .ai/modernization/dependency-ledger.md when dependency ownership or sequencing matters
 - docs/modernization/adr-001-build-and-dependency-modernization.md
 
 You are the long-range planning AI for this repository.

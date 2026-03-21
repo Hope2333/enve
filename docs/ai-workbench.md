@@ -10,9 +10,11 @@ If you only want one document to look at before talking to an AI, use this one.
 
 - Global relay rules: `docs/ai-relay.md`
 - AI role split and detailed contracts: `docs/ai-collaboration.md`
-- Active modernization lane: `docs/modernization/ai-handoff.md`
-- Active status summary: `docs/modernization/current-status.md`
-- Active medium-term plan: `docs/modernization/phase-2-roadmap.md`
+- Active modernization lane: local-only `.ai/modernization/ai-handoff.md`
+- Active status summary: local-only `.ai/modernization/current-status.md`
+- Active medium-term plan: local-only `.ai/modernization/phase-5-roadmap.md`
+
+These `.ai/` files are intentionally not committed. On GitHub, use this workbench plus the stable docs under `docs/` to initialize a new local AI workspace.
 
 ## Default Language Split
 
@@ -28,7 +30,7 @@ If you only want one document to look at before talking to an AI, use this one.
 Use when you want the cheaper AI to keep coding inside the current lane.
 
 ```text
-Read AGENTS.md, docs/ai-relay.md, docs/ai-collaboration.md, and the active lane docs listed in docs/ai-relay.md.
+Read AGENTS.md, .ai/README.md, docs/ai-relay.md, docs/ai-collaboration.md, and the active lane docs listed in docs/ai-relay.md.
 
 You are the lower-cost execution AI.
 
@@ -49,8 +51,8 @@ For simple sidecar tasks, you may use up to 3 parallel subagents such as:
 - `researcher` as a librarian or oracle equivalent for references
 - `verifier` for read-mostly checks
 
-For GitHub Actions waits, use `scripts/ci/watch-build-status.sh`.
-For long-running local logs, use `scripts/ci/wait-log-pattern.sh`.
+For GitHub Actions waits, use `.ai/tools/watch-build-status.sh`.
+For long-running local logs, use `.ai/tools/wait-log-pattern.sh`.
 
 Hand back after 5 to 10 meaningful steps, or immediately on a new blocker, first green build, PR readiness point, or phase-boundary question.
 
@@ -67,7 +69,7 @@ Do not start a new phase on your own, do not broaden scope casually, do not use 
 Use when you want the more expensive AI to do evaluation plus planning, not just a status check.
 
 ```text
-Read AGENTS.md, docs/ai-relay.md, docs/ai-collaboration.md, and the active lane docs listed in docs/ai-relay.md.
+Read AGENTS.md, .ai/README.md, docs/ai-relay.md, docs/ai-collaboration.md, and the active lane docs listed in docs/ai-relay.md.
 
 You are the higher-cost supervisory AI.
 
@@ -94,7 +96,7 @@ Your output should include:
 Use when you want route changes, phase reordering, or long-horizon product and architecture judgment.
 
 ```text
-Read AGENTS.md, docs/ai-relay.md, docs/ai-collaboration.md, and the active lane docs listed in docs/ai-relay.md, plus any roadmap or dependency docs referenced there.
+Read AGENTS.md, .ai/README.md, docs/ai-relay.md, docs/ai-collaboration.md, and the active lane docs listed in docs/ai-relay.md, plus any roadmap or dependency docs referenced there.
 
 You are the long-range planning AI.
 
@@ -123,8 +125,8 @@ Your output should include:
 
 ## Wait Tools
 
-- `scripts/ci/watch-build-status.sh`: wait for a GitHub Actions run to reach a terminal state. Parameter order is `REPO RUN_ID INTERVAL`, for example `scripts/ci/watch-build-status.sh Hope2333/enve 23365762835 45`.
-- `scripts/ci/wait-log-pattern.sh`: wait on a local log file with fixed-string success and error markers.
+- `.ai/tools/watch-build-status.sh`: wait for a GitHub Actions run to reach a terminal state. Parameter order is `REPO RUN_ID INTERVAL`, for example `.ai/tools/watch-build-status.sh Hope2333/enve 23365762835 45`.
+- `.ai/tools/wait-log-pattern.sh`: wait on a local log file with fixed-string success and error markers.
 
 ## When To Open A New Lane
 
@@ -141,8 +143,8 @@ Open a new lane when work is no longer a narrow follow-up inside the current mod
 
 When a new lane is needed:
 
-1. Create `docs/features/<lane>/ai-handoff.md` from `docs/templates/feature-lane-handoff.template.md`.
-2. Create `docs/features/<lane>/roadmap.md` from `docs/templates/feature-roadmap.template.md`.
+1. Create `.ai/features/<lane>/ai-handoff.md` from `docs/templates/feature-lane-handoff.template.md`.
+2. Create `.ai/features/<lane>/roadmap.md` from `docs/templates/feature-roadmap.template.md`.
 3. Register the new lane in `docs/ai-relay.md`.
 4. Mark whether it is active, parked, or blocked.
 5. Make all future prompts point to `docs/ai-relay.md` rather than hardcoding the new file list manually.
