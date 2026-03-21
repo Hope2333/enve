@@ -48,10 +48,22 @@ void AudioStreamsData::updateSwrContext() {
 
     if(fSwrContext) swr_free(&fSwrContext);
     fSwrContext = swr_alloc();
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    // FFmpeg 6.x: use AVChannelLayout
+    av_opt_set_int(fSwrContext, "in_channel_count",  audCodecPars->ch_layout.nb_channels, 0);
+    av_opt_set_int(fSwrContext, "out_channel_count", eSoundSettings::sChannelCount(), 0);
+    char in_layout[1024], out_layout[1024];
+    av_channel_layout_describe(&audCodecPars->ch_layout, in_layout, sizeof(in_layout));
+    av_channel_layout_describe(&eSoundSettings::sChannelLayout(), out_layout, sizeof(out_layout));
+    av_opt_set(fSwrContext, "in_channel_layout", in_layout, 0);
+    av_opt_set(fSwrContext, "out_channel_layout", out_layout, 0);
+#else
+    // FFmpeg 4.x/5.x: use uint64_t
     av_opt_set_int(fSwrContext, "in_channel_count",  audCodecPars->channels, 0);
     av_opt_set_int(fSwrContext, "out_channel_count", eSoundSettings::sChannelCount(), 0);
     av_opt_set_int(fSwrContext, "in_channel_layout",  audCodecPars->channel_layout, 0);
     av_opt_set_int(fSwrContext, "out_channel_layout", eSoundSettings::sChannelLayout(), 0);
+#endif
     av_opt_set_int(fSwrContext, "in_sample_rate", audCodecPars->sample_rate, 0);
     av_opt_set_int(fSwrContext, "out_sample_rate", eSoundSettings::sSampleRate(), 0);
     av_opt_set_sample_fmt(fSwrContext, "in_sample_fmt", sampleFormat, 0);
@@ -97,7 +109,11 @@ void AudioStreamsData::close() {
     if(fPacket) av_packet_free(&fPacket);
     if(fSwrContext) swr_free(&fSwrContext);
     if(fCodecContext) {
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+        avcodec_free(&fCodecContext);
+#else
         avcodec_close(fCodecContext);
+#endif
         avcodec_free_context(&fCodecContext);
     }
     if(fFormatContext) avformat_close_input(&fFormatContext);

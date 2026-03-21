@@ -23,7 +23,14 @@ void Samples::write(eWriteStream& dst) const {
     dst << fPlanar;
     dst << fSampleRate;
     dst << fSampleSize;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    // FFmpeg 6.x: serialize AVChannelLayout as string
+    char layout[1024];
+    av_channel_layout_describe(&fChannelLayout, layout, sizeof(layout));
+    dst << QString::fromUtf8(layout);
+#else
     dst << fChannelLayout;
+#endif
     dst << fNChannels;
     dst << fSampleRange;
     const auto bytes = static_cast<ulong>(fSampleRange.span())*fSampleSize;
@@ -42,7 +49,15 @@ stdsptr<Samples> Samples::sRead(eReadStream& src) {
     bool planar;
     int sampleRate;
     uint sampleSize;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    AVChannelLayout channelLayout;
+    QString layoutStr;
+    src >> layoutStr;
+    av_channel_layout_from_string(&channelLayout, layoutStr.toUtf8().constData());
+#else
     uint64_t channelLayout;
+    src >> channelLayout;
+#endif
     uint nChannels;
     SampleRange sampleRange;
     uchar ** data;
@@ -51,7 +66,9 @@ stdsptr<Samples> Samples::sRead(eReadStream& src) {
     src >> planar;
     src >> sampleRate;
     src >> sampleSize;
+#if LIBAVUTIL_VERSION_INT < AV_VERSION_INT(57, 49, 100)
     src >> channelLayout;
+#endif
     src >> nChannels;
     src >> sampleRange;
     const auto bytes = static_cast<ulong>(sampleRange.span())*sampleSize;
