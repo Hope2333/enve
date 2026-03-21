@@ -108,7 +108,11 @@ public:
     void setAll(const eSoundSettingsData& data);
     void setSampleRate(const int sampleRate);
     void setSampleFormat(const AVSampleFormat format);
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    void setChannelLayout(const AVChannelLayout layout);
+#else
     void setChannelLayout(const uint64_t layout);
+#endif
 private:
     using eSoundSettingsData::operator=;
     eSoundSettingsData mSaved;

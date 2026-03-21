@@ -109,8 +109,16 @@ void eSoundSettings::setSampleFormat(const AVSampleFormat format) {
     emit settingsChanged();
 }
 
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+void eSoundSettings::setChannelLayout(const AVChannelLayout layout) {
+    if(av_channel_layout_compare(&fChannelLayout, &layout) == 0) return;
+    fChannelLayout = layout;
+    emit settingsChanged();
+}
+#else
 void eSoundSettings::setChannelLayout(const uint64_t layout) {
     if(layout == fChannelLayout) return;
     fChannelLayout = layout;
     emit settingsChanged();
 }
+#endif
