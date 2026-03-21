@@ -23,7 +23,7 @@ on:
 
 jobs:
   cmake-core:
-    name: CMake Core (FFmpeg 6.x)
+    name: CMake Core (Ubuntu 22.04 Baseline)
     runs-on: ubuntu-22.04
     timeout-minutes: 180
 
@@ -87,6 +87,70 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cmake-core-build-logs
+          if-no-files-found: warn
+          path: |
+            build/cmake/CMakeFiles/CMakeOutput.log
+            build/cmake/CMakeFiles/CMakeError.log
+
+  cmake-core-ffmpeg6:
+    name: CMake Core (FFmpeg 6.x on Ubuntu 24.04)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Make CI scripts executable
+        run: chmod +x scripts/ci/*.sh
+
+      - name: Install Linux build dependencies (FFmpeg 6.x)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build \
+            qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
+            libqt5svg5-dev qtquickcontrols2-5-dev \
+            libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev \
+            libfreetype6-dev libfontconfig1-dev libpng-dev libharfbuzz-dev \
+            libglib2.0-dev libmypaint-dev libzstd-dev \
+            zlib1g-dev
+          # Verify FFmpeg 6.x
+          pkg-config --modversion libavcodec libavutil
+
+      - name: Build vendored libmypaint
+        run: |
+          cd third_party/libmypaint
+          ./autogen.sh
+          ./configure --disable-static --enable-shared
+          make -j4
+          ls -la mypaint-config.h
+          cd ../..
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build/cmake \
+            -DENVE_USE_SYSTEM_LIBMYPAINT=1 \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build envecore
+        run: |
+          cmake --build build/cmake --target envecore -j4
+
+      - name: Upload envecore artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: envecore-ffmpeg6
+          if-no-files-found: warn
+          path: build/cmake/lib/libenvecore.a
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg6-build-logs
           if-no-files-found: warn
           path: |
             build/cmake/CMakeFiles/CMakeOutput.log
