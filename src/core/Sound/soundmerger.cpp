@@ -353,14 +353,25 @@ void SoundMerger::process() {
             const int dstSampleRate = qRound(mSettings.fSampleRate*stretch);
 
             const AVSampleFormat sampleFormat = mSettings.fSampleFormat;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+            const AVChannelLayout chLayout = mSettings.fChannelLayout;
+            const int chCount = chLayout.nb_channels;
+            char layout_str[1024];
+            av_channel_layout_describe(&chLayout, layout_str, sizeof(layout_str));
+            struct SwrContext * swrContext = swr_alloc();
+            av_opt_set_int(swrContext, "in_channel_count", chCount, 0);
+            av_opt_set_int(swrContext, "out_channel_count", chCount, 0);
+            av_opt_set(swrContext, "in_channel_layout", layout_str, 0);
+            av_opt_set(swrContext, "out_channel_layout", layout_str, 0);
+#else
             const uint64_t chLayout = mSettings.fChannelLayout;
             const int chCount = av_get_channel_layout_nb_channels(chLayout);
-
             struct SwrContext * swrContext = swr_alloc();
             av_opt_set_int(swrContext, "in_channel_count", chCount, 0);
             av_opt_set_int(swrContext, "out_channel_count", chCount, 0);
             av_opt_set_int(swrContext, "in_channel_layout", chLayout, 0);
             av_opt_set_int(swrContext, "out_channel_layout", chLayout, 0);
+#endif
             av_opt_set_int(swrContext, "in_sample_rate", srcSampleRate, 0);
             av_opt_set_int(swrContext, "out_sample_rate", dstSampleRate, 0);
             av_opt_set_sample_fmt(swrContext, "in_sample_fmt", sampleFormat, 0);
