@@ -61,9 +61,8 @@ jobs:
           ./autogen.sh
           ./configure --disable-static --enable-shared
           make -j2
-          # Copy generated headers to expected location
-          cp mypaint-config.h ../..//libmypaint/
-          ls -la mypaint-config.h ../../libmypaint/mypaint-config.h 2>/dev/null || true
+          # Generated mypaint-config.h is already in source dir
+          ls -la mypaint-config.h
           cd ../..
 
       - name: Configure CMake
