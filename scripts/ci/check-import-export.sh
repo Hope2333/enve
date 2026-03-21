@@ -35,7 +35,7 @@ fi
 
 # Find .ev/.xev files
 shopt -s nullglob
-ev_files=("${TEST_DIR}"/*.ev "${TEST_DIR}"/*.xev 2>/dev/null)
+ev_files=("${TEST_DIR}"/*.ev "${TEST_DIR}"/*.xev)
 shopt -u nullglob
 
 if [[ "${#ev_files[@]}" -eq 0 ]]; then

@@ -20,6 +20,10 @@ Reduce reliance on ad hoc manual testing by adding the smallest repeatable verif
   - `scripts/ci/build-linux-baseline.sh`
   - `scripts/ci/smoke-linux-baseline.sh`
   - compile validation on Ubuntu 22.04, Debian 12, and Arch Linux
+- Latest Phase 4 regression signal:
+  - `23366524920` (`Linux Baseline Build` on `6210c371`) failed in `Preflight` and `Smoke checks`
+  - `23369899108` (`Linux Baseline Build` on `1eef2b7b`) already failed `Preflight` at supervisory review time
+  - local `bash -n` reproduces syntax failures in `scripts/ci/smoke-linux-baseline.sh` and `scripts/ci/check-import-export.sh`
 - Existing scope boundaries already include:
   - package jobs intentionally disabled in `.github/workflows/linux-multi-distro.yml`
   - CMake skeleton present, but no active CMake migration lane
@@ -42,6 +46,7 @@ Reduce reliance on ad hoc manual testing by adding the smallest repeatable verif
 
 ### 2. Low-Cost Automated Smoke Expansion
 
+- Before adding more checks, make sure every Phase 4 verification script passes `bash -n` and local preflight.
 - Extend the current baseline smoke path before adding more jobs.
 - Prefer high-signal checks that are cheap and deterministic:
   - executable and library existence
@@ -76,14 +81,15 @@ Reduce reliance on ad hoc manual testing by adding the smallest repeatable verif
 
 Phase 4 is complete when:
 
-1. The baseline workflow proves more than build success and artifact existence alone.
-2. At least one focused path in each of these areas is either automated or explicitly assigned to manual verification:
+1. Every Phase 4 verification script passes local syntax validation and the baseline preflight path.
+2. The latest code-affecting baseline workflow run is green and proves more than build success and artifact existence alone.
+3. At least one focused path in each of these areas is either automated or explicitly assigned to manual verification:
    - import/export
    - render
    - media
-3. GPU-sensitive changes have a documented manual verification contract.
-4. CI cost remains controlled and does not require new distro/package fan-out.
-5. The relay docs clearly record what is automated, what remains manual, and what stays deferred.
+4. GPU-sensitive changes have a documented manual verification contract.
+5. CI cost remains controlled and does not require new distro/package fan-out.
+6. The relay docs clearly record what is automated, what remains manual, and what stays deferred.
 
 ## Non-Goals
 
@@ -101,11 +107,11 @@ Phase 4 is complete when:
 
 ## Suggested Execution Order
 
-1. Audit `scripts/ci/smoke-linux-baseline.sh` and current workflow evidence
-2. Identify the smallest missing high-signal checks
-3. Implement one or two verification improvements only
-4. Write the manual verification contract for the remaining risky paths
-5. Pause after the next green verification improvement and hand back for review
+1. Repair any Phase 4 verification script that fails `bash -n` or local preflight
+2. Revalidate `scripts/ci/preflight-linux-baseline.sh` locally
+3. Get one green code-affecting `Linux Baseline Build`
+4. Only then decide whether any additional verification improvement is still needed
+5. Pause after that green repair run and hand back for review
 
 ## Risk Notes
 

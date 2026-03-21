@@ -1,7 +1,7 @@
 # Modernization Status
 
-- Last updated: 2026-03-21 07:00:00 UTC
-- Overall status: **Phase 4 Verification Upgrade IN PROGRESS on `master`.**
+- Last updated: 2026-03-21 02:22:05 UTC
+- Overall status: **Phase 4 Verification Upgrade IN PROGRESS on `master`, but not review-ready.**
 
 ## Landed So Far
 
@@ -16,7 +16,11 @@
 - ✅ Phase 4 verification improvements:
   - Extended smoke checks (artifact sizes, startup, examples)
   - Manual verification contract created
-  - CI validation `23365762835`: `success`
+  - Optional import/export check script added
+  - Manual CI validation `23365762835`: `success`
+- ✅ Latest multi-distro compile-compatibility confirmation:
+  - `23369899104`: `success`
+- ℹ️ Latest `master` commit `4e183b6b` is docs-only and did not trigger the path-filtered baseline workflow.
 
 ## Current CI Behavior
 
@@ -30,16 +34,18 @@
 
 ## Active Blockers
 
-- No build-stability blocker is active.
-- Phase 4 exit criteria partially met:
-  - ✅ Smoke checks extended
-  - ✅ Manual verification contract created
-  - ⏳ Import/export regression check (optional enhancement)
-  - ⏳ Render/media regression check (optional enhancement)
+- First confirmed blocker: the Phase 4 verification scripts themselves do not pass shell syntax validation.
+  - `bash -n scripts/ci/smoke-linux-baseline.sh` fails at line 59
+  - `bash -n scripts/ci/check-import-export.sh` fails at line 38
+  - root cause: array assignment incorrectly embeds `2>/dev/null`
+- Latest relevant Linux baseline runs:
+  - `23366524920` on `6210c371`: `failure` (`Preflight` and `Smoke checks`)
+  - `23369899108` on `1eef2b7b`: `Preflight` failed; `Build (Linux)` was still running at the time of review
+- Phase 4 exit criteria remain open until a fresh code-affecting baseline run is green.
 
 ## Next Steps
 
-1. Supervisory review of Phase 4 exit criteria.
-2. Decide if additional automated regression checks are needed.
-3. Plan Phase 5 (CMake migration preparation) OR complete remaining Phase 4 gaps.
-4. Do NOT start packaging, Qt 6, or dependency replacement yet.
+1. Fix the invalid array/glob handling in the Phase 4 verification scripts.
+2. Re-run local syntax validation and `scripts/ci/preflight-linux-baseline.sh`.
+3. Revalidate `Linux Baseline Build` on a repair commit before any Phase 4 exit review.
+4. Do NOT start packaging, Qt 6, dependency replacement, or Phase 5 planning work yet.

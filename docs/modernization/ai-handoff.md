@@ -1,9 +1,10 @@
 # AI Handoff: Phase 4 Verification Upgrade
 
-- Snapshot time: 2026-03-20 22:34:52 UTC
+- Snapshot time: 2026-03-21 02:22:05 UTC
 - Active branch for next work: create a short-lived branch from `master`
 - Current checked-out branch at snapshot: `master`
-- Latest confirmed `master` commit: `0b123778` (`Phase 3 COMPLETE - Ready for Phase 4`)
+- Latest confirmed `master` commit: `4e183b6b` (`Phase 4: Ready for supervisory review`)
+- Latest code-affecting Phase 4 commit on `master`: `1eef2b7b` (`Phase 4: Add optional import/export check script`)
 - Last merged Phase 2 commit on `master`: `0f03ff85` (`Phase 2: Dependency boundary hardening (#8)`)
 - Fork remote: `origin` -> `git@github.com:Hope2333/enve.git`
 - Upstream remote: `upstream` -> `git@github.com:MaurycyLiebner/enve.git`
@@ -30,6 +31,15 @@
   - Ubuntu 22.04 minimal-dependency build: `success`
   - Debian 12 build: `success`
   - Arch Linux build: `success`
+  - latest confirming run: `23369899104`
+- ❌ Phase 4 is not review-ready yet:
+  - the latest code-affecting push run `23369899108` on `1eef2b7b` already failed `Preflight`
+  - the earlier push run `23366524920` on `6210c371` failed both `Preflight` and `Smoke checks`
+  - local `bash -n` validation reproduces syntax failures in:
+    - `scripts/ci/smoke-linux-baseline.sh`
+    - `scripts/ci/check-import-export.sh`
+- ℹ️ The latest `master` commit `4e183b6b` updated handoff text only.
+  - It did not trigger `linux-baseline.yml` because the workflow path filters do not include `docs/**`.
 - ⏸️ Package jobs are intentionally outside the active lane right now:
   - Debian Package: `skipped`
   - Arch Package: `skipped`
@@ -39,12 +49,42 @@
 
 ## Latest Relevant Workflow Runs
 
+- Linux Baseline Build `23369899108`
+  - event: `push`
+  - branch: `master`
+  - head sha: `1eef2b7b`
+  - url: `https://github.com/Hope2333/enve/actions/runs/23369899108`
+  - status at snapshot: `in_progress`
+  - notes:
+    - `Preflight` already failed
+    - `Build (Linux)` was still running at snapshot time
 - Linux Baseline Build `23365762835`
   - event: `workflow_dispatch`
   - branch: `master`
   - url: `https://github.com/Hope2333/enve/actions/runs/23365762835`
   - conclusion: `success`
   - notes: Extended smoke checks passed (artifact sizes, startup, examples)
+- Linux Baseline Build `23366524920`
+  - event: `push`
+  - branch: `master`
+  - head sha: `6210c371`
+  - url: `https://github.com/Hope2333/enve/actions/runs/23366524920`
+  - conclusion: `failure`
+  - notes:
+    - `Preflight` failed
+    - `Smoke checks` failed after the build completed
+- Multi-Distro Build `23369899104`
+  - event: `push`
+  - branch: `master`
+  - head sha: `1eef2b7b`
+  - url: `https://github.com/Hope2333/enve/actions/runs/23369899104`
+  - conclusion: `success`
+  - notes:
+    - Ubuntu 22.04 default build: `success`
+    - Ubuntu 22.04 minimal-dependency build: `success`
+    - Debian 12 build: `success`
+    - Arch Linux build: `success`
+    - package jobs remained skipped by design
 - Linux Baseline Build `23357140865`
   - event: `push`
   - branch: `master`
@@ -65,11 +105,18 @@
 ## What Was Verified Locally
 
 - `git branch --show-current` confirmed the snapshot was taken on `master`.
-- `git log --oneline --decorate -n 12` confirmed `0b123778` is the current `master` head.
+- `git log --oneline --decorate -n 12` confirmed `4e183b6b` is the current `master` head.
+- `gh api repos/Hope2333/enve/branches/master --jq '.commit.sha'` confirmed `master` points to `4e183b6b8fc1d304a9c43616f483d34c46460447`.
 - `gh pr list --repo Hope2333/enve --state all --limit 12` confirmed PR #8 is merged.
-- `gh run list --repo Hope2333/enve --limit 20` confirmed the latest successful baseline and multi-distro runs on `master`.
-- `gh run view 23357156824 --repo Hope2333/enve --json status,conclusion,event,headBranch,headSha,url,jobs` confirmed baseline smoke still passes after the Phase 3 changes.
-- `gh run view 23357158851 --repo Hope2333/enve --json status,conclusion,event,headBranch,headSha,url,jobs` confirmed Ubuntu, Debian, and Arch build jobs succeed while package jobs stay skipped by design.
+- `gh run list --repo Hope2333/enve --limit 12` showed:
+  - `23369899108` (`Linux Baseline Build`) active on `1eef2b7b`
+  - `23369899104` (`Multi-Distro Build`) succeeded on `1eef2b7b`
+  - `23366524920` (`Linux Baseline Build`) failed on `6210c371`
+- `gh run view 23366524920 --repo Hope2333/enve --json status,conclusion,event,headBranch,headSha,url,jobs` confirmed `Preflight` and `Smoke checks` failures on `6210c371`.
+- `gh run view 23369899108 --repo Hope2333/enve --json status,conclusion,event,headBranch,headSha,url,jobs` confirmed `Preflight` already failed on `1eef2b7b` while `Build (Linux)` was still running at snapshot time.
+- `gh run view 23369899104 --repo Hope2333/enve --json status,conclusion,event,headBranch,headSha,url,jobs` confirmed Ubuntu, Debian, and Arch build jobs succeed while package jobs stay skipped by design.
+- `bash -n scripts/ci/smoke-linux-baseline.sh` fails at line 59 because array assignment incorrectly embeds `2>/dev/null`.
+- `bash -n scripts/ci/check-import-export.sh` fails at line 38 for the same reason.
 - `git status --short --ignore-submodules=none` confirmed the dirty `third_party` submodule caveat still applies.
 - Local source inspection confirmed:
   - `Makefile` still defaults `PROXY` to `http://localhost:7890`
@@ -81,10 +128,10 @@
 
 - The active lane is now **Phase 4: Verification Upgrade**.
 - Another implementation lane should **not** be opened yet.
-- The next execution AI should work on verification coverage only:
-  - startup and artifact smoke checks
-  - focused import/export, render, and media regression coverage
-  - documented manual verification for GPU-sensitive flows
+- The next execution AI should stay inside Phase 4, but the immediate job is narrower than before:
+  - fix the Phase 4 verification scripts so they pass `bash -n` and local preflight
+  - regain one green `Linux Baseline Build` on a code-affecting branch commit
+  - only then resume any discussion of Phase 4 exit review
 - Packaging and distribution are **not** part of the active lane:
   - do not re-open Debian or Arch package jobs here
   - do not start AppImage or Flatpak work here
@@ -95,15 +142,12 @@
 
 ## Immediate Next Actions
 
-1. ✅ Audit current smoke coverage - COMPLETE
-2. ✅ Extend smoke-linux-baseline.sh with high-signal checks - COMPLETE
-   - Artifact size reporting
-   - App startup check (--help/--version)
-   - Example file detection
-3. ✅ Create manual verification contract - COMPLETE
-4. ✅ CI validation of extended smoke - COMPLETE (run 23365762835 passed)
-5. ✅ Add optional import/export check script - COMPLETE (check-import-export.sh)
-6. Next: Supervisory review for Phase 4 exit criteria
+1. Fix invalid array/glob handling in `scripts/ci/smoke-linux-baseline.sh` and `scripts/ci/check-import-export.sh`.
+2. Re-run local syntax validation:
+   - `bash -n scripts/ci/smoke-linux-baseline.sh`
+   - `bash -n scripts/ci/check-import-export.sh`
+   - `scripts/ci/preflight-linux-baseline.sh`
+3. Trigger or inspect a fresh `Linux Baseline Build` on the repair branch and hand back after the first green code-affecting run.
 
 ## Guardrails
 
@@ -112,6 +156,7 @@
 - Do not broaden Phase 4 into packaging or distribution hardening.
 - Do not treat Multi-Distro Build as release-packaging completeness; right now it is compile-compatibility evidence.
 - Do not treat `PROXY` as mandatory.
+- Do not call Phase 4 review-ready while the verification scripts still fail local `bash -n` or while the latest code-affecting baseline run is red.
 - Do not expand the existing CMake skeleton into a real migration lane yet.
 - Do not start Qt 6 work yet.
 - Do not start dependency replacement yet.
@@ -120,16 +165,19 @@
 ## Copy-Paste Prompt For The Next AI
 
 ```text
-Phase 4 Verification Upgrade: READY FOR SUPERVISORY REVIEW.
+Phase 4 Verification Upgrade: CONTINUE WITH NARROW BLOCKER FIX.
 
 Current state:
 - Phase 1: COMPLETE
 - Phase 2: COMPLETE AND MERGED
 - Phase 3: COMPLETE ON MASTER
-- Phase 4: READY FOR REVIEW (all deliverables complete)
-- Latest master commit: 1eef2b7b
+- Phase 4: IN PROGRESS (verification scripts need repair before exit review)
+- Latest master commit: 4e183b6b
+- Latest code-affecting Phase 4 commit: 1eef2b7b
 - CI validation:
-  - 23365762835 (Linux Baseline Build): ✅ success
+  - 23369899108 (Linux Baseline Build on 1eef2b7b): `Preflight` already failed at snapshot time
+  - 23369899104 (Multi-Distro Build on 1eef2b7b): ✅ success
+  - 23366524920 (Linux Baseline Build on 6210c371): ❌ failure
 
 Phase 4 deliverables:
 ✅ Smoke coverage audited
@@ -140,10 +188,14 @@ Phase 4 deliverables:
 ✅ Manual verification contract created (manual-verification-contract.md)
 ✅ CI validation passed (23365762835)
 ✅ Import/export check script created (check-import-export.sh)
+❌ Current blocker:
+  - `scripts/ci/smoke-linux-baseline.sh` fails `bash -n`
+  - `scripts/ci/check-import-export.sh` fails `bash -n`
+  - root cause: invalid array assignment that embeds `2>/dev/null`
 
 Exit criteria progress:
-✅ Baseline workflow proves more than build success alone
-✅ Import/export path (manual contract + optional script)
+⏳ Baseline workflow proved more than build success alone on earlier manual run, but the latest code-affecting push is not green
+⏳ Import/export path (manual contract + optional script, but script syntax is broken)
 ✅ Render path (manual contract defined)
 ✅ Media path (manual contract defined)
 ✅ GPU-sensitive changes have documented manual verification contract
@@ -151,10 +203,10 @@ Exit criteria progress:
 ✅ Relay docs record automated vs manual vs deferred
 
 Your task:
-1. Review Phase 4 exit criteria - all met
-2. Decide: Phase 4 COMPLETE or needs more work
-3. If complete: Plan Phase 5 (CMake migration preparation)
-4. If not complete: Identify remaining gaps
+1. Fix the Phase 4 verification scripts so they pass local `bash -n`
+2. Re-run local preflight
+3. Get one fresh green `Linux Baseline Build` on a code-affecting repair commit
+4. Hand back for supervisory review only after that green run exists
 
 Read these files:
 - docs/modernization/ai-handoff.md (this file)

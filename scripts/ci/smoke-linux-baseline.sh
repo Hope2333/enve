@@ -56,7 +56,9 @@ fi
 echo "=== Phase 4 Verification: Example Assets ==="
 EXAMPLES_DIR="${ROOT_DIR}/examples"
 if [[ -d "${EXAMPLES_DIR}" ]]; then
-  ev_files=("${EXAMPLES_DIR}"/*.ev "${EXAMPLES_DIR}"/*.xev 2>/dev/null)
+  shopt -s nullglob
+  ev_files=("${EXAMPLES_DIR}"/*.ev "${EXAMPLES_DIR}"/*.xev)
+  shopt -u nullglob
   if [[ "${#ev_files[@]}" -gt 0 ]]; then
     echo "✓ Found example .ev/.xev files: ${#ev_files[@]}"
   else

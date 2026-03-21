@@ -104,7 +104,7 @@ Exit criteria:
 
 ## Phase 4: Verification Upgrade
 
-**Status:** IN PROGRESS (smoke extended, manual contract created)
+**Status:** IN PROGRESS (verification surfaces extended, but the latest script changes are not yet green on a code-affecting baseline run)
 
 Goal: reduce reliance on ad hoc manual testing.
 
@@ -124,11 +124,15 @@ Goal: reduce reliance on ad hoc manual testing.
 - ✅ Manual verification contract created (manual-verification-contract.md)
 - ✅ CI validation passed (run 23365762835)
 - ✅ Import/export check script created (check-import-export.sh)
-- 🔄 Next: Supervisory review for Phase 4 exit criteria
+- ❌ Latest blocker:
+  - `scripts/ci/smoke-linux-baseline.sh` fails `bash -n`
+  - `scripts/ci/check-import-export.sh` fails `bash -n`
+  - latest related baseline push runs: `23366524920` failed, `23369899108` already failed `Preflight` at review time
+- 🔄 Next: repair the verification scripts, regain a green code-affecting baseline run, then return for supervisory exit review
 
 **Exit criteria progress:**
-- ✅ Baseline workflow proves more than build success alone
-- ⏳ Import/export path (manual contract defined, automation optional)
+- ⏳ Baseline workflow proved more than build success alone on earlier manual validation, but the latest code-affecting push is not green
+- ⏳ Import/export path (manual contract defined, optional script added, but script repair still required)
 - ⏳ Render path (manual contract defined, automation optional)
 - ⏳ Media path (manual contract defined, automation optional)
 - ✅ GPU-sensitive changes have documented manual verification contract
@@ -204,3 +208,4 @@ Exit criteria:
 - Avoid starting the first CMake lane before Phase 2 has made the optional-feature boundaries explicit, or the initial CMake graph will inherit avoidable complexity.
 - Avoid letting packaging or distro-matrix growth silently expand Phase 4.
 - Avoid treating proxy-specific networking assumptions as part of the default baseline unless logs prove they are required.
+- Avoid letting docs-only commits create a false “review-ready” story when the latest code-affecting baseline run is still red.
