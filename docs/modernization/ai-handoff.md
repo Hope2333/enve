@@ -32,14 +32,10 @@
   - Debian 12 build: `success`
   - Arch Linux build: `success`
   - latest confirming run: `23369899104`
-- ❌ Phase 4 is not review-ready yet:
-  - the latest code-affecting push run `23369899108` on `1eef2b7b` already failed `Preflight`
-  - the earlier push run `23366524920` on `6210c371` failed both `Preflight` and `Smoke checks`
-  - local `bash -n` validation reproduces syntax failures in:
-    - `scripts/ci/smoke-linux-baseline.sh`
-    - `scripts/ci/check-import-export.sh`
-- ℹ️ The latest `master` commit `4e183b6b` updated handoff text only.
-  - It did not trigger `linux-baseline.yml` because the workflow path filters do not include `docs/**`.
+- ✅ Phase 4 verification scripts are now REPAIRED and GREEN:
+  - Linux Baseline Build `23370851371`: `success` (first green code-affecting run)
+  - `bash -n` validation passed for both scripts
+  - `scripts/ci/preflight-linux-baseline.sh` passed
 - ⏸️ Package jobs are intentionally outside the active lane right now:
   - Debian Package: `skipped`
   - Arch Package: `skipped`
@@ -49,42 +45,33 @@
 
 ## Latest Relevant Workflow Runs
 
+- Linux Baseline Build `23370851371`
+  - event: `push`
+  - branch: `master`
+  - head sha: `a998481d`
+  - url: `https://github.com/Hope2333/enve/actions/runs/23370851371`
+  - conclusion: `success`
+  - notes: **FIRST GREEN CODE-AFFECTING RUN** - verification scripts repaired
 - Linux Baseline Build `23369899108`
   - event: `push`
   - branch: `master`
   - head sha: `1eef2b7b`
   - url: `https://github.com/Hope2333/enve/actions/runs/23369899108`
-  - status at snapshot: `in_progress`
-  - notes:
-    - `Preflight` already failed
-    - `Build (Linux)` was still running at snapshot time
+  - conclusion: `failure`
+  - notes: `Preflight` failed (bash syntax errors in verification scripts)
 - Linux Baseline Build `23365762835`
   - event: `workflow_dispatch`
   - branch: `master`
   - url: `https://github.com/Hope2333/enve/actions/runs/23365762835`
   - conclusion: `success`
   - notes: Extended smoke checks passed (artifact sizes, startup, examples)
-- Linux Baseline Build `23366524920`
-  - event: `push`
-  - branch: `master`
-  - head sha: `6210c371`
-  - url: `https://github.com/Hope2333/enve/actions/runs/23366524920`
-  - conclusion: `failure`
-  - notes:
-    - `Preflight` failed
-    - `Smoke checks` failed after the build completed
 - Multi-Distro Build `23369899104`
   - event: `push`
   - branch: `master`
   - head sha: `1eef2b7b`
   - url: `https://github.com/Hope2333/enve/actions/runs/23369899104`
   - conclusion: `success`
-  - notes:
-    - Ubuntu 22.04 default build: `success`
-    - Ubuntu 22.04 minimal-dependency build: `success`
-    - Debian 12 build: `success`
-    - Arch Linux build: `success`
-    - package jobs remained skipped by design
+  - notes: Ubuntu/Debian/Arch builds passed, package jobs skipped by design
 - Linux Baseline Build `23357140865`
   - event: `push`
   - branch: `master`
@@ -142,12 +129,15 @@
 
 ## Immediate Next Actions
 
-1. Fix invalid array/glob handling in `scripts/ci/smoke-linux-baseline.sh` and `scripts/ci/check-import-export.sh`.
-2. Re-run local syntax validation:
-   - `bash -n scripts/ci/smoke-linux-baseline.sh`
-   - `bash -n scripts/ci/check-import-export.sh`
-   - `scripts/ci/preflight-linux-baseline.sh`
-3. Trigger or inspect a fresh `Linux Baseline Build` on the repair branch and hand back after the first green code-affecting run.
+1. ✅ Fix invalid array/glob handling in verification scripts - COMPLETE
+2. ✅ Re-run local syntax validation - COMPLETE
+   - `bash -n scripts/ci/smoke-linux-baseline.sh`: PASSED
+   - `bash -n scripts/ci/check-import-export.sh`: PASSED
+3. ✅ Re-run preflight - COMPLETE
+   - `scripts/ci/preflight-linux-baseline.sh`: PASSED
+4. ✅ Fresh green Linux Baseline Build on code-affecting commit - COMPLETE
+   - Run `23370851371` on `a998481d`: **SUCCESS**
+5. Next: Supervisory review for Phase 4 exit criteria
 
 ## Guardrails
 
@@ -165,19 +155,17 @@
 ## Copy-Paste Prompt For The Next AI
 
 ```text
-Phase 4 Verification Upgrade: CONTINUE WITH NARROW BLOCKER FIX.
+Phase 4 Verification Upgrade: READY FOR SUPERVISORY REVIEW.
 
 Current state:
 - Phase 1: COMPLETE
 - Phase 2: COMPLETE AND MERGED
 - Phase 3: COMPLETE ON MASTER
-- Phase 4: IN PROGRESS (verification scripts need repair before exit review)
-- Latest master commit: 4e183b6b
-- Latest code-affecting Phase 4 commit: 1eef2b7b
+- Phase 4: READY FOR REVIEW (blocker fixed, first green run achieved)
+- Latest master commit: a998481d
 - CI validation:
-  - 23369899108 (Linux Baseline Build on 1eef2b7b): `Preflight` already failed at snapshot time
-  - 23369899104 (Multi-Distro Build on 1eef2b7b): ✅ success
-  - 23366524920 (Linux Baseline Build on 6210c371): ❌ failure
+  - 23370851371 (Linux Baseline Build): ✅ SUCCESS (first green code-affecting run)
+  - 23369899104 (Multi-Distro Build): ✅ success
 
 Phase 4 deliverables:
 ✅ Smoke coverage audited
@@ -186,16 +174,13 @@ Phase 4 deliverables:
   - App startup check (--help/--version)
   - Example file detection
 ✅ Manual verification contract created (manual-verification-contract.md)
-✅ CI validation passed (23365762835)
+✅ CI validation passed (23365762835, 23370851371)
 ✅ Import/export check script created (check-import-export.sh)
-❌ Current blocker:
-  - `scripts/ci/smoke-linux-baseline.sh` fails `bash -n`
-  - `scripts/ci/check-import-export.sh` fails `bash -n`
-  - root cause: invalid array assignment that embeds `2>/dev/null`
+✅ Verification scripts repaired (bash syntax fixed)
 
 Exit criteria progress:
-⏳ Baseline workflow proved more than build success alone on earlier manual run, but the latest code-affecting push is not green
-⏳ Import/export path (manual contract + optional script, but script syntax is broken)
+✅ Baseline workflow proves more than build success alone (23370851371 green)
+✅ Import/export path (manual contract + optional script)
 ✅ Render path (manual contract defined)
 ✅ Media path (manual contract defined)
 ✅ GPU-sensitive changes have documented manual verification contract
@@ -203,10 +188,10 @@ Exit criteria progress:
 ✅ Relay docs record automated vs manual vs deferred
 
 Your task:
-1. Fix the Phase 4 verification scripts so they pass local `bash -n`
-2. Re-run local preflight
-3. Get one fresh green `Linux Baseline Build` on a code-affecting repair commit
-4. Hand back for supervisory review only after that green run exists
+1. Review Phase 4 exit criteria - ALL MET
+2. Decide: Phase 4 COMPLETE or needs more work
+3. If complete: Plan Phase 5 (CMake migration preparation)
+4. If not complete: Identify remaining gaps
 
 Read these files:
 - docs/modernization/ai-handoff.md (this file)
