@@ -1,13 +1,11 @@
 # CMake Configuration for enve
 #
-# This is a work-in-progress CMake migration for enve.
-# The goal is to eventually replace qmake while maintaining
-# full compatibility with existing build outputs.
+# Phase 5: Build-System Migration
+# 
+# Status: Core library (envecore) is real and builds.
+# qmake remains the authoritative release path until full parity is achieved.
 #
-# Current status: SKELETON ONLY - DO NOT USE FOR PRODUCTION
-#
-# Phase 3: Toolchain Consolidation
-# See: docs/modernization/phase-3-toolchain-survey.md
+# See: docs/modernization/phase-5-roadmap.md
 
 cmake_minimum_required(VERSION 3.16)
 

@@ -1,299 +1,687 @@
 # CMake configuration for enve core library
 #
-# This is a work-in-progress. Currently a SKELETON ONLY.
+# Phase 5: Build-System Migration
+# 
+# This file is now real and matches qmake's core.pro/core.pri.
+# qmake remains the authoritative release path until full parity is achieved.
 
-# Collect all source files
-# TODO: Verify this list matches qmake build
+# Collect all source files (auto-generated from actual files on disk)
 set(envecore_SOURCES
-    # Animators
+    action.cpp
+    actions.cpp
     Animators/animator.cpp
-    Animators/animatorreferencekey.cpp
-    Animators/bezieranimator.cpp
-    Animators/bezierkey.cpp
-    Animators/doubleanimator.cpp
-    Animators/doublekey.cpp
+    Animators/animatort.cpp
+    Animators/basedanimatort.cpp
+    Animators/basedkeyt.cpp
+    Animators/boolanimator.cpp
+    Animators/brushsettingsanimator.cpp
+    Animators/clampedpoint.cpp
+    Animators/clampedvalue.cpp
+    Animators/coloranimator.cpp
+    Animators/complexanimator.cpp
+    Animators/complexkey.cpp
+    Animators/customproperties.cpp
+    Animators/eboxorsound.cpp
+    Animators/eeffect.cpp
+    Animators/gradient.cpp
+    Animators/gradientpoints.cpp
     Animators/graphanimator.cpp
+    Animators/graphanimatort.cpp
     Animators/graphkey.cpp
+    Animators/graphkeyt.cpp
     Animators/intanimator.cpp
-    Animators/intkey.cpp
+    Animators/interpolationanimator.cpp
+    Animators/interpolationanimatort.cpp
+    Animators/interpolationkey.cpp
+    Animators/interpolationkeyt.cpp
     Animators/key.cpp
-    Animators/maskanimator.cpp
+    Animators/keyt.cpp
+    Animators/outlinesettingsanimator.cpp
+    Animators/overlappingkeylist.cpp
+    Animators/overlappingkeys.cpp
+    Animators/paintsettingsanimator.cpp
+    Animators/qcubicsegment1danimator.cpp
+    Animators/qpointfanimator.cpp
     Animators/qrealanimator.cpp
     Animators/qrealkey.cpp
-    Animators/simplesnap.cpp
-    Animators/snap.cpp
-    Animators/stringkey.cpp
-    Animators/textanimator.cpp
-
-    # Brushes
-    brushes/brush.cpp
-    brushes/brushesmanager.cpp
-    brushes/brushpreset.cpp
-    brushes/brushsettings.cpp
-
-    # Effects
-    Effects/boxblur.cpp
-    Effects/effect.cpp
-    Effects/effectcollection.cpp
-    Effects/fastblur.cpp
-    Effects/gaussianblur.cpp
-    Effects/pixelate.cpp
-
-    # File I/O
-    FileCacheHandlers/abstractpgformat.cpp
-    FileCacheHandlers/cachehandler.cpp
-    FileCacheHandlers/gifformat.cpp
-    FileCacheHandlers/imagescachehandler.cpp
-    FileCacheHandlers/jpgformat.cpp
-    FileCacheHandlers/oggformat.cpp
-    FileCacheHandlers/pgf.cpp
-    FileCacheHandlers/pngformat.cpp
-    FileCacheHandlers/rawimagescachehandler.cpp
-    FileCacheHandlers/svgformat.cpp
-    FileCacheHandlers/tgaformat.cpp
-    FileCacheHandlers/tiffformat.cpp
-    FileCacheHandlers/vectormime.cpp
-    FileCacheHandlers/webpformat.cpp
-
-    # GUI (core components)
-    GUI/effectdetails.cpp
-    GUI/effectlistwidget.cpp
-    GUI/enveaction.cpp
-    GUI/envelistwidget.cpp
-    GUI/envescrollarea.cpp
-    GUI/envewidget.cpp
-    GUI/glwindow.cpp
-    GUI/movablescrollbar.cpp
-    GUI/propertieswidget.cpp
-    GUI/timeline.cpp
-
-    # Import/Export
-    importexport.cpp
-    importexportinterface.cpp
-
-    # Paint
-    Paint/autotiledsurface.cpp
-    Paint/drawable.cpp
-    Paint/drawableautotiledsurface.cpp
-    Paint/mypaint.cpp
-    Paint/mypaintbrush.cpp
-    Paint/mypaintsurface.cpp
-    Paint/paintutils.cpp
-    Paint/tile.cpp
-    Paint/tilecontext.cpp
-    Paint/tilespainter.cpp
-
-    # Properties
-    Properties/boxpropertieswidget.cpp
-    Properties/coloranimatorwidget.cpp
-    Properties/doubleanimatorwidget.cpp
-    Properties/propertywidget.cpp
-
-    # Rendering
-    renderarea.cpp
-    renderpresets.cpp
-    renderer.cpp
-    rendervector.cpp
-
-    # Skia integration
-    skia/skiaincludes.cpp
-    skia/skiautils.cpp
-
-    # XML
-    XML/attr.cpp
-    XML/node.cpp
-    XML/xmlfileloader.cpp
-    XML/xmlfilesaver.cpp
-    XML/zipfileloader.cpp
-    XML/zipfilesaver.cpp
-
-    # Core components
-    box2d.cpp
-    box2dcontainer.cpp
-    boxcontainer.cpp
+    Animators/qrealpoint.cpp
+    Animators/qrealsnapshot.cpp
+    Animators/qrealvalueeffect.cpp
+    Animators/qstringanimator.cpp
+    Animators/sceneboundgradient.cpp
+    Animators/SmartPath/listofnodes.cpp
+    Animators/SmartPath/node.cpp
+    Animators/SmartPath/nodelist.cpp
+    Animators/SmartPath/smartpathanimatoractions.cpp
+    Animators/SmartPath/smartpathanimator.cpp
+    Animators/SmartPath/smartpathcollection.cpp
+    Animators/SmartPath/smartpath.cpp
+    Animators/staticcomplexanimator.cpp
+    Animators/steppedanimator.cpp
+    Animators/texteffectcollection.cpp
+    Animators/transformanimator.cpp
+    BlendEffects/blendeffectboxshadow.cpp
+    BlendEffects/blendeffectcollection.cpp
+    BlendEffects/blendeffect.cpp
+    BlendEffects/moveblendeffect.cpp
+    BlendEffects/targetedblendeffect.cpp
+    Boxes/animationbox.cpp
+    Boxes/boundingbox.cpp
+    Boxes/boxrendercontainer.cpp
+    Boxes/boxrenderdata.cpp
+    Boxes/boxwithpatheffects.cpp
+    Boxes/canvasrenderdata.cpp
+    Boxes/circle.cpp
+    Boxes/containerbox.cpp
+    Boxes/ecustombox.cpp
+    Boxes/effectsrenderer.cpp
+    Boxes/effectsubtaskspawner.cpp
+    Boxes/frameremapping.cpp
+    Boxes/imagebox.cpp
+    Boxes/imagerenderdata.cpp
+    Boxes/imagesequencebox.cpp
+    Boxes/internallinkbox.cpp
+    Boxes/internallinkcanvas.cpp
+    Boxes/internallinkgroupbox.cpp
+    Boxes/layerboxrenderdata.cpp
+    Boxes/linkcanvasrenderdata.cpp
+    Boxes/nullobject.cpp
+    Boxes/paintbox.cpp
+    Boxes/pathbox.cpp
+    Boxes/pathboxrenderdata.cpp
+    Boxes/patheffectsmenu.cpp
+    Boxes/rectangle.cpp
+    Boxes/renderdatahandler.cpp
+    Boxes/smartvectorpath.cpp
+    Boxes/svglinkbox.cpp
+    Boxes/textbox.cpp
+    Boxes/textboxrenderdata.cpp
+    Boxes/videobox.cpp
+    CacheHandlers/cachecontainer.cpp
+    CacheHandlers/hddcachablecachehandler.cpp
+    CacheHandlers/hddcachablecont.cpp
+    CacheHandlers/hddcachablerangecont.cpp
+    CacheHandlers/imagecachecontainer.cpp
+    CacheHandlers/imagedatahandler.cpp
+    CacheHandlers/samples.cpp
+    CacheHandlers/sceneframecontainer.cpp
+    CacheHandlers/soundcachecontainer.cpp
+    CacheHandlers/soundcachehandler.cpp
+    CacheHandlers/soundtmpfilehandlers.cpp
+    CacheHandlers/tmpdeleter.cpp
+    CacheHandlers/tmploader.cpp
+    CacheHandlers/tmpsaver.cpp
+    CacheHandlers/usedrange.cpp
+    canvasbase.cpp
     canvas.cpp
-    canvasanimatedobject.cpp
-    canvasobject.cpp
-    coloranimator.cpp
-    constraint.cpp
-    container.cpp
-    degug.cpp
-    dynamicpatheffect.cpp
-    effector.cpp
-    fillpath.cpp
-    gradient.cpp
-    image.cpp
-    layer.cpp
-    linecap.cpp
-    mask.cpp
-    objectbox.cpp
-    offscreenbuffer.cpp
-    paintdata.cpp
-    palette.cpp
-    pardegeffect.cpp
-    path.cpp
-    patheffect.cpp
-    pathutils.cpp
-    propertylist.cpp
-    rasterpath.cpp
-    rasterization.cpp
-    realsimplexnoise.cpp
-    rectangle.cpp
-    rootcanvas.cpp
-    scene.cpp
-    scenepreview.cpp
-    simplepath.cpp
-    sound.cpp
-    stroke.cpp
-    text.cpp
-    textpath.cpp
-    transform.cpp
-    userevent.cpp
-    vectorpath.cpp
-    videobox.cpp
-    videodecoder.cpp
+    canvashandlesmartpath.cpp
+    canvasmouseevents.cpp
+    canvasmouseinteractions.cpp
+    canvasselectedboxesactions.cpp
+    canvasselectedpointsactions.cpp
+    clipboardcontainer.cpp
+    colorhelpers.cpp
+    colorsetting.cpp
+    conncontext.cpp
+    cpurendertools.cpp
+    customidentifier.cpp
+    differsinterpolate.cpp
+    drawpath.cpp
+    eevent.cpp
+    efiltersettings.cpp
+    etexture.cpp
+    etextureframebuffer.cpp
+    exceptions.cpp
+    Expressions/expression.cpp
+    Expressions/framebinding.cpp
+    Expressions/propertybindingbase.cpp
+    Expressions/propertybinding.cpp
+    Expressions/propertybindingparser.cpp
+    Expressions/valuebinding.cpp
+    FileCacheHandlers/animationcachehandler.cpp
+    FileCacheHandlers/audiostreamsdata.cpp
+    FileCacheHandlers/filecachehandler.cpp
+    FileCacheHandlers/filedatacachehandler.cpp
+    FileCacheHandlers/filehandlerobjref.cpp
+    FileCacheHandlers/imagecachehandler.cpp
+    FileCacheHandlers/imagesequencecachehandler.cpp
+    FileCacheHandlers/soundreader.cpp
+    FileCacheHandlers/soundreaderformerger.cpp
+    FileCacheHandlers/svgfilecachehandler.cpp
+    FileCacheHandlers/videocachehandler.cpp
+    FileCacheHandlers/videoframeloader.cpp
+    FileCacheHandlers/videostreamsdata.cpp
+    fileshandler.cpp
+    filesourcescache.cpp
+    framerange.cpp
+    glhelpers.cpp
+    gpurendertools.cpp
+    GUI/boxeslistactionbutton.cpp
+    GUI/coloranimatorbutton.cpp
+    GUI/dialogsinterface.cpp
+    GUI/edialogs.cpp
+    GUI/ewidgets.cpp
+    GUI/global.cpp
+    GUI/propertynamedialog.cpp
+    GUI/sizesetter.cpp
+    GUI/valueinput.cpp
+    importhandler.cpp
+    kraimporter.cpp
+    matrixdecomposition.cpp
+    memorydatahandler.cpp
+    MovablePoints/animatedpoint.cpp
+    MovablePoints/boxpathpoint.cpp
+    MovablePoints/gradientpoint.cpp
+    MovablePoints/movablepoint.cpp
+    MovablePoints/nonanimatedmovablepoint.cpp
+    MovablePoints/pathpivot.cpp
+    MovablePoints/pathpointshandler.cpp
+    MovablePoints/pointshandler.cpp
+    MovablePoints/segment.cpp
+    MovablePoints/smartctrlpoint.cpp
+    MovablePoints/smartnodepoint.cpp
+    namefixer.cpp
+    nodepointvalues.cpp
+    Ora/oracreator.cpp
+    Ora/oraimporter.cpp
+    Ora/oraparser.cpp
+    Paint/animatedsurface.cpp
+    Paint/autotiledsurface.cpp
+    Paint/autotilesdata.cpp
+    Paint/brushcontexedwrapper.cpp
+    Paint/brushescontext.cpp
+    Paint/brushstroke.cpp
+    Paint/brushstrokeset.cpp
+    Paint/colorconversions.cpp
+    Paint/drawableautotiledsurface.cpp
+    Paint/externalpaintapphandler.cpp
+    Paint/onionskin.cpp
+    Paint/painttarget.cpp
+    paintsettingsapplier.cpp
+    paintsettings.cpp
+    Paint/simplebrushwrapper.cpp
+    Paint/tilebitmaps.cpp
+    Paint/tile.cpp
+    Paint/undoabletile.cpp
+    PathEffects/custompatheffect.cpp
+    PathEffects/dashpatheffect.cpp
+    PathEffects/displacepatheffect.cpp
+    PathEffects/duplicatepatheffect.cpp
+    PathEffects/linespatheffect.cpp
+    PathEffects/patheffectcaller.cpp
+    PathEffects/patheffectcollection.cpp
+    PathEffects/patheffect.cpp
+    PathEffects/patheffectstask.cpp
+    PathEffects/solidifypatheffect.cpp
+    PathEffects/spatialdisplacepatheffect.cpp
+    PathEffects/subdividepatheffect.cpp
+    PathEffects/subpatheffect.cpp
+    PathEffects/sumpatheffect.cpp
+    PathEffects/zigzagpatheffect.cpp
+    pathoperations.cpp
+    pointhelpers.cpp
+    Private/document.cpp
+    Private/documentrw.cpp
+    Private/esettings.cpp
+    Private/memorystructs.cpp
+    Private/Tasks/complextask.cpp
+    Private/Tasks/execcontroller.cpp
+    Private/Tasks/gputaskexecutor.cpp
+    Private/Tasks/offscreenqgl33c.cpp
+    Private/Tasks/taskexecutor.cpp
+    Private/Tasks/taskque.cpp
+    Private/Tasks/taskquehandler.cpp
+    Private/Tasks/taskscheduler.cpp
+    Properties/boolpropertycontainer.cpp
+    Properties/boolproperty.cpp
+    Properties/boxtargetproperty.cpp
+    Properties/comboboxproperty.cpp
+    Properties/emimedata.cpp
+    Properties/property.cpp
+    randomgrid.cpp
+    RasterEffects/blureffect.cpp
+    RasterEffects/brightnesscontrasteffect.cpp
+    RasterEffects/colorizeeffect.cpp
+    RasterEffects/customrastereffect.cpp
+    RasterEffects/motionblureffect.cpp
+    RasterEffects/noisefadeeffect.cpp
+    RasterEffects/oileffect.cpp
+    RasterEffects/OilImpl/oilbristle.cpp
+    RasterEffects/OilImpl/oilbrush.cpp
+    RasterEffects/OilImpl/oilhelpers.cpp
+    RasterEffects/OilImpl/oilsimulator.cpp
+    RasterEffects/OilImpl/oiltrace.cpp
+    RasterEffects/openglrastereffectcaller.cpp
+    RasterEffects/rastereffectcaller.cpp
+    RasterEffects/rastereffectcollection.cpp
+    RasterEffects/rastereffect.cpp
+    RasterEffects/rastereffectmenucreator.cpp
+    RasterEffects/shadoweffect.cpp
+    RasterEffects/wipeeffect.cpp
+    ReadWrite/basicreadwrite.cpp
+    ReadWrite/ereadstream.cpp
+    ReadWrite/ewritestream.cpp
+    ReadWrite/filefooter.cpp
+    Segments/conicsegment.cpp
+    Segments/cubiclist.cpp
+    Segments/cubicnode.cpp
+    Segments/fitcurves.cpp
+    Segments/qcubicsegment1d.cpp
+    Segments/qcubicsegment2d.cpp
+    Segments/quadsegment.cpp
+    Segments/smoothcurves.cpp
+    ShaderEffects/shadereffectcaller.cpp
+    ShaderEffects/shadereffect.cpp
+    ShaderEffects/shadereffectcreator.cpp
+    ShaderEffects/shadereffectjs.cpp
+    ShaderEffects/shadereffectprogram.cpp
+    ShaderEffects/shadervaluehandler.cpp
+    ShaderEffects/uniformspecifiercreator.cpp
+    simplemath.cpp
+    simpletask.cpp
+    singlewidgettarget.cpp
+    skia/skiahelpers.cpp
+    skia/skimagecopy.cpp
+    skia/skqtconversions.cpp
+    smartPointers/stdpointer.cpp
+    smartPointers/stdselfref.cpp
+    Sound/eindependentsound.cpp
+    Sound/esound.cpp
+    Sound/esoundlink.cpp
+    Sound/esoundobjectbase.cpp
+    Sound/esoundsettings.cpp
+    Sound/evideosound.cpp
+    Sound/soundcomposition.cpp
+    Sound/soundmerger.cpp
+    svgexporter.cpp
+    svgexporthelpers.cpp
+    svgimporter.cpp
+    switchablecontext.cpp
+    swt_abstraction.cpp
+    swt_rulescollection.cpp
+    Tasks/domeletask.cpp
+    Tasks/etaskbase.cpp
+    Tasks/etask.cpp
+    Tasks/updatable.cpp
+    texteffectcaller.cpp
+    texteffect.cpp
+    Timeline/animationrect.cpp
+    Timeline/durationrectangle.cpp
+    Timeline/fixedlenanimationrect.cpp
+    TransformEffects/followobjecteffectbase.cpp
+    TransformEffects/followobjecteffect.cpp
+    TransformEffects/followobjectrelativeeffect.cpp
+    TransformEffects/followpatheffect.cpp
+    TransformEffects/parenteffect.cpp
+    TransformEffects/targettransformeffect.cpp
+    TransformEffects/trackeffect.cpp
+    TransformEffects/transformeffectcollection.cpp
+    TransformEffects/transformeffect.cpp
+    transformvalues.cpp
+    typemenu.cpp
+    undoredo.cpp
+    wrappedint.cpp
+    XML/xevexporter.cpp
+    XML/xevimporter.cpp
+    XML/xevzipfilesaver.cpp
+    XML/xmlexporthelpers.cpp
+    zipfileloader.cpp
+    zipfilesaver.cpp
 )
 
-# Collect all header files
+# Collect all header files (auto-generated from actual files on disk)
 set(envecore_HEADERS
+    action.h
+    actions.h
     Animators/animator.h
-    Animators/animatorreferencekey.h
-    Animators/bezieranimator.h
-    Animators/bezierkey.h
-    Animators/doubleanimator.h
-    Animators/doublekey.h
+    Animators/animatort.h
+    Animators/basedanimatort.h
+    Animators/basedkeyt.h
+    Animators/boolanimator.h
+    Animators/brushsettingsanimator.h
+    Animators/clampedpoint.h
+    Animators/clampedvalue.h
+    Animators/coloranimator.h
+    Animators/complexanimator.h
+    Animators/complexkey.h
+    Animators/customproperties.h
+    Animators/dynamiccomplexanimator.h
+    Animators/eboxorsound.h
+    Animators/eeffect.h
+    Animators/gradient.h
+    Animators/gradientpoints.h
     Animators/graphanimator.h
+    Animators/graphanimatort.h
     Animators/graphkey.h
+    Animators/graphkeyt.h
     Animators/intanimator.h
-    Animators/intkey.h
+    Animators/interoptimalanimatort.h
+    Animators/interpolationanimator.h
+    Animators/interpolationanimatort.h
+    Animators/interpolationkey.h
+    Animators/interpolationkeyt.h
     Animators/key.h
-    Animators/maskanimator.h
+    Animators/keyt.h
+    Animators/outlinesettingsanimator.h
+    Animators/overlappingkeylist.h
+    Animators/overlappingkeys.h
+    Animators/paintsettingsanimator.h
+    Animators/qcubicsegment1danimator.h
+    Animators/qpointfanimator.h
     Animators/qrealanimator.h
     Animators/qrealkey.h
-    Animators/simplesnap.h
-    Animators/snap.h
-    Animators/stringkey.h
-    Animators/textanimator.h
-
-    brushes/brush.h
-    brushes/brushesmanager.h
-    brushes/brushpreset.h
-    brushes/brushsettings.h
-
-    Effects/boxblur.h
-    Effects/effect.h
-    Effects/effectcollection.h
-    Effects/fastblur.h
-    Effects/gaussianblur.h
-    Effects/pixelate.h
-
-    FileCacheHandlers/abstractpgformat.h
-    FileCacheHandlers/cachehandler.h
-    FileCacheHandlers/gifformat.h
-    FileCacheHandlers/imagescachehandler.h
-    FileCacheHandlers/jpgformat.h
-    FileCacheHandlers/oggformat.h
-    FileCacheHandlers/pgf.h
-    FileCacheHandlers/pngformat.h
-    FileCacheHandlers/rawimagescachehandler.h
-    FileCacheHandlers/svgformat.h
-    FileCacheHandlers/tgaformat.h
-    FileCacheHandlers/tiffformat.h
-    FileCacheHandlers/vectormime.h
-    FileCacheHandlers/webpformat.h
-
-    GUI/effectdetails.h
-    GUI/effectlistwidget.h
-    GUI/enveaction.h
-    GUI/envelistwidget.h
-    GUI/envescrollarea.h
-    GUI/envewidget.h
-    GUI/glwindow.h
-    GUI/movablescrollbar.h
-    GUI/propertieswidget.h
-    GUI/timeline.h
-
-    importexport.h
-    importexportinterface.h
-
-    Paint/autotiledsurface.h
-    Paint/drawable.h
-    Paint/drawableautotiledsurface.h
-    Paint/mypaint.h
-    Paint/mypaintbrush.h
-    Paint/mypaintsurface.h
-    Paint/paintutils.h
-    Paint/tile.h
-    Paint/tilecontext.h
-    Paint/tilespainter.h
-
-    Properties/boxpropertieswidget.h
-    Properties/coloranimatorwidget.h
-    Properties/doubleanimatorwidget.h
-    Properties/propertywidget.h
-
-    renderarea.h
-    renderpresets.h
-    renderer.h
-    rendervector.h
-
-    skia/skiaincludes.h
-    skia/skiautils.h
-
-    XML/attr.h
-    XML/node.h
-    XML/xmlfileloader.h
-    XML/xmlfilesaver.h
-    XML/zipfileloader.h
-    XML/zipfilesaver.h
-
-    box2d.h
-    box2dcontainer.h
-    boxcontainer.h
+    Animators/qrealpoint.h
+    Animators/qrealsnapshot.h
+    Animators/qrealvalueeffect.h
+    Animators/qstringanimator.h
+    Animators/sceneboundgradient.h
+    Animators/SmartPath/listofnodes.h
+    Animators/SmartPath/node.h
+    Animators/SmartPath/nodelist.h
+    Animators/SmartPath/smartpathanimator.h
+    Animators/SmartPath/smartpathcollection.h
+    Animators/SmartPath/smartpath.h
+    Animators/staticcomplexanimator.h
+    Animators/steppedanimator.h
+    Animators/texteffectcollection.h
+    Animators/transformanimator.h
+    BlendEffects/blendeffectboxshadow.h
+    BlendEffects/blendeffectcollection.h
+    BlendEffects/blendeffect.h
+    BlendEffects/moveblendeffect.h
+    BlendEffects/targetedblendeffect.h
+    Boxes/animationbox.h
+    Boxes/boundingbox.h
+    Boxes/boxrendercontainer.h
+    Boxes/boxrenderdata.h
+    Boxes/boxwithpatheffects.h
+    Boxes/canvasrenderdata.h
+    Boxes/circle.h
+    Boxes/containerbox.h
+    Boxes/customboxcreator.h
+    Boxes/ecustombox.h
+    Boxes/effectsrenderer.h
+    Boxes/effectsubtaskspawner.h
+    Boxes/externallinkboxt.h
+    Boxes/frameremapping.h
+    Boxes/imagebox.h
+    Boxes/imagerenderdata.h
+    Boxes/imagesequencebox.h
+    Boxes/internallinkboxbase.h
+    Boxes/internallinkbox.h
+    Boxes/internallinkcanvas.h
+    Boxes/internallinkgroupbox.h
+    Boxes/layerboxrenderdata.h
+    Boxes/linkcanvasrenderdata.h
+    Boxes/nullobject.h
+    Boxes/paintbox.h
+    Boxes/pathbox.h
+    Boxes/pathboxrenderdata.h
+    Boxes/patheffectsmenu.h
+    Boxes/rectangle.h
+    Boxes/renderdatahandler.h
+    Boxes/smartvectorpath.h
+    Boxes/svglinkbox.h
+    Boxes/textbox.h
+    Boxes/textboxrenderdata.h
+    Boxes/videobox.h
+    CacheHandlers/cachecontainer.h
+    CacheHandlers/hddcachablecachehandler.h
+    CacheHandlers/hddcachablecont.h
+    CacheHandlers/hddcachablerangecont.h
+    CacheHandlers/imagecachecontainer.h
+    CacheHandlers/imagedatahandler.h
+    CacheHandlers/samples.h
+    CacheHandlers/sceneframecontainer.h
+    CacheHandlers/soundcachecontainer.h
+    CacheHandlers/soundcachehandler.h
+    CacheHandlers/soundtmpfilehandlers.h
+    CacheHandlers/tmpdeleter.h
+    CacheHandlers/tmploader.h
+    CacheHandlers/tmpsaver.h
+    CacheHandlers/usedrange.h
+    CacheHandlers/usepointer.h
+    canvasbase.h
     canvas.h
-    canvasanimatedobject.h
-    canvasobject.h
-    coloranimator.h
-    constraint.h
-    container.h
-    degug.h
-    dynamicpatheffect.h
-    effector.h
-    fillpath.h
-    gradient.h
-    image.h
-    layer.h
-    linecap.h
-    mask.h
-    objectbox.h
-    offscreenbuffer.h
-    paintdata.h
-    palette.h
-    pardegeffect.h
-    path.h
-    patheffect.h
-    pathutils.h
-    propertylist.h
-    rasterpath.h
-    rasterization.h
-    realsimplexnoise.h
-    rectangle.h
-    rootcanvas.h
-    scene.h
-    scenepreview.h
-    simplepath.h
-    sound.h
-    stroke.h
-    text.h
-    textpath.h
-    transform.h
-    userevent.h
-    vectorpath.h
-    videobox.h
-    videodecoder.h
-
-    # Private headers (not installed)
+    clipboardcontainer.h
+    colorhelpers.h
+    colorsetting.h
+    conncontext.h
+    conncontextobjlist.h
+    conncontextptr.h
     core_global.h
+    cpurendertools.h
+    customhandler.h
+    customidentifier.h
+    differsinterpolate.h
+    drawpath.h
+    eevent.h
+    efiltersettings.h
+    etextureframebuffer.h
+    etexture.h
+    exceptions.h
+    Expressions/expression.h
+    Expressions/framebinding.h
+    Expressions/propertybindingbase.h
+    Expressions/propertybinding.h
+    Expressions/propertybindingparser.h
+    Expressions/valuebinding.h
+    FileCacheHandlers/animationcachehandler.h
+    FileCacheHandlers/audiostreamsdata.h
+    FileCacheHandlers/filecachehandler.h
+    FileCacheHandlers/filedatacachehandler.h
+    FileCacheHandlers/filehandlerobjref.h
+    FileCacheHandlers/imagecachehandler.h
+    FileCacheHandlers/imagesequencecachehandler.h
+    FileCacheHandlers/soundreaderformerger.h
+    FileCacheHandlers/soundreader.h
+    FileCacheHandlers/svgfilecachehandler.h
+    FileCacheHandlers/videocachehandler.h
+    FileCacheHandlers/videoframeloader.h
+    FileCacheHandlers/videostreamsdata.h
+    fileshandler.h
+    filesourcescache.h
+    framerange.h
+    glhelpers.h
+    gpurendertools.h
+    GUI/boxeslistactionbutton.h
+    GUI/coloranimatorbutton.h
+    GUI/dialogsinterface.h
+    GUI/edialogs.h
+    GUI/ewidgets.h
+    GUI/global.h
+    GUI/propertynamedialog.h
+    GUI/sizesetter.h
+    GUI/valueinput.h
+    hardwareenums.h
+    importhandler.h
+    kraimporter.h
+    libmypaintincludes.h
+    matrixdecomposition.h
+    memorydatahandler.h
+    MovablePoints/animatedpoint.h
+    MovablePoints/boxpathpoint.h
+    MovablePoints/gradientpoint.h
+    MovablePoints/movablepoint.h
+    MovablePoints/nonanimatedmovablepoint.h
+    MovablePoints/pathpivot.h
+    MovablePoints/pathpointshandler.h
+    MovablePoints/pointshandler.h
+    MovablePoints/segment.h
+    MovablePoints/smartctrlpoint.h
+    MovablePoints/smartnodepoint.h
+    namefixer.h
+    nodepointvalues.h
+    Ora/oracreator.h
+    Ora/oraimporter.h
+    Ora/oraparser.h
+    Ora/orastructure.h
+    Paint/animatedsurface.h
+    Paint/autotiledsurface.h
+    Paint/autotilesdata.h
+    Paint/brushcontexedwrapper.h
+    Paint/brushescontext.h
+    Paint/brushstroke.h
+    Paint/brushstrokeset.h
+    Paint/colorconversions.h
+    Paint/drawableautotiledsurface.h
+    Paint/externalpaintapphandler.h
+    Paint/onionskin.h
+    Paint/painttarget.h
+    paintsettingsapplier.h
+    paintsettings.h
+    Paint/simplebrushwrapper.h
+    Paint/tilebitmaps.h
+    Paint/tile.h
+    Paint/undoabletile.h
+    PathEffects/custompatheffectcreator.h
+    PathEffects/custompatheffect.h
+    PathEffects/dashpatheffect.h
+    PathEffects/displacepatheffect.h
+    PathEffects/duplicatepatheffect.h
+    PathEffects/linespatheffect.h
+    PathEffects/patheffectcaller.h
+    PathEffects/patheffectcollection.h
+    PathEffects/patheffect.h
+    PathEffects/patheffectsinclude.h
+    PathEffects/patheffectstask.h
+    PathEffects/solidifypatheffect.h
+    PathEffects/spatialdisplacepatheffect.h
+    PathEffects/subdividepatheffect.h
+    PathEffects/subpatheffect.h
+    PathEffects/sumpatheffect.h
+    PathEffects/zigzagpatheffect.h
+    pathoperations.h
+    pointhelpers.h
+    pointtypemenu.h
+    Private/document.h
+    Private/esettings.h
+    Private/memorystructs.h
+    Private/qatomiclist.h
+    Private/Tasks/complextask.h
+    Private/Tasks/execcontroller.h
+    Private/Tasks/gputaskexecutor.h
+    Private/Tasks/offscreenqgl33c.h
+    Private/Tasks/taskexecutor.h
+    Private/Tasks/taskque.h
+    Private/Tasks/taskquehandler.h
+    Private/Tasks/taskscheduler.h
+    Properties/boolpropertycontainer.h
+    Properties/boolproperty.h
+    Properties/boxtargetproperty.h
+    Properties/comboboxproperty.h
+    Properties/emimedata.h
+    Properties/namedproperty.h
+    Properties/newproperty.h
+    Properties/property.h
+    randomgrid.h
+    rangemap.h
+    RasterEffects/blureffect.h
+    RasterEffects/brightnesscontrasteffect.h
+    RasterEffects/colorizeeffect.h
+    RasterEffects/customrastereffectcreator.h
+    RasterEffects/customrastereffect.h
+    RasterEffects/motionblureffect.h
+    RasterEffects/noisefadeeffect.h
+    RasterEffects/oileffect.h
+    RasterEffects/OilImpl/oilbristle.h
+    RasterEffects/OilImpl/oilbrush.h
+    RasterEffects/OilImpl/oilhelpers.h
+    RasterEffects/OilImpl/oilPaint.h
+    RasterEffects/OilImpl/oilsimulator.h
+    RasterEffects/OilImpl/oiltrace.h
+    RasterEffects/openglrastereffectcaller.h
+    RasterEffects/rastereffectcaller.h
+    RasterEffects/rastereffectcollection.h
+    RasterEffects/rastereffect.h
+    RasterEffects/rastereffectmenucreator.h
+    RasterEffects/rastereffectsinclude.h
+    RasterEffects/shadoweffect.h
+    RasterEffects/wipeeffect.h
+    ReadWrite/basicreadwrite.h
+    ReadWrite/efuturepos.h
+    ReadWrite/ereadstream.h
+    ReadWrite/evformat.h
+    ReadWrite/ewritestream.h
+    ReadWrite/filefooter.h
+    ReadWrite/xevformat.h
+    regexhelpers.h
+    Segments/conicsegment.h
+    Segments/cubiclist.h
+    Segments/cubicnode.h
+    Segments/fitcurves.h
+    Segments/qcubicsegment1d.h
+    Segments/qcubicsegment2d.h
+    Segments/quadsegment.h
+    Segments/smoothcurves.h
+    ShaderEffects/PropertyCreators/coloranimatorcreator.h
+    ShaderEffects/PropertyCreators/intanimatorcreator.h
+    ShaderEffects/PropertyCreators/qpointfanimatorcreator.h
+    ShaderEffects/PropertyCreators/qrealanimatorcreator.h
+    ShaderEffects/PropertyCreators/shaderpropertycreator.h
+    ShaderEffects/shadereffectcaller.h
+    ShaderEffects/shadereffectcreator.h
+    ShaderEffects/shadereffect.h
+    ShaderEffects/shadereffectjs.h
+    ShaderEffects/shadereffectprogram.h
+    ShaderEffects/shadervaluehandler.h
+    ShaderEffects/uniformspecifiercreator.h
+    simplemath.h
+    simpletask.h
+    singlewidgettarget.h
+    skia/skiadefines.h
+    skia/skiahelpers.h
+    skia/skiaincludes.h
+    skia/skimagecopy.h
+    skia/skqtconversions.h
+    smartPointers/ememory.h
+    smartPointers/eobject.h
+    smartPointers/selfref.h
+    smartPointers/stdpointer.h
+    smartPointers/stdselfref.h
+    Sound/eindependentsound.h
+    Sound/esound.h
+    Sound/esoundlink.h
+    Sound/esoundobjectbase.h
+    Sound/esoundsettings.h
+    Sound/evideosound.h
+    Sound/soundcomposition.h
+    Sound/soundmerger.h
+    svgexporter.h
+    svgexporthelpers.h
+    svgimporter.h
+    switchablecontext.h
+    swt_abstraction.h
+    swt_rulescollection.h
+    Tasks/domeletask.h
+    Tasks/etaskbase.h
+    Tasks/etask.h
+    Tasks/updatable.h
+    texteffectcaller.h
+    texteffect.h
+    Timeline/animationrect.h
+    Timeline/durationrectangle.h
+    Timeline/fixedlenanimationrect.h
+    TransformEffects/followobjecteffectbase.h
+    TransformEffects/followobjecteffect.h
+    TransformEffects/followobjectrelativeeffect.h
+    TransformEffects/followpatheffect.h
+    TransformEffects/parenteffect.h
+    TransformEffects/targettransformeffect.h
+    TransformEffects/trackeffect.h
+    TransformEffects/transformeffectcollection.h
+    TransformEffects/transformeffect.h
+    transformvalues.h
+    typemenu.h
+    undoredo.h
+    wrappedint.h
+    XML/runtimewriteid.h
+    XML/xevexporter.h
+    XML/xevimporter.h
+    XML/xevzipfilesaver.h
+    XML/xmlexporthelpers.h
+    zipfileloader.h
+    zipfilesaver.h
 )
 
 # Create static library
@@ -303,12 +691,24 @@ add_library(envecore STATIC ${envecore_SOURCES} ${envecore_HEADERS})
 target_include_directories(envecore PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_SOURCE_DIR}/third_party/skia
+    ${CMAKE_SOURCE_DIR}/third_party/skia/include
+    ${CMAKE_SOURCE_DIR}/third_party/libmypaint
+    ${CMAKE_SOURCE_DIR}/third_party/quazip
     ${FFMPEG_INCLUDE_DIRS}
 )
 
 # Add compiler definitions
 target_compile_definitions(envecore PRIVATE
+    CORE_LIBRARY
     QT_NO_FOREACH
+    QT_DEPRECATED_WARNINGS
+)
+
+# Set C++ standard
+set_target_properties(envecore PROPERTIES
+    CXX_STANDARD 14
+    CXX_STANDARD_REQUIRED ON
 )
 
 # Link dependencies
@@ -331,31 +731,31 @@ target_link_libraries(envecore PUBLIC
     Threads::Threads
 )
 
-# Optional dependencies
+# Optional: OpenMP
 if(ENVE_USE_OPENMP AND OpenMP_CXX_FOUND)
-    target_link_libraries(envecore PUBLIC OpenMP::OpenMP_CXX)
+    target_link_libraries(envecore PRIVATE OpenMP::OpenMP_CXX)
+    target_compile_options(envecore PRIVATE -fopenmp)
 endif()
 
+# Optional: gperftools
 if(ENVE_USE_GPERFTOOLS AND GPERFTOOLS_FOUND)
     target_include_directories(envecore PRIVATE
         ${CMAKE_SOURCE_DIR}/third_party/gperftools/include
     )
-    target_link_libraries(envecore PRIVATE
-        ${GPERFTOOLS_LIBRARIES}
-    )
+    target_link_libraries(envecore PRIVATE ${GPERFTOOLS_LIBRARIES})
 endif()
 
-if(ENVE_USE_QSCINTILLA)
-    # TODO: Add QScintilla include and link directories
-    # target_include_directories(envecore PRIVATE ${QSCINTILLA_INCLUDE_DIR})
-    # target_link_libraries(envecore PRIVATE ${QSCINTILLA_LIBRARY})
+# Optional: QScintilla
+if(ENVE_USE_QSCINTILLA AND QScintilla_FOUND)
+    target_include_directories(envecore PRIVATE ${QSCINTILLA_INCLUDE_DIR})
+    target_link_libraries(envecore PRIVATE ${QSCINTILLA_LIBRARY})
 endif()
 
+# libmypaint (vendored or system)
 if(ENVE_USE_SYSTEM_LIBMYPAINT AND MYPAINT_FOUND)
     target_include_directories(envecore PRIVATE ${MYPAINT_INCLUDE_DIRS})
     target_link_libraries(envecore PRIVATE ${MYPAINT_LIBRARIES})
 else()
-    # Vendored libmypaint
     target_include_directories(envecore PRIVATE
         ${CMAKE_SOURCE_DIR}/third_party/libmypaint
     )
@@ -364,24 +764,17 @@ else()
     )
 endif()
 
-# Compiler options
-target_compile_options(envecore PRIVATE
-    -Wall
-    -Wextra
-    -Wno-unused-parameter
-    -Wno-unused-variable
+# QuaZip (vendored)
+target_include_directories(envecore PRIVATE
+    ${CMAKE_SOURCE_DIR}/third_party/quazip
+)
+target_link_libraries(envecore PRIVATE
+    ${CMAKE_SOURCE_DIR}/third_party/quazip/quazip/libquazip.a
 )
 
 # Set library properties
 set_target_properties(envecore PROPERTIES
     OUTPUT_NAME envecore
-    VERSION ${PROJECT_VERSION}
     POSITION_INDEPENDENT_CODE ON
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
 )
-
-# Install headers (public API)
-# TODO: Determine which headers are part of the public API
-# install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-#     DESTINATION include/enveCore
-#     FILES_MATCHING PATTERN "*.h"
-# )
