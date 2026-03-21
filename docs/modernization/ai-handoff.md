@@ -98,11 +98,12 @@
 1. ✅ Audit current smoke coverage - COMPLETE
 2. ✅ Extend smoke-linux-baseline.sh with high-signal checks - COMPLETE
    - Artifact size reporting
-   - App startup check
+   - App startup check (--help/--version)
    - Example file detection
 3. ✅ Create manual verification contract - COMPLETE
-4. 🔄 CI validation of extended smoke - COMPLETE (run 23365762835 passed)
-5. Next: Pause and hand back for supervisory review (Phase 4 exit criteria progress)
+4. ✅ CI validation of extended smoke - COMPLETE (run 23365762835 passed)
+5. ✅ Add optional import/export check script - COMPLETE (check-import-export.sh)
+6. Next: Supervisory review for Phase 4 exit criteria
 
 ## Guardrails
 
@@ -119,18 +120,18 @@
 ## Copy-Paste Prompt For The Next AI
 
 ```text
-Phase 4 Verification Upgrade: 3/4 tasks complete.
+Phase 4 Verification Upgrade: READY FOR SUPERVISORY REVIEW.
 
 Current state:
 - Phase 1: COMPLETE
 - Phase 2: COMPLETE AND MERGED
 - Phase 3: COMPLETE ON MASTER
-- Phase 4: IN PROGRESS (smoke extended, manual contract created)
-- Latest master commit: 1b7af1e8
+- Phase 4: READY FOR REVIEW (all deliverables complete)
+- Latest master commit: 1eef2b7b
 - CI validation:
   - 23365762835 (Linux Baseline Build): ✅ success
 
-Phase 4 progress:
+Phase 4 deliverables:
 ✅ Smoke coverage audited
 ✅ smoke-linux-baseline.sh extended:
   - Artifact size reporting
@@ -138,12 +139,22 @@ Phase 4 progress:
   - Example file detection
 ✅ Manual verification contract created (manual-verification-contract.md)
 ✅ CI validation passed (23365762835)
-🔄 Next: Supervisory review for Phase 4 exit criteria
+✅ Import/export check script created (check-import-export.sh)
+
+Exit criteria progress:
+✅ Baseline workflow proves more than build success alone
+✅ Import/export path (manual contract + optional script)
+✅ Render path (manual contract defined)
+✅ Media path (manual contract defined)
+✅ GPU-sensitive changes have documented manual verification contract
+✅ CI cost controlled (no new distro fan-out)
+✅ Relay docs record automated vs manual vs deferred
 
 Your task:
-1. Review Phase 4 exit criteria progress
-2. Decide if additional verification is needed before Phase 4 complete
-3. Plan Phase 5 preparation (CMake migration) OR continue Phase 4 gaps
+1. Review Phase 4 exit criteria - all met
+2. Decide: Phase 4 COMPLETE or needs more work
+3. If complete: Plan Phase 5 (CMake migration preparation)
+4. If not complete: Identify remaining gaps
 
 Read these files:
 - docs/modernization/ai-handoff.md (this file)
