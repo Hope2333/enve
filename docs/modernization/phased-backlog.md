@@ -104,7 +104,7 @@ Exit criteria:
 
 ## Phase 4: Verification Upgrade
 
-**Status:** IN PROGRESS
+**Status:** IN PROGRESS (smoke extended, manual contract created)
 
 Goal: reduce reliance on ad hoc manual testing.
 
@@ -114,6 +114,25 @@ Goal: reduce reliance on ad hoc manual testing.
 - Keep CI cost low by extending existing scripts before adding new matrix fan-out.
 - Treat Multi-Distro Build as compile-compatibility evidence, not as packaging completeness.
 - Keep proxy handling optional; do not assume `PROXY` is required outside restricted environments.
+
+**Progress:**
+- ✅ Smoke coverage audited
+- ✅ smoke-linux-baseline.sh extended:
+  - Artifact size reporting
+  - App startup check (--help/--version)
+  - Example file detection
+- ✅ Manual verification contract created (manual-verification-contract.md)
+- ✅ CI validation passed (run 23365762835)
+- 🔄 Next: Supervisory review for Phase 4 exit criteria
+
+**Exit criteria progress:**
+- ✅ Baseline workflow proves more than build success alone
+- ⏳ Import/export path (manual contract defined, automation optional)
+- ⏳ Render path (manual contract defined, automation optional)
+- ⏳ Media path (manual contract defined, automation optional)
+- ✅ GPU-sensitive changes have documented manual verification contract
+- ✅ CI cost controlled (no new distro fan-out)
+- ⏳ Relay docs record automated vs manual vs deferred
 
 Exit criteria:
 - Core change types have a defined verification path.

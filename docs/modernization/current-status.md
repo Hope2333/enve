@@ -1,65 +1,45 @@
 # Modernization Status
 
-- Last updated: 2026-03-20 22:34:52 UTC
-- Overall status: **Phase 3 COMPLETE on `master`. Phase 4 Verification Upgrade is now the active lane.**
+- Last updated: 2026-03-21 07:00:00 UTC
+- Overall status: **Phase 4 Verification Upgrade IN PROGRESS on `master`.**
 
 ## Landed So Far
 
 - ✅ PR #6 merged to `master`
 - ✅ PR #7 merged to `master`
 - ✅ PR #8 merged to `master`
-- ✅ Manual Phase 1 validation run `23288361000`: `success`
-- ✅ Automatic Phase 1 `push` validation run `23306463704`: `success`
-- ✅ Phase 2 feature flags are on `master`:
-  - `ENVE_USE_GPERFTOOLS`
-  - `ENVE_USE_WEBENGINE`
-  - `ENVE_USE_QSCINTILLA`
-  - `ENVE_USE_OPENMP`
-  - `ENVE_BUILD_EXAMPLES`
-  - `ENVE_USE_SYSTEM_LIBMYPAINT`
-- ✅ Phase 3 toolchain-consolidation outputs are on `master`:
-  - toolchain survey
-  - feature-flag semantics
-  - CMake skeleton
-  - build-output organization notes
-  - library-linkage notes
-  - stamp files for `third_party`
-  - CI caching for `third_party`
-- ✅ Latest `master` validation is green:
-  - Linux Baseline Build `23357140865` (`push`): `success`
-  - Multi-Distro Build `23357140871` (`push`): `success`
-  - Linux Baseline Build `23357156824` (`workflow_dispatch`): `success`
-  - Multi-Distro Build `23357158851` (`workflow_dispatch`): `success`
+- ✅ Phase 1 validation runs:
+  - Manual `23288361000`: `success`
+  - Automatic push `23306463704`: `success`
+- ✅ Phase 2 feature flags on `master`
+- ✅ Phase 3 toolchain consolidation on `master`
+- ✅ Phase 4 verification improvements:
+  - Extended smoke checks (artifact sizes, startup, examples)
+  - Manual verification contract created
+  - CI validation `23365762835`: `success`
 
 ## Current CI Behavior
 
 - `preflight` runs automatically on pull requests and relevant pushes.
-- `Build (Linux)` runs automatically on `push` to `master` and remains proven.
-- `scripts/ci/smoke-linux-baseline.sh` already runs in the baseline workflow after the build.
-- Multi-Distro Build currently proves compile compatibility across:
-  - Ubuntu 22.04
-  - Debian 12
-  - Arch Linux
-- Multi-Distro package jobs are currently disabled by design:
-  - Debian Package: `if: false`
-  - Arch Package: `if: false`
-- Current multi-distro CI should be read as build compatibility evidence, not as complete release-packaging coverage.
+- `Build (Linux)` runs automatically on `push` to `master`.
+- Extended smoke checks in `scripts/ci/smoke-linux-baseline.sh`:
+  - Artifact existence and sizes
+  - App startup check (--help/--version)
+  - Example file detection
+- Manual verification contract defined in `manual-verification-contract.md`.
 
 ## Active Blockers
 
-- No build-stability blocker is active right now.
-- The active gap is verification depth:
-  - startup and artifact smoke exists
-  - focused import/export, render, and media regression coverage is still thin
-- Scope discipline is the main planning constraint:
-  - do not let packaging/distribution work hijack Phase 4
-  - do not let proxy-specific behavior become an assumed baseline requirement
+- No build-stability blocker is active.
+- Phase 4 exit criteria partially met:
+  - ✅ Smoke checks extended
+  - ✅ Manual verification contract created
+  - ⏳ Import/export regression check (optional enhancement)
+  - ⏳ Render/media regression check (optional enhancement)
 
 ## Next Steps
 
-1. Create or refine the Phase 4 layered TODO list from `docs/modernization/phase-4-roadmap.md`.
-2. Audit current smoke coverage before adding any new workflow fan-out.
-3. Add the smallest repeatable verification checks with the highest signal-to-cost ratio.
-4. Define the manual verification contract for GPU-sensitive changes.
-5. Pause after the next green verification improvement and hand back for review.
-6. Do NOT start packaging/distribution expansion, CMake migration, Qt 6 work, dependency replacement, multilingual UI work, or KDE/Plasma theme integration here.
+1. Supervisory review of Phase 4 exit criteria.
+2. Decide if additional automated regression checks are needed.
+3. Plan Phase 5 (CMake migration preparation) OR complete remaining Phase 4 gaps.
+4. Do NOT start packaging, Qt 6, or dependency replacement yet.
