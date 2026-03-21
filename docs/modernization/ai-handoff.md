@@ -42,13 +42,13 @@
   - url: `https://github.com/Hope2333/enve/actions/runs/23372328779`
   - conclusion: `success`
   - notes: Ubuntu/Debian/Arch compile-compatibility green; package jobs skipped by design
-- CMake Core Build (Phase 5) `23377197769`
+- CMake Core Build (Phase 5) `23377739478`
   - event: `workflow_dispatch`
   - branch: `master`
-  - head sha: `f5ddeb92`
-  - url: `https://github.com/Hope2333/enve/actions/runs/23377197769`
-  - conclusion: `failure`
-  - notes: ⏰ FIRST clean-room CMake proof attempt; failed on missing `libmypaint-config.h` (vendored libmypaint not built)
+  - head sha: `0c74d710`
+  - url: `https://github.com/Hope2333/enve/actions/runs/23377739478`
+  - conclusion: `success` ✅
+  - notes: **FIRST GREEN CMake/core proof** - FFmpeg 6.x compatibility validated on clean hosted runner
 
 ## What Was Verified Locally
 
@@ -74,11 +74,11 @@
 
 ## Immediate Next Actions
 
-1. ✅ First clean-room Actions proof attempted (run 23377197769)
-2. ⏰ Blocker confirmed: vendored libmypaint not built in clean environment
-3. Next: Add vendored libmypaint build step to CMake (ExternalProject or pre-build)
-4. Re-trigger CMake Core Build after libmypaint fix
-5. Record next real blocker from clean proof before broader FFmpeg compatibility work
+1. ✅ First clean-room Actions proof GREEN (run 23377739478)
+2. ✅ FFmpeg 6.x CMake/core validation complete
+3. Next: Hand back for supervisory review
+4. Decide: Phase 5 COMPLETE or needs more work (FFmpeg 7.x/8.x bandwidth)
+5. If complete: Plan Phase 6 (src/app CMake migration or other)
 4. Keep FFmpeg `7.x` / `8.x` widening explicitly queued behind one green FFmpeg `6.x` clean-room proof
 
 ## Guardrails
