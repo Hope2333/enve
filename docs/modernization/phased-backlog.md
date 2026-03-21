@@ -123,6 +123,7 @@ Goal: reduce reliance on ad hoc manual testing.
   - Example file detection
 - ✅ Manual verification contract created (manual-verification-contract.md)
 - ✅ CI validation passed (run 23365762835)
+- ✅ Import/export check script created (check-import-export.sh)
 - 🔄 Next: Supervisory review for Phase 4 exit criteria
 
 **Exit criteria progress:**
