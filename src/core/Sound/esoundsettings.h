@@ -21,31 +21,54 @@
 extern "C" {
     #include <libavutil/samplefmt.h>
     #include <libavutil/channel_layout.h>
+    #include <libavutil/version.h>
 }
 
 #include "../core_global.h"
 
+// FFmpeg 6.x compatibility: AVChannelLayout has nb_channels field
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+#define ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS(layout) \
+    ((layout).nb_channels)
+#else
+#define ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS(layout) \
+    av_get_channel_layout_nb_channels(layout)
+#endif
+
 struct CORE_EXPORT eSoundSettingsData {
     int fSampleRate = 44100;
     AVSampleFormat fSampleFormat = AV_SAMPLE_FMT_FLT;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    AVChannelLayout fChannelLayout;
+    eSoundSettingsData() {
+        av_channel_layout_default(&fChannelLayout, 2); // Stereo
+    }
+#else
     uint64_t fChannelLayout = AV_CH_LAYOUT_STEREO;
+#endif
 
     bool planarFormat() const {
         return av_sample_fmt_is_planar(fSampleFormat);
     }
 
     int channelCount() const {
-        return av_get_channel_layout_nb_channels(fChannelLayout);
+        return ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS(fChannelLayout);
     }
 
     int bytesPerSample() const {
         return av_get_bytes_per_sample(fSampleFormat);
     }
 
-    bool operator==(const eSoundSettingsData &other) {
+    bool operator==(const eSoundSettingsData &other) const {
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+        return fSampleRate == other.fSampleRate &&
+               fSampleFormat == other.fSampleFormat &&
+               av_channel_layout_compare(&fChannelLayout, &other.fChannelLayout) == 0;
+#else
         return fSampleRate == other.fSampleRate &&
                fSampleFormat == other.fSampleFormat &&
                fChannelLayout == other.fChannelLayout;
+#endif
     }
 };
 

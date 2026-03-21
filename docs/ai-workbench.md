@@ -15,6 +15,13 @@ If you only want one document to look at before talking to an AI, use this one.
 - Active medium-term plan: local-only `.ai/modernization/phase-5-roadmap.md`
 
 These `.ai/` files are intentionally not committed. On GitHub, use this workbench plus the stable docs under `docs/` to initialize a new local AI workspace.
+If similarly named AI planning/status files exist under `docs/modernization/`, treat them as bridge notes only; the active lane state lives in `.ai/`.
+
+If `.ai/` is missing locally, recreate the minimal local workspace first:
+- `.ai/README.md`
+- `.ai/modernization/ai-handoff.md`
+- `.ai/modernization/current-status.md`
+- `.ai/modernization/phase-5-roadmap.md`
 
 ## Default Language Split
 

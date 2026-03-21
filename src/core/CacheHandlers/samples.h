@@ -22,7 +22,21 @@
 extern "C" {
     #include <libavutil/samplefmt.h>
     #include <libavutil/channel_layout.h>
+    #include <libavutil/version.h>
 }
+
+// FFmpeg 6.x compatibility: AVChannelLayout has nb_channels field
+// FFmpeg 4.x/5.x: use av_get_channel_layout_nb_channels(uint64_t)
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+// FFmpeg 6.x: AVChannelLayout has nb_channels field directly
+// For backward compatibility with code using uint64_t, cast and use macro
+#define ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS(layout) \
+    ((layout).nb_channels)
+#else
+// FFmpeg 4.x/5.x uses uint64_t directly
+#define ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS(layout) \
+    av_get_channel_layout_nb_channels(layout)
+#endif
 
 class eWriteStream;
 class eReadStream;
@@ -30,6 +44,35 @@ class eReadStream;
 struct CORE_EXPORT Samples : public StdSelfRef {
     e_OBJECT
 protected:
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    // FFmpeg 6.x uses AVChannelLayout
+    Samples(uchar ** const data,
+            const SampleRange& range,
+            const int sampleRate,
+            const AVSampleFormat format,
+            const AVChannelLayout channelLayout) :
+        fFormat(format),
+        fPlanar(av_sample_fmt_is_planar(format)),
+        fSampleRate(sampleRate),
+        fSampleSize(uint(av_get_bytes_per_sample(format))),
+        fChannelLayout(channelLayout),
+        fNChannels(channelLayout.nb_channels),
+        fSampleRange(range), fData(data) {
+    }
+
+    Samples(const SampleRange& range,
+            const int sampleRate,
+            const AVSampleFormat format,
+            const AVChannelLayout channelLayout) :
+        fFormat(format),
+        fPlanar(av_sample_fmt_is_planar(format)),
+        fSampleRate(sampleRate),
+        fSampleSize(uint(av_get_bytes_per_sample(format))),
+        fChannelLayout(channelLayout),
+        fNChannels(channelLayout.nb_channels),
+        fSampleRange(range) {
+#else
+    // FFmpeg 4.x/5.x uses uint64_t
     Samples(uchar ** const data,
             const SampleRange& range,
             const int sampleRate,
@@ -55,6 +98,7 @@ protected:
         fChannelLayout(channelLayout),
         fNChannels(av_get_channel_layout_nb_channels(channelLayout)),
         fSampleRange(range) {
+#endif
         const auto bytes = static_cast<ulong>(fSampleRange.span())*fSampleSize;
         if(fPlanar) {
             fData = new uchar*[fNChannels];
@@ -128,7 +172,11 @@ public:
     const bool fPlanar;
     const int fSampleRate;
     const uint fSampleSize;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    const AVChannelLayout fChannelLayout;
+#else
     const uint64_t fChannelLayout;
+#endif
     const uint fNChannels;
     const SampleRange fSampleRange;
     uchar ** fData;

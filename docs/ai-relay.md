@@ -18,6 +18,10 @@ Before substantial work, read:
   - status: `.ai/modernization/current-status.md`
   - roadmap: `.ai/modernization/phase-5-roadmap.md`
 
+The `.ai/` paths listed here are the authoritative active-lane state.
+If similarly named files also exist under `docs/modernization/`, treat them as bridge or archival notes only, not as the current relay source of truth.
+If the local `.ai/` workspace is missing, recreate the minimal lane files locally before starting substantial work; do not fall back to creating a second tracked active-state copy under `docs/modernization/`.
+
 ## New Lane Rule
 
 When a new major feature lane starts, do not solve it by pasting a longer prompt. Instead:
@@ -56,6 +60,7 @@ Keep the active handoff file current with:
 - Keep prompts and instructions copy-paste ready.
 - `docs/` is for human/stable operational docs and general AI initialization, not private AI working state.
 - `.ai/` is the local-only workspace for active AI handoff, status, and roadmap files.
+- Do not let tracked bridge files under `docs/modernization/` compete with the `.ai/` lane files listed above.
 - Do not commit `.omx/`.
 - Do not commit `.ai/`.
 - Do not overwrite or reset dirty vendored submodules unless the user explicitly asks.

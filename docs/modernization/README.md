@@ -3,6 +3,7 @@
 This directory tracks the staged recovery of a reproducible build before larger moves such as CMake or Qt 6.
 
 AI working-state docs for this lane now live under `.ai/modernization/` and are intentionally local-only / not committed. This `docs/modernization/` directory should stay focused on stable human-facing operational reference.
+If tracked bridge files with old AI-state names still exist here, do not use them as the active relay source of truth; use `docs/ai-relay.md` and the `.ai/modernization/` paths it lists.
 
 ## Start Here
 

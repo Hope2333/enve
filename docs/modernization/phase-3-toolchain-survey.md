@@ -306,7 +306,7 @@ option(ENVE_USE_SYSTEM_LIBMYPAINT "Use system libmypaint" OFF)
 
 ## References
 
-- [Phase 2 Roadmap](phase-2-roadmap.md)
-- [Dependency Ledger](dependency-ledger.md)
-- [Phased Backlog](phased-backlog.md)
-- [AI Handoff](ai-handoff.md)
+- [Repository AI Relay](../ai-relay.md)
+- Active modernization AI relay/planning state: local-only `.ai/modernization/`
+- [ADR 001](adr-001-build-and-dependency-modernization.md)
+- [Feature Flag Semantics](feature-flag-semantics.md)

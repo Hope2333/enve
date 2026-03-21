@@ -1,9 +1,33 @@
 # CMake configuration for enve core library
 #
 # Phase 5: Build-System Migration
-# 
+#
 # This file is now real and matches qmake's core.pro/core.pri.
 # qmake remains the authoritative release path until full parity is achieved.
+
+# Generate libmypaint brush settings header
+# This is required because vendored libmypaint uses a Python script to generate this file
+if(NOT ENVE_USE_SYSTEM_LIBMYPAINT)
+    find_program(PYTHON3_EXECUTABLE python3)
+    if(PYTHON3_EXECUTABLE)
+        set(LIBMYPAINT_BRUSH_SETTINGS_H
+            ${CMAKE_SOURCE_DIR}/third_party/libmypaint/mypaint-brush-settings.h
+        )
+        set(LIBMYPAINT_BRUSH_SETTINGS_GEN
+            ${CMAKE_SOURCE_DIR}/third_party/libmypaint/mypaint-brush-settings-gen.h
+        )
+        add_custom_command(
+            OUTPUT ${LIBMYPAINT_BRUSH_SETTINGS_H} ${LIBMYPAINT_BRUSH_SETTINGS_GEN}
+            COMMAND ${PYTHON3_EXECUTABLE}
+                ${CMAKE_SOURCE_DIR}/third_party/libmypaint/generate.py
+                mypaint-brush-settings.h
+                mypaint-brush-settings-gen.h
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/third_party/libmypaint
+            COMMENT "Generating libmypaint brush settings header"
+            VERBATIM
+        )
+    endif()
+endif()
 
 # Collect all source files (auto-generated from actual files on disk)
 set(envecore_SOURCES
@@ -328,6 +352,11 @@ set(envecore_SOURCES
     zipfileloader.cpp
     zipfilesaver.cpp
 )
+
+# Add generated libmypaint header as a source dependency
+if(NOT ENVE_USE_SYSTEM_LIBMYPAINT AND LIBMYPAINT_BRUSH_SETTINGS_GEN)
+    list(APPEND envecore_SOURCES ${LIBMYPAINT_BRUSH_SETTINGS_GEN})
+endif()
 
 # Collect all header files (auto-generated from actual files on disk)
 set(envecore_HEADERS

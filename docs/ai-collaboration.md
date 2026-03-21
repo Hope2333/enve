@@ -58,6 +58,8 @@ Every collaborating AI should treat these as the current project memory:
 6. `docs/modernization/phase-3-toolchain-survey.md` as the current CMake-skeleton and toolchain reference
 7. Any older `.ai/modernization/phase-*.md` files the active lane docs identify as required historical context
 
+Do not treat tracked bridge files under `docs/modernization/` as active relay state when `docs/ai-relay.md` points to local-only `.ai/` files.
+
 ## Language Contract
 
 Default language split:
@@ -128,6 +130,7 @@ When handing back, include:
 - The active lane handoff, status, and roadmap files listed there are the operational source of truth.
 - `docs/modernization/phase-3-toolchain-survey.md` remains the stable toolchain and CMake-skeleton reference.
 - Older `.ai/modernization/phase-*.md` files are historical context only when the active lane docs call them out.
+- Bridge files under `docs/modernization/` are for human/bootstrap continuity only; they must not override the active `.ai/` lane state.
 
 ## Prompt: Lower-Cost Execution AI
 

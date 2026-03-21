@@ -24,3 +24,7 @@ build/Release/*
 *.so*
 
 *qmake*
+
+.ai/
+.omx/
+.sisyphus/

@@ -149,7 +149,7 @@ These checks could be automated in Phase 4+ or Phase 5:
 
 ## References
 
-- [Phase 4 Roadmap](phase-4-roadmap.md)
+- [Repository AI Relay](../ai-relay.md)
+- Active modernization AI roadmap/handoff: local-only `.ai/modernization/`
 - [Phase 3 Toolchain Survey](phase-3-toolchain-survey.md)
-- [Dependency Ledger](dependency-ledger.md)
-- [AI Handoff](ai-handoff.md)
+- [ADR 001](adr-001-build-and-dependency-modernization.md)
