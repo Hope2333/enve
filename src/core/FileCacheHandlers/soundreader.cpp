@@ -62,9 +62,14 @@ void SoundReader::readFrame() {
         RuntimeThrow("Cannot read frame from closed AudioStream");
     const int dstSampleRate = mSettings.fSampleRate;
     const AVSampleFormat dstSampleFormat = mSettings.fSampleFormat;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    const AVChannelLayout dstChLayout = mSettings.fChannelLayout;
+    const int dstChCount = dstChLayout.nb_channels;
+#else
     const uint64_t dstChLayout = mSettings.fChannelLayout;
-    const uint dstSampleSize = static_cast<uint>(mSettings.bytesPerSample());
     const int dstChCount = av_get_channel_layout_nb_channels(dstChLayout);
+#endif
+    const uint dstSampleSize = static_cast<uint>(mSettings.bytesPerSample());
     const bool dstPlanar = mSettings.planarFormat();
 
     const auto formatContext = mOpenedAudio->fFormatContext;

@@ -54,7 +54,8 @@ void AudioStreamsData::updateSwrContext() {
     av_opt_set_int(fSwrContext, "out_channel_count", eSoundSettings::sChannelCount(), 0);
     char in_layout[1024], out_layout[1024];
     av_channel_layout_describe(&audCodecPars->ch_layout, in_layout, sizeof(in_layout));
-    av_channel_layout_describe(&eSoundSettings::sChannelLayout(), out_layout, sizeof(out_layout));
+    AVChannelLayout outLayout = eSoundSettings::sChannelLayout();
+    av_channel_layout_describe(&outLayout, out_layout, sizeof(out_layout));
     av_opt_set(fSwrContext, "in_channel_layout", in_layout, 0);
     av_opt_set(fSwrContext, "out_channel_layout", out_layout, 0);
 #else
@@ -109,11 +110,6 @@ void AudioStreamsData::close() {
     if(fPacket) av_packet_free(&fPacket);
     if(fSwrContext) swr_free(&fSwrContext);
     if(fCodecContext) {
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
-        avcodec_free(&fCodecContext);
-#else
-        avcodec_close(fCodecContext);
-#endif
         avcodec_free_context(&fCodecContext);
     }
     if(fFormatContext) avformat_close_input(&fFormatContext);

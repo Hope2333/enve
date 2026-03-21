@@ -81,7 +81,11 @@ public:
 
     static int sSampleRate();
     static AVSampleFormat sSampleFormat();
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    static AVChannelLayout sChannelLayout();
+#else
     static uint64_t sChannelLayout();
+#endif
     static bool sPlanarFormat();
     static int sChannelCount();
     static int sBytesPerSample();
@@ -89,7 +93,11 @@ public:
 
     static void sSetSampleRate(const int sampleRate);
     static void sSetSampleFormat(const AVSampleFormat format);
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    static void sSetChannelLayout(const AVChannelLayout layout);
+#else
     static void sSetChannelLayout(const uint64_t layout);
+#endif
 
     static void sSave();
     static void sRestore();

@@ -31,9 +31,15 @@ AVSampleFormat eSoundSettings::sSampleFormat() {
     return sInstance->fSampleFormat;
 }
 
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+AVChannelLayout eSoundSettings::sChannelLayout() {
+    return sInstance->fChannelLayout;
+}
+#else
 uint64_t eSoundSettings::sChannelLayout() {
     return sInstance->fChannelLayout;
 }
+#endif
 
 bool eSoundSettings::sPlanarFormat() {
     return sInstance->planarFormat();
@@ -59,9 +65,15 @@ void eSoundSettings::sSetSampleFormat(const AVSampleFormat format) {
     sInstance->setSampleFormat(format);
 }
 
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+void eSoundSettings::sSetChannelLayout(const AVChannelLayout layout) {
+    sInstance->setChannelLayout(layout);
+}
+#else
 void eSoundSettings::sSetChannelLayout(const uint64_t layout) {
     sInstance->setChannelLayout(layout);
 }
+#endif
 
 void eSoundSettings::sSave() {
     sInstance->save();
