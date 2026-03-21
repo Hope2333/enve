@@ -5,6 +5,26 @@
 # This file is now real and matches qmake's core.pro/core.pri.
 # qmake remains the authoritative release path until full parity is achieved.
 
+# Get version from git
+execute_process(
+    COMMAND git log --pretty=format:'%h' -n 1
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE LATEST_COMMIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+execute_process(
+    COMMAND git log -1 --pretty=%cd --date=short
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE LATEST_COMMIT_DATE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+add_compile_definitions(
+    ENVE_VERSION="${LATEST_COMMIT_HASH}"
+    LATEST_COMMIT_HASH="${LATEST_COMMIT_HASH}"
+    LATEST_COMMIT_DATE="${LATEST_COMMIT_DATE}"
+)
+
 # Generate libmypaint brush settings header
 # This is required because vendored libmypaint uses a Python script to generate this file
 if(NOT ENVE_USE_SYSTEM_LIBMYPAINT)
