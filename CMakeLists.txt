@@ -67,6 +67,7 @@ find_package(Qt5 REQUIRED COMPONENTS
     Xml
     Concurrent
     Multimedia
+    Widgets
 )
 
 # Qt WebEngine (optional)

@@ -1,17 +1,107 @@
 # CMake configuration for enve application
 #
-# Phase 5: Build-System Migration
+# Phase 5: Build-System Migration - Batch B.2
 #
-# Status: SKELETON ONLY - app CMake migration is Phase 5 follow-up work.
+# Status: MINIMAL IMPLEMENTATION
+# - Qt modules configured
+# - Source files auto-generated from disk
+# - Optional dependency gates included
+# - Resources DEFERRED to Batch B.3
+#
 # qmake remains the authoritative release path for the application.
-#
-# See: docs/modernization/phase-5-roadmap.md
 
-# Placeholder to allow root CMakeLists.txt to configure without errors.
-# The real app CMake migration will happen after envecore is stable.
+# Collect all source files from disk
+file(GLOB_RECURSE enve_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+)
 
-message(STATUS "src/app/CMakeLists.txt: SKELETON ONLY - qmake is authoritative for app")
+# Collect all header files from disk
+file(GLOB_RECURSE enve_HEADERS
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
+)
 
-# Minimal target to satisfy root CMakeLists.txt add_subdirectory()
-add_executable(enve main.cpp)
-target_link_libraries(enve PRIVATE envecore)
+# Create executable
+add_executable(enve ${enve_SOURCES} ${enve_HEADERS})
+
+# Set include directories
+target_include_directories(enve PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_SOURCE_DIR}/src/core
+)
+
+# Set C++ standard
+set_target_properties(enve PROPERTIES
+    CXX_STANDARD 14
+    CXX_STANDARD_REQUIRED ON
+)
+
+# Enable Qt MOC, RCC, UIC
+set_target_properties(enve PROPERTIES
+    AUTOMOC ON
+    AUTORCC ON
+    AUTOUIC ON
+)
+
+# Link dependencies
+target_link_libraries(enve PRIVATE
+    envecore
+    Qt5::Core
+    Qt5::Gui
+    Qt5::Svg
+    Qt5::OpenGL
+    Qt5::Sql
+    Qt5::Qml
+    Qt5::Xml
+    Qt5::Concurrent
+    Qt5::Multimedia
+    Qt5::Widgets
+)
+
+# Optional: WebEngine (for SVG preview)
+if(ENVE_USE_WEBENGINE AND Qt5WebEngineWidgets_FOUND)
+    target_link_libraries(enve PRIVATE Qt5::WebEngineWidgets)
+    target_compile_definitions(enve PRIVATE ENVE_USE_WEBENGINE)
+endif()
+
+# Optional: QScintilla (for expression editor)
+if(ENVE_USE_QSCINTILLA AND QScintilla_FOUND)
+    target_include_directories(enve PRIVATE ${QSCINTILLA_INCLUDE_DIR})
+    target_link_libraries(enve PRIVATE ${QSCINTILLA_LIBRARY})
+    target_compile_definitions(enve PRIVATE QSCINTILLA_DLL)
+endif()
+
+# Optional: gperftools (tcmalloc)
+if(ENVE_USE_GPERFTOOLS AND GPERFTOOLS_FOUND)
+    target_include_directories(enve PRIVATE
+        ${CMAKE_SOURCE_DIR}/third_party/gperftools/include
+    )
+    target_link_libraries(enve PRIVATE ${GPERFTOOLS_LIBRARIES})
+endif()
+
+# FFmpeg (inherited from envecore)
+target_link_libraries(enve PRIVATE
+    ${FFMPEG_LIBRARIES}
+)
+
+# Set output directory
+set_target_properties(enve PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+# Platform-specific
+if(WIN32)
+    # Windows-specific configuration
+    target_sources(enve PRIVATE pixmaps/enve.rc)
+endif()
+
+# Note: Resources (.qrc files) are DEFERRED to Batch B.3
+# The following resource groups need to be added:
+# - resources.qrc
+# - toolbarButtonsBg
+# - toolbarButtonsPlain
+# - toolbarButtonsCheckable
+# - noInterpolation
+# - plain
+# - brushesClassic/Deevad/Dieterle/Experimental/Kaerhon/Ramon/Tanda
+# - tips
