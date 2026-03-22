@@ -1,9 +1,9 @@
 # AI Handoff: Phase 5 Build-System Migration
 
-- Snapshot time: 2026-03-22 02:00:00 UTC
+- Snapshot time: 2026-03-22 03:00:00 UTC
 - Active branch: `master`
-- Latest confirmed `master` commit: `95000a0e` (`Phase 5 Batch B.2: Minimal src/app CMakeLists.txt`)
-- Latest code-affecting Phase 5 commit on `master`: `95000a0e`
+- Latest confirmed `master` commit: `697f0199` (`Phase 5 Batch B.2: Fix videoencoder.h for FFmpeg 6.x`)
+- Latest code-affecting Phase 5 commit on `master`: `697f0199`
 - Active local worktree delta:
   - no tracked Phase 5 source changes are currently uncommitted in the main tree
   - dirty vendored `third_party` submodule state still exists from local build history
@@ -33,9 +33,14 @@
   - ✅ Optional dependency gates included
   - ✅ Resources DEFERRED to Batch B.3
   - ✅ qmake remains authoritative release path
-- 🔄 Phase 5 remains **ACTIVE** at a **SUPERVISORY GATE**:
+- 🔄 Phase 5 **Batch B.2.1** (Local build test) is **IN PROGRESS**:
+  - ✅ CMake configuration successful (with QScintilla OFF for local test)
+  - ⏳ envecore compilation in progress
+  - ✅ videoencoder.h FFmpeg 6.x fix applied
+- 🔄 Phase 5 remains **ACTIVE** at a **working gate**:
   - Batch A complete with clean-room evidence
   - Batch B.1/B.2 complete with minimal implementation
+  - Batch B.2.1 local build test in progress
   - Batch B.3 (resources) is queued but not started
   - FFmpeg `7.1` / `8.0` / `8.1` widening remains deferred
 - ⏸️ Packaging and distribution remain outside the active lane.
@@ -73,11 +78,14 @@
 
 ## What Was Verified Locally
 
-- `git log --oneline --decorate -n 12` confirmed `95000a0e` is the current `master` head.
+- `git log --oneline --decorate -n 12` confirmed `697f0199` is the current `master` head.
 - `gh run list --repo Hope2333/enve --limit 15` confirmed green CMake/core runs for both Ubuntu 22.04 baseline and FFmpeg 6.x.
 - Local CMake configuration test:
-  - `cmake -S . -B build/cmake-test -DENVE_USE_SYSTEM_LIBMYPAINT=0` ✅ success
+  - `cmake -S . -B build/cmake-test -DENVE_USE_SYSTEM_LIBMYPAINT=0 -DENVE_USE_QSCINTILLA=OFF` ✅ success
   - Configuration includes src/app with auto-generated source lists
+- Local build test:
+  - ⏳ envecore compilation in progress
+  - ✅ videoencoder.h FFmpeg 6.x fix applied
 - Local source inspection confirmed:
   - `.github/workflows/cmake-core.yml` has two jobs:
     - `cmake-core`: Ubuntu 22.04 baseline (FFmpeg 4.x)
@@ -90,8 +98,8 @@
 - The active lane is **Phase 5: Build-System Migration**.
 - Another implementation lane should **not** be opened yet.
 - The next execution AI should continue inside Phase 5 with narrowed scope:
+  - Complete Batch B.2.1 (local build test)
   - Batch B.3 (resources) is queued but requires supervisory authorization
-  - Local build test of enve target is optional sanity check
   - FFmpeg `7.1` / `8.0` / `8.1` widening remains deferred
 - Keep qmake as the authoritative release path while CMake parity is incomplete.
 - AI relay hygiene remains a standing guardrail:
@@ -108,8 +116,11 @@
 5. ✅ Phase 5 Batch A COMPLETE - src/core CMake clean-room validation
 6. ✅ Phase 5 Batch B.1 COMPLETE - src/app CMake boundary audit
 7. ✅ Phase 5 Batch B.2 COMPLETE - Minimal src/app CMakeLists.txt
-8. ⏸️ FFmpeg 7.1 / 8.0 / 8.1 widening remains deferred
-9. Next: Supervisory review before:
-   - Batch B.3 (resources handling)
-   - Local build test of enve target
-   - Any CI integration for app
+8. 🔄 Phase 5 Batch B.2.1 IN PROGRESS - Local build test
+   - ✅ CMake configuration successful (with QScintilla OFF for local test)
+   - ⏳ envecore compilation in progress
+   - ✅ videoencoder.h FFmpeg 6.x fix applied
+9. ⏸️ FFmpeg 7.1 / 8.0 / 8.1 widening remains deferred
+10. Next after build test:
+    - Record any remaining build errors
+    - Decide: Batch B.3 (resources) or CI integration
