@@ -80,6 +80,7 @@ void MemoryChecker::sGetFreeKB(intKB& procFreeKB, intKB& sysFreeKB) {
     freeExternal = intKB(availPhysB);
 #elif defined(Q_OS_UNIX)
     //    qDebug() << "";
+    size_t freeInternal = 0;
     #ifdef ENVE_USE_GPERFTOOLS
     size_t virtual_memory_used;
     size_t physical_memory_used;
@@ -94,8 +95,6 @@ void MemoryChecker::sGetFreeKB(intKB& procFreeKB, intKB& sysFreeKB) {
     enveUsedB = longB(static_cast<qint64>(bytes_in_use_by_app));
 
     freeInternal = physical_memory_used - bytes_in_use_by_app;
-    #else
-    size_t freeInternal = 0;
     #endif
     #if defined(Q_OS_LINUX)
         int found = 0;
