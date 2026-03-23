@@ -56,6 +56,16 @@ jobs:
           ls -la mypaint-config.h
           cd ../..
 
+      - name: Build vendored Skia
+        run: |
+          cd third_party/skia
+          git submodule update --init --recursive
+          python tools/git-sync-deps
+          bin/gn gen out/Release --args="is_official_build=true is_debug=false"
+          ninja -C out/Release
+          ls -la out/Release/libskia.a
+          cd ../..
+
       - name: Configure CMake
         run: |
           cmake -S . -B build/cmake \
