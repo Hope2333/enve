@@ -56,11 +56,22 @@ jobs:
           ls -la mypaint-config.h
           cd ../..
 
-      - name: Build vendored Skia
+      - name: Cache third-party builds
+        id: cache-third-party
+        uses: actions/cache@v4
+        with:
+          path: |
+            third_party/skia/out/Release
+          key: ${{ runner.os }}-cmake-app-third-party-${{ hashFiles('third_party/skia/DEPS') }}
+          restore-keys: |
+            ${{ runner.os }}-cmake-app-third-party-
+
+      - name: Build vendored Skia (if not cached)
+        if: steps.cache-third-party.outputs.cache-hit != 'true'
         run: |
           cd third_party/skia
           git submodule update --init --recursive
-          python tools/git-sync-deps
+          python3 tools/git-sync-deps
           bin/gn gen out/Release --args="is_official_build=true is_debug=false"
           ninja -C out/Release
           ls -la out/Release/libskia.a
