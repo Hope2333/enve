@@ -30,6 +30,11 @@ endif()
 # Create executable
 add_executable(enve ${enve_SOURCES} ${enve_HEADERS})
 
+# Add Qt resource files (.qrc)
+# Batch B.3: Resources migration
+qt5_add_resources(enve_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources.qrc)
+target_sources(enve PRIVATE ${enve_RESOURCES})
+
 # Define ENVE_VERSION macro
 # For CMake builds, use a simple version string
 target_compile_definitions(enve PRIVATE
