@@ -42,7 +42,7 @@ $(STAMP_DIR)/skia.stamp: $(STAMP_DIR) skia/*
 	cd skia
 	python tools/git-sync-deps
 	bin/gn gen out/Release --args='is_official_build=true is_debug=false extra_cflags=["-Wno-error"] skia_use_system_expat=false skia_use_system_icu=false skia_use_system_libjpeg_turbo=false skia_use_system_libpng=false skia_use_system_libwebp=false skia_use_system_zlib=false'
-	ninja -C out/Release skia
+	ninja -C out/Release libskia.a
 	touch $@
 	@echo "  ✓ Skia build complete"
 
