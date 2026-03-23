@@ -44,6 +44,9 @@ struct OutputSettings {
     static const std::map<int, QString> sSampleFormatNames;
     static QString sGetChannelsLayoutName(const uint64_t &layout);
     static uint64_t sGetChannelsLayout(const QString &name);
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    static QString sGetChannelsLayoutName(const AVChannelLayout &layout);
+#endif
 
     void write(eWriteStream& dst) const;
     void read(eReadStream& src);

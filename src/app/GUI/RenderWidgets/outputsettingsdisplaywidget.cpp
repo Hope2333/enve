@@ -108,7 +108,12 @@ void OutputSettingsDisplayWidget::setOutputSettings(const OutputSettings &settin
     }
     setAudioBitrateText(QString::number(settings.fAudioBitrate/1000) + " kbps");
 
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
     const auto channLay = OutputSettings::sGetChannelsLayoutName(
                 settings.fAudioChannelsLayout);
+#else
+    const auto channLay = OutputSettings::sGetChannelsLayoutName(
+                settings.fAudioChannelsLayout);
+#endif
     setAudioChannelLayoutText(channLay);
 }

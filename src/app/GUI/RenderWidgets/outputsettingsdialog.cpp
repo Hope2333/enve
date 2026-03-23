@@ -224,7 +224,10 @@ OutputSettings OutputSettingsDialog::getSettings() {
     if(mAudioChannelLayoutsComboBox->count() > 0) {
         const int layoutId = mAudioChannelLayoutsComboBox->currentIndex();
         const uint64_t layout = mAudioChannelLayoutsList.at(layoutId);
-        av_channel_layout_from_int(&currentChannelsLayout, layout);
+        // Convert uint64_t layout to string, then to AVChannelLayout
+        char layoutStr[64];
+        av_get_channel_layout_string(layoutStr, sizeof(layoutStr), -1, layout);
+        av_channel_layout_from_string(&currentChannelsLayout, layoutStr);
     } else {
         av_channel_layout_default(&currentChannelsLayout, 2);
     }
