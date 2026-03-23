@@ -61,7 +61,7 @@ jobs:
           cd third_party/quazip
           qmake quazip.pro CONFIG+=release
           make -j4
-          ls -la quazip/libquazip.a
+          ls -la quazip/*.a
           cd ../..
 
       - name: Cache third-party builds
