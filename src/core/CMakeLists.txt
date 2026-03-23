@@ -817,8 +817,9 @@ endif()
 target_include_directories(envecore PRIVATE
     ${CMAKE_SOURCE_DIR}/third_party/quazip
 )
+# Link against QuaZip library (built by workflow as shared library)
 target_link_libraries(envecore PRIVATE
-    ${CMAKE_SOURCE_DIR}/third_party/quazip/quazip/libquazip.a
+    ${CMAKE_SOURCE_DIR}/third_party/quazip/quazip/libquazip.so
 )
 
 # Set library properties

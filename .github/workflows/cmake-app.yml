@@ -61,7 +61,7 @@ jobs:
           cd third_party/quazip
           qmake quazip.pro CONFIG+=release
           make -j4
-          find . -name "*.a" -o -name "*.so*"
+          ls -la quazip/*.so*
           cd ../..
 
       - name: Cache third-party builds
