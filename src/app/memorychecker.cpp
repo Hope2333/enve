@@ -80,7 +80,6 @@ void MemoryChecker::sGetFreeKB(intKB& procFreeKB, intKB& sysFreeKB) {
     freeExternal = intKB(availPhysB);
 #elif defined(Q_OS_UNIX)
     //    qDebug() << "";
-    size_t freeInternal = 0;
     #ifdef ENVE_USE_GPERFTOOLS
     size_t virtual_memory_used;
     size_t physical_memory_used;
