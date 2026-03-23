@@ -20,8 +20,10 @@
 #if defined(Q_OS_WIN)
     #include "windowsincludes.h"
 #elif defined(Q_OS_UNIX)
-    #include "gperftools/tcmalloc.h"
-    #include "gperftools/malloc_extension.h"
+    #ifdef ENVE_USE_GPERFTOOLS
+        #include "gperftools/tcmalloc.h"
+        #include "gperftools/malloc_extension.h"
+    #endif
     #if defined(Q_OS_LINUX)
         #include <sys/sysinfo.h>
         #include <unistd.h>
@@ -78,6 +80,7 @@ void MemoryChecker::sGetFreeKB(intKB& procFreeKB, intKB& sysFreeKB) {
     freeExternal = intKB(availPhysB);
 #elif defined(Q_OS_UNIX)
     //    qDebug() << "";
+    #ifdef ENVE_USE_GPERFTOOLS
     size_t virtual_memory_used;
     size_t physical_memory_used;
     size_t bytes_in_use_by_app;
@@ -91,6 +94,9 @@ void MemoryChecker::sGetFreeKB(intKB& procFreeKB, intKB& sysFreeKB) {
     enveUsedB = longB(static_cast<qint64>(bytes_in_use_by_app));
 
     freeInternal = physical_memory_used - bytes_in_use_by_app;
+    #else
+    size_t freeInternal = 0;
+    #endif
     #if defined(Q_OS_LINUX)
         int found = 0;
         FILE * const meminfo = fopen("/proc/meminfo", "r");
@@ -134,6 +140,7 @@ void MemoryChecker::sGetFreeKB(intKB& procFreeKB, intKB& sysFreeKB) {
 //    qDebug() << "free" << intMB(sysFreeKB).fValue;
 //    qDebug() << "usage" << 100 - 100*sysFreeKB.fValue/HardwareInfo::sRamKB().fValue;
     const qint64 releaseBytes = 500L*1024L*1024L;
+    #ifdef ENVE_USE_GPERFTOOLS
     if(freeInternal > releaseBytes) {
 #if defined(Q_OS_WIN)
 
@@ -142,6 +149,7 @@ void MemoryChecker::sGetFreeKB(intKB& procFreeKB, intKB& sysFreeKB) {
 //        qDebug() << "released";
 #endif
     }
+    #endif
 }
 
 void MemoryChecker::checkMemory() {
