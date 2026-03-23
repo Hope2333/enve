@@ -23,8 +23,10 @@
 #include <QApplication>
 #include <QButtonGroup>
 
+#ifdef QSCINTILLA_DLL
 #include <Qsci/qscilexerjavascript.h>
 #include <Qsci/qsciapis.h>
+#endif
 
 #include "Expressions/expression.h"
 #include "Boxes/boundingbox.h"
@@ -34,6 +36,7 @@
 #define DEFAULT_FONT "monospace", 10
 
 
+#ifdef QSCINTILLA_DLL
 class JSLexer : public QsciLexerJavaScript {
 public:
     using QsciLexerJavaScript::QsciLexerJavaScript;

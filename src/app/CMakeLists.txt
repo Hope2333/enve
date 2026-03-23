@@ -7,6 +7,7 @@
 # - Source files auto-generated from disk
 # - Optional dependency gates included
 # - Resources DEFERRED to Batch B.3
+# - QScintilla files excluded when disabled
 #
 # qmake remains the authoritative release path for the application.
 
@@ -20,8 +21,20 @@ file(GLOB_RECURSE enve_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 )
 
+# Exclude QScintilla-dependent files if QScintilla is disabled
+if(NOT ENVE_USE_QSCINTILLA OR NOT QScintilla_FOUND)
+    list(FILTER enve_SOURCES EXCLUDE REGEX ".*GUI/Expressions/.*\\.cpp$")
+    list(FILTER enve_HEADERS EXCLUDE REGEX ".*GUI/Expressions/.*\\.h$")
+endif()
+
 # Create executable
 add_executable(enve ${enve_SOURCES} ${enve_HEADERS})
+
+# Define ENVE_VERSION macro
+# For CMake builds, use a simple version string
+target_compile_definitions(enve PRIVATE
+    ENVE_VERSION="0.0.0-CMake"
+)
 
 # Set include directories
 target_include_directories(enve PRIVATE

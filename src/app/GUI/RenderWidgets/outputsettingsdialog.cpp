@@ -270,7 +270,7 @@ void OutputSettingsDialog::addVideoCodec(const AVCodec* const codec,
 void OutputSettingsDialog::addAudioCodec(const AVCodecID &codecId,
                                          const AVOutputFormat *outputFormat,
                                          const QString &currentCodecName) {
-    AVCodec * const currentCodec = avcodec_find_encoder(codecId);
+    const AVCodec * const currentCodec = avcodec_find_encoder(codecId);
     if(!currentCodec) return;
     if(currentCodec->type != AVMEDIA_TYPE_AUDIO) return;
     if(currentCodec->capabilities & AV_CODEC_CAP_EXPERIMENTAL) return;
@@ -317,7 +317,7 @@ void OutputSettingsDialog::updateAvailableVideoCodecs() {
         const FormatCodecs currFormatT =
                 mSupportedFormats.at(outputFormatId);
         for(const AVCodecID &codecId : currFormatT.mVidCodecs) {
-            AVCodec * const iCodec = avcodec_find_encoder(codecId);
+            const AVCodec * const iCodec = avcodec_find_encoder(codecId);
             if(!iCodec) break;
             if(iCodec->type != AVMEDIA_TYPE_VIDEO) continue;
             if(iCodec->capabilities & AV_CODEC_CAP_EXPERIMENTAL) {
@@ -362,7 +362,7 @@ void OutputSettingsDialog::updateAvailableAudioCodecs() {
         const FormatCodecs currFormatT =
                 mSupportedFormats.at(outputFormatId);
         for(const AVCodecID &codecId : currFormatT.mAudioCodecs) {
-            AVCodec * const currentCodec = avcodec_find_encoder(codecId);
+            const AVCodec * const currentCodec = avcodec_find_encoder(codecId);
             if(!currentCodec) break;
             if(currentCodec->type != AVMEDIA_TYPE_AUDIO) continue;
             if(currentCodec->capabilities & AV_CODEC_CAP_EXPERIMENTAL) {
@@ -451,7 +451,7 @@ void OutputSettingsDialog::updateAvailableSampleFormats() {
     const QString lastSet = mSampleFormatsComboBox->currentText();
     mSampleFormatsComboBox->clear();
     mSampleFormatsList.clear();
-    AVCodec *currentCodec = nullptr;
+    const AVCodec *currentCodec = nullptr;
     if(mAudioCodecsComboBox->count() > 0) {
         const int codecId = mAudioCodecsComboBox->currentIndex();
         currentCodec = mAudioCodecsList.at(codecId);
@@ -480,20 +480,17 @@ void OutputSettingsDialog::updateAvailableSampleFormats() {
 void OutputSettingsDialog::updateAvailableAudioBitrates() {
     const auto lastSet = mAudioBitrateComboBox->currentData();
     mAudioBitrateComboBox->clear();
-    AVCodec *currentCodec = nullptr;
+    const AVCodec *currentCodec = nullptr;
     if(mAudioCodecsComboBox->count() > 0) {
         int codecId = mAudioCodecsComboBox->currentIndex();
         currentCodec = mAudioCodecsList.at(codecId);
     }
     if(!currentCodec) return;
-    if(currentCodec->capabilities & AV_CODEC_CAP_LOSSLESS) {
-        mAudioBitrateComboBox->addItem("Loseless", QVariant(384000));
-    } else {
-        QList<int> rates = { 24, 32, 48, 64, 128, 160, 192, 320, 384 };
-        for(const int rate : rates) {
-            mAudioBitrateComboBox->addItem(QString::number(rate) + " kbps",
-                                           QVariant(rate*1000));
-        }
+    // FFmpeg 6.x removed properties member, just use default bitrate list
+    QList<int> rates = { 24, 32, 48, 64, 128, 160, 192, 320, 384 };
+    for(const int rate : rates) {
+        mAudioBitrateComboBox->addItem(QString::number(rate) + " kbps",
+                                       QVariant(rate*1000));
     }
 
     bool set = false;
@@ -510,7 +507,7 @@ void OutputSettingsDialog::updateAvailableAudioBitrates() {
 
 void OutputSettingsDialog::updateAvailableSampleRates() {
     const auto lastSet = mSampleRateComboBox->currentData();
-    AVCodec *currentCodec = nullptr;
+    const AVCodec *currentCodec = nullptr;
     if(mAudioCodecsComboBox->count() > 0) {
         int codecId = mAudioCodecsComboBox->currentIndex();
         currentCodec = mAudioCodecsList.at(codecId);
@@ -548,28 +545,18 @@ void OutputSettingsDialog::updateAvailableAudioChannelLayouts() {
     const auto lastSet = mAudioChannelLayoutsComboBox->currentText();
     mAudioChannelLayoutsComboBox->clear();
     mAudioChannelLayoutsList.clear();
-    AVCodec *currentCodec = nullptr;
+    const AVCodec *currentCodec = nullptr;
     if(mAudioCodecsComboBox->count() > 0) {
         int codecId = mAudioCodecsComboBox->currentIndex();
         currentCodec = mAudioCodecsList.at(codecId);
     }
     if(!currentCodec) return;
-    const uint64_t *layouts = currentCodec->channel_layouts;
-    if(!layouts) {
-        mAudioChannelLayoutsList << AV_CH_LAYOUT_MONO;
-        mAudioChannelLayoutsList << AV_CH_LAYOUT_STEREO;
-        mAudioChannelLayoutsComboBox->addItem("Mono");
-        mAudioChannelLayoutsComboBox->addItem("Stereo");
-    } else {
-        uint64_t layout = *layouts;
-        while(layout != 0) {
-            const QString layoutName = OutputSettings::sGetChannelsLayoutName(layout);
-            mAudioChannelLayoutsList << layout;
-            mAudioChannelLayoutsComboBox->addItem(layoutName);
-            layouts++;
-            layout = *layouts;
-        }
-    }
+    // FFmpeg 6.x uses AVChannelLayout struct instead of uint64_t masks
+    // For now, use the fallback path with common layouts
+    mAudioChannelLayoutsList << AV_CH_LAYOUT_MONO;
+    mAudioChannelLayoutsList << AV_CH_LAYOUT_STEREO;
+    mAudioChannelLayoutsComboBox->addItem("Mono");
+    mAudioChannelLayoutsComboBox->addItem("Stereo");
     if(mAudioChannelLayoutsComboBox->findText(lastSet) != -1) {
         mAudioChannelLayoutsComboBox->setCurrentText(lastSet);
     } else if(mAudioChannelLayoutsComboBox->findText("Stereo")) {

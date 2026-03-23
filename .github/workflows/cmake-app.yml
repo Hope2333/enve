@@ -1,0 +1,91 @@
+name: CMake App Build (Phase 5)
+
+# Phase 5: Build-System Migration - Batch B.2.2
+# Narrow validation path for minimal app-side CMake slice.
+# This workflow validates that the enve application target can be built with CMake.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - ".github/workflows/cmake-app.yml"
+      - "CMakeLists.txt"
+      - "src/app/CMakeLists.txt"
+      - "src/app/**"
+      - "src/core/CMakeLists.txt"
+      - "src/core/**"
+
+jobs:
+  cmake-app:
+    name: CMake App (Ubuntu 24.04 / FFmpeg 6.x)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Make CI scripts executable
+        run: chmod +x scripts/ci/*.sh
+
+      - name: Install Linux build dependencies (FFmpeg 6.x)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build autoconf automake libtool intltool \
+            qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
+            libqt5svg5-dev qtquickcontrols2-5-dev \
+            libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev \
+            libfreetype6-dev libfontconfig1-dev libpng-dev libharfbuzz-dev \
+            libglib2.0-dev libmypaint-dev libzstd-dev \
+            zlib1g-dev
+          # Verify FFmpeg 6.x
+          pkg-config --modversion libavcodec libavutil
+
+      - name: Build vendored libmypaint
+        run: |
+          cd third_party/libmypaint
+          ./autogen.sh
+          ./configure --disable-static --enable-shared
+          make -j4
+          ls -la mypaint-config.h
+          cd ../..
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build/cmake \
+            -DENVE_USE_SYSTEM_LIBMYPAINT=1 \
+            -DENVE_USE_WEBENGINE=OFF \
+            -DENVE_USE_QSCINTILLA=OFF \
+            -DENVE_USE_GPERFTOOLS=OFF \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build envecore
+        run: |
+          cmake --build build/cmake --target envecore -j4
+
+      - name: Build enve app
+        run: |
+          cmake --build build/cmake --target enve -j4
+
+      - name: Upload enve artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: enve-cmake-app
+          if-no-files-found: warn
+          path: build/cmake/bin/enve
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmake-app-build-logs
+          if-no-files-found: warn
+          path: |
+            build/cmake/CMakeFiles/CMakeOutput.log
+            build/cmake/CMakeFiles/CMakeError.log

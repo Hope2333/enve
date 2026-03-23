@@ -23,7 +23,11 @@
 #include <QCheckBox>
 #include <QTemporaryFile>
 
+#ifdef ENVE_USE_WEBENGINE
 class QWebEngineView;
+#else
+class QWidget;
+#endif
 class SceneChooser;
 class ComplexTask;
 
@@ -35,7 +39,11 @@ private:
     ComplexTask* exportTo(const QString& file);
 
     QSharedPointer<QTemporaryFile> mPreviewFile;
+#ifdef ENVE_USE_WEBENGINE
     QWebEngineView* mPreview;
+#else
+    QWidget* mPreview;
+#endif
     QPushButton* mPreviewButton;
 
     SceneChooser* mScene;

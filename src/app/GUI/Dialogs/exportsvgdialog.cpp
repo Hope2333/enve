@@ -29,8 +29,11 @@
 #include <QDialogButtonBox>
 #include <QPushButton>
 #include <QMenuBar>
+#ifdef ENVE_USE_WEBENGINE
 #include <QWebEngineView>
+#endif
 
+#ifdef ENVE_USE_WEBENGINE
 class SvgPreview : public QWebEngineView {
 public:
     SvgPreview(QWidget* const parent = nullptr) : QWebEngineView(parent) {
@@ -48,6 +51,16 @@ protected:
         connect(menu, &QMenu::aboutToHide, menu, &QObject::deleteLater);
     }
 };
+#else
+class SvgPreview : public QWidget {
+public:
+    SvgPreview(QWidget* const parent = nullptr) : QWidget(parent) {
+        setSizePolicy(QSizePolicy::MinimumExpanding,
+                      QSizePolicy::MinimumExpanding);
+        setMinimumSize(10*eSizesUI::widget, 10*eSizesUI::widget);
+    }
+};
+#endif
 
 ExportSvgDialog::ExportSvgDialog(QWidget* const parent) :
     QDialog(parent) {
@@ -149,8 +162,10 @@ ExportSvgDialog::ExportSvgDialog(QWidget* const parent) :
         task->addDependent(
         {[ptr]() {
             if(ptr) {
+#ifdef ENVE_USE_WEBENGINE
                 const auto fileName = ptr->mPreviewFile->fileName();
                 ptr->mPreview->load(QUrl::fromLocalFile(fileName));
+#endif
             }
         }, nullptr});
     });
