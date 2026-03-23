@@ -614,3 +614,5 @@ bool ExpressionDialog::apply(const bool action) {
     Document::sInstance->actionFinished();
     return true;
 }
+
+#endif // QSCINTILLA_DLL
