@@ -99,6 +99,14 @@ uint64_t OutputSettings::sGetChannelsLayout(const QString &name) {
     return AV_CH_LAYOUT_STEREO;
 }
 
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+QString OutputSettings::sGetChannelsLayoutName(const AVChannelLayout &layout) {
+    char layoutStr[64];
+    av_channel_layout_describe(&layout, layoutStr, sizeof(layoutStr));
+    return QString::fromUtf8(layoutStr);
+}
+#endif
+
 void OutputSettings::write(eWriteStream &dst) const {
     dst << (fOutputFormat ? QString(fOutputFormat->name) : "");
 
@@ -110,7 +118,13 @@ void OutputSettings::write(eWriteStream &dst) const {
     dst << fAudioEnabled;
     dst << (fAudioCodec ? fAudioCodec->id : -1);
     dst.write(&fAudioSampleFormat, sizeof(AVSampleFormat));
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    char layoutStr[64];
+    av_channel_layout_describe(&fAudioChannelsLayout, layoutStr, sizeof(layoutStr));
+    dst << QString::fromUtf8(layoutStr);
+#else
     dst << fAudioChannelsLayout;
+#endif
     dst << fAudioSampleRate;
     dst << fAudioBitrate;
 }
@@ -132,7 +146,12 @@ void OutputSettings::read(eReadStream &src) {
     const auto avAudioCodecId = static_cast<AVCodecID>(audioCodecId);
     fAudioCodec = avcodec_find_encoder(avAudioCodecId);
     src.read(&fAudioSampleFormat, sizeof(AVSampleFormat));
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    QString layoutStr; src >> layoutStr;
+    av_channel_layout_from_string(&fAudioChannelsLayout, layoutStr.toUtf8().constData());
+#else
     src >> fAudioChannelsLayout;
+#endif
     src >> fAudioSampleRate;
     src >> fAudioBitrate;
 }
@@ -185,8 +204,13 @@ void OutputSettingsProfile::save() {
             stream << av_get_sample_fmt_name(mSettings.fAudioSampleFormat) << endl;
 
             stream << "Channel layout: ";
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
             stream << OutputSettings::sGetChannelsLayoutName(
                           mSettings.fAudioChannelsLayout) << endl;
+#else
+            stream << OutputSettings::sGetChannelsLayoutName(
+                          mSettings.fAudioChannelsLayout) << endl;
+#endif
 
             stream << "Audio sample-rate: ";
             stream << QString::number(mSettings.fAudioSampleRate) << endl;
@@ -237,8 +261,13 @@ void OutputSettingsProfile::load(const QString &path) {
                 mSettings.fAudioSampleFormat = av_get_sample_fmt(
                             val.toUtf8().data());
             } else if(var == "Channel layout") {
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+                av_channel_layout_from_string(&mSettings.fAudioChannelsLayout,
+                                              val.toUtf8().constData());
+#else
                 mSettings.fAudioChannelsLayout =
                         OutputSettings::sGetChannelsLayout(val);
+#endif
             } else if(var == "Audio sample-rate") {
                 mSettings.fAudioSampleRate = val.toInt();
             } else if(var == "Audio bitrate") {

@@ -29,7 +29,16 @@ extern "C" {
     #include <libavutil/channel_layout.h>
     #include <libavutil/mathematics.h>
     #include <libavutil/opt.h>
+    #include <libavutil/version.h>
 }
+
+// FFmpeg 6.x compatibility
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+#define ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS(layout) ((layout).nb_channels)
+#else
+#define ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS(layout) \
+    av_get_channel_layout_nb_channels(layout)
+#endif
 
 struct OutputSettings {
     static const std::map<int, QString> sSampleFormatNames;
@@ -49,7 +58,14 @@ struct OutputSettings {
     bool fAudioEnabled = false;
     const AVCodec *fAudioCodec = nullptr;
     AVSampleFormat fAudioSampleFormat = AV_SAMPLE_FMT_NONE;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    AVChannelLayout fAudioChannelsLayout;
+    OutputSettings() {
+        av_channel_layout_default(&fAudioChannelsLayout, 2); // Stereo
+    }
+#else
     uint64_t fAudioChannelsLayout = 0;
+#endif
     int fAudioSampleRate = 0;
     int fAudioBitrate = 0;
 };

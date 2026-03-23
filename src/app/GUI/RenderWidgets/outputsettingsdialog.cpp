@@ -219,12 +219,24 @@ OutputSettings OutputSettingsDialog::getSettings() {
     }
     settings.fAudioBitrate = currentAudioBitrate;
 
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    AVChannelLayout currentChannelsLayout;
+    if(mAudioChannelLayoutsComboBox->count() > 0) {
+        const int layoutId = mAudioChannelLayoutsComboBox->currentIndex();
+        const uint64_t layout = mAudioChannelLayoutsList.at(layoutId);
+        av_channel_layout_from_int(&currentChannelsLayout, layout);
+    } else {
+        av_channel_layout_default(&currentChannelsLayout, 2);
+    }
+    settings.fAudioChannelsLayout = currentChannelsLayout;
+#else
     uint64_t currentChannelsLayout = 0;
     if(mAudioChannelLayoutsComboBox->count() > 0) {
         const int layoutId = mAudioChannelLayoutsComboBox->currentIndex();
         currentChannelsLayout = mAudioChannelLayoutsList.at(layoutId);
     }
     settings.fAudioChannelsLayout = currentChannelsLayout;
+#endif
 
     return settings;
 }
@@ -645,6 +657,19 @@ void OutputSettingsDialog::restoreInitialSettings() {
         mAudioBitrateComboBox->setCurrentIndex(currABRId);
     }
 
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    char layoutStr[64];
+    av_channel_layout_describe(&mInitialSettings.fAudioChannelsLayout,
+                               layoutStr, sizeof(layoutStr));
+    const int layoutIdx = mAudioChannelLayoutsComboBox->findText(
+        QString::fromUtf8(layoutStr));
+    if(layoutIdx == -1) {
+        const int st = mAudioChannelLayoutsComboBox->findText("Stereo");
+        mAudioChannelLayoutsComboBox->setCurrentIndex(st == -1 ? 0 : st);
+    } else {
+        mAudioChannelLayoutsComboBox->setCurrentIndex(layoutIdx);
+    }
+#else
     const uint64_t currentChannelsLayout = mInitialSettings.fAudioChannelsLayout;
     if(currentChannelsLayout == 0) {
         const int st = mAudioChannelLayoutsComboBox->findText("Stereo");
@@ -659,6 +684,7 @@ void OutputSettingsDialog::restoreInitialSettings() {
             mAudioChannelLayoutsComboBox->setCurrentText(channLayStr);
         }
     }
+#endif
 
     const bool noAudioCodecs = mAudioCodecsComboBox->count() == 0;
     mAudioGroupBox->setChecked(mInitialSettings.fAudioEnabled &&

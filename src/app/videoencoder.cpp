@@ -242,8 +242,13 @@ static void addAudioStream(OutputStream * const ost,
     /* put sample parameters */
     c->sample_fmt     = settings.fAudioSampleFormat;
     c->sample_rate    = settings.fAudioSampleRate;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    av_channel_layout_copy(&c->ch_layout, &settings.fAudioChannelsLayout);
+    c->channels       = ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS(c->ch_layout);
+#else
     c->channel_layout = settings.fAudioChannelsLayout;
     c->channels       = av_get_channel_layout_nb_channels(c->channel_layout);
+#endif
     c->bit_rate       = settings.fAudioBitrate;
     c->time_base      = { 1, c->sample_rate };
 
@@ -264,8 +269,13 @@ static void addAudioStream(OutputStream * const ost,
     if(!ost->fSwrCtx) RuntimeThrow("Error allocating the resampling context");
     av_opt_set_int(ost->fSwrCtx, "in_channel_count",  inSound.channelCount(), 0);
     av_opt_set_int(ost->fSwrCtx, "out_channel_count", c->channels, 0);
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    av_opt_set_chlayout(ost->fSwrCtx, "in_chlayout",  &inSound.fChannelLayout, 0);
+    av_opt_set_chlayout(ost->fSwrCtx, "out_chlayout", &c->ch_layout, 0);
+#else
     av_opt_set_int(ost->fSwrCtx, "in_channel_layout",  inSound.fChannelLayout, 0);
     av_opt_set_int(ost->fSwrCtx, "out_channel_layout", c->channel_layout, 0);
+#endif
     av_opt_set_int(ost->fSwrCtx, "in_sample_rate", inSound.fSampleRate, 0);
     av_opt_set_int(ost->fSwrCtx, "out_sample_rate", c->sample_rate, 0);
     av_opt_set_sample_fmt(ost->fSwrCtx, "in_sample_fmt", inSound.fSampleFormat, 0);
@@ -279,8 +289,15 @@ static void addAudioStream(OutputStream * const ost,
     qDebug() << "name" << "src" << "output";
     qDebug() << "channels" << inSound.channelCount() <<
                               c->channels;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    char in_layout[64], out_layout[64];
+    av_channel_layout_describe(&inSound.fChannelLayout, in_layout, sizeof(in_layout));
+    av_channel_layout_describe(&c->ch_layout, out_layout, sizeof(out_layout));
+    qDebug() << "channel layout" << in_layout << out_layout;
+#else
     qDebug() << "channel layout" << inSound.fChannelLayout <<
                                     c->channel_layout;
+#endif
     qDebug() << "sample rate" << inSound.fSampleRate <<
                                  c->sample_rate;
     qDebug() << "sample format" << av_get_sample_fmt_name(inSound.fSampleFormat) <<
@@ -290,7 +307,11 @@ static void addAudioStream(OutputStream * const ost,
 }
 
 static AVFrame *allocAudioFrame(enum AVSampleFormat sample_fmt,
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+                                const AVChannelLayout& channel_layout,
+#else
                                 const uint64_t& channel_layout,
+#endif
                                 const int sample_rate,
                                 const int nb_samples) {
     AVFrame * const frame = av_frame_alloc();
@@ -298,8 +319,13 @@ static AVFrame *allocAudioFrame(enum AVSampleFormat sample_fmt,
     if(!frame) RuntimeThrow("Error allocating an audio frame");
 
     frame->format = sample_fmt;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    av_channel_layout_copy(&frame->ch_layout, &channel_layout);
+    frame->channels = ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS(frame->ch_layout);
+#else
     frame->channel_layout = channel_layout;
     frame->channels = av_get_channel_layout_nb_channels(channel_layout);
+#endif
     frame->sample_rate = sample_rate;
     frame->nb_samples = nb_samples;
 
@@ -325,8 +351,13 @@ static void openAudio(const AVCodec * const codec, OutputStream * const ost,
     const bool varFS = c->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE;
     const int nb_samples = varFS ? 10000 : c->frame_size;
 
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    ost->fDstFrame = allocAudioFrame(c->sample_fmt, c->ch_layout,
+                                     c->sample_rate, nb_samples);
+#else
     ost->fDstFrame = allocAudioFrame(c->sample_fmt, c->channel_layout,
                                      c->sample_rate, nb_samples);
+#endif
     if(!ost->fDstFrame) RuntimeThrow("Could not alloc audio frame");
 
     ost->fSrcFrame = allocAudioFrame(inSound.fSampleFormat,
