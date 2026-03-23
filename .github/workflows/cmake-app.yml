@@ -56,6 +56,14 @@ jobs:
           ls -la mypaint-config.h
           cd ../..
 
+      - name: Build vendored quazip
+        run: |
+          cd third_party/quazip
+          qmake quazip.pro CONFIG+=release
+          make -j4
+          ls -la quazip/libquazip.a
+          cd ../..
+
       - name: Cache third-party builds
         id: cache-third-party
         uses: actions/cache@v4
