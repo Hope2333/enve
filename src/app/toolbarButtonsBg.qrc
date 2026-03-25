@@ -1,0 +1,7 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/toolbarButtonsBg">
+        <file>icons/toolbarButtons/uncheckedBg.svg</file>
+        <file>icons/toolbarButtons/checkedBg.svg</file>
+    </qresource>
+</RCC>

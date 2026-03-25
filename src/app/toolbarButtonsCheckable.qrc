@@ -1,0 +1,23 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/toolbarButtonsCheckable">
+        <file>icons/toolbarButtons/checkable/boxTransform.svg</file>
+        <file>icons/toolbarButtons/checkable/circleCreate.svg</file>
+        <file>icons/toolbarButtons/checkable/colorize.svg</file>
+        <file>icons/toolbarButtons/checkable/drawPath.svg</file>
+        <file>icons/toolbarButtons/checkable/erase.svg</file>
+        <file>icons/toolbarButtons/checkable/horizontalLines.svg</file>
+        <file>icons/toolbarButtons/checkable/lockAlpha.svg</file>
+        <file>icons/toolbarButtons/checkable/loop.svg</file>
+        <file>icons/toolbarButtons/checkable/nullCreate.svg</file>
+        <file>icons/toolbarButtons/checkable/onlySelectedVisible.svg</file>
+        <file>icons/toolbarButtons/checkable/paintCrop.svg</file>
+        <file>icons/toolbarButtons/checkable/paintMove.svg</file>
+        <file>icons/toolbarButtons/checkable/paint.svg</file>
+        <file>icons/toolbarButtons/checkable/pathCreate.svg</file>
+        <file>icons/toolbarButtons/checkable/pick.svg</file>
+        <file>icons/toolbarButtons/checkable/pointTransform.svg</file>
+        <file>icons/toolbarButtons/checkable/rectCreate.svg</file>
+        <file>icons/toolbarButtons/checkable/textCreate.svg</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,17 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/noInterpolation">
+        <file>icons/noInterpolation/fill_brush.png</file>
+        <file>icons/noInterpolation/fill_flat.png</file>
+        <file>icons/noInterpolation/fill_gradient.png</file>
+        <file>icons/noInterpolation/fill_gradient_radial.png</file>
+        <file>icons/noInterpolation/graphDisabled.png</file>
+        <file>icons/noInterpolation/graphEnabled.png</file>
+        <file>icons/noInterpolation/graphProperty.png</file>
+        <file>icons/noInterpolation/properties_fill.png</file>
+        <file>icons/noInterpolation/properties_stroke_paint.png</file>
+        <file>icons/noInterpolation/settings_dots.png</file>
+        <file>icons/noInterpolation/split_h.png</file>
+        <file>icons/noInterpolation/split_v.png</file>
+    </qresource>
+</RCC>

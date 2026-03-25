@@ -32,7 +32,22 @@ add_executable(enve ${enve_SOURCES} ${enve_HEADERS})
 
 # Add Qt resource files (.qrc)
 # Batch B.3: Resources migration
-qt5_add_resources(enve_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources.qrc)
+qt5_add_resources(enve_RESOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/resources.qrc
+    ${CMAKE_CURRENT_SOURCE_DIR}/toolbarButtonsBg.qrc
+    ${CMAKE_CURRENT_SOURCE_DIR}/toolbarButtonsPlain.qrc
+    ${CMAKE_CURRENT_SOURCE_DIR}/toolbarButtonsCheckable.qrc
+    ${CMAKE_CURRENT_SOURCE_DIR}/noInterpolation.qrc
+    ${CMAKE_CURRENT_SOURCE_DIR}/plain.qrc
+    ${CMAKE_CURRENT_SOURCE_DIR}/brushesClassic.qrc
+    ${CMAKE_CURRENT_SOURCE_DIR}/brushesDeevad.qrc
+    ${CMAKE_CURRENT_SOURCE_DIR}/brushesDieterle.qrc
+    ${CMAKE_CURRENT_SOURCE_DIR}/brushesExperimental.qrc
+    ${CMAKE_CURRENT_SOURCE_DIR}/brushesKaerhon.qrc
+    ${CMAKE_CURRENT_SOURCE_DIR}/brushesRamon.qrc
+    ${CMAKE_CURRENT_SOURCE_DIR}/brushesTanda.qrc
+    ${CMAKE_CURRENT_SOURCE_DIR}/tips.qrc
+)
 target_sources(enve PRIVATE ${enve_RESOURCES})
 
 # Define ENVE_VERSION macro
