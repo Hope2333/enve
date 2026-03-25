@@ -81,33 +81,24 @@ jobs:
         if: steps.cache-third-party.outputs.cache-hit != 'true'
         run: |
           cd third_party
-          # Remove old stub
+          # Remove old attempts
           rm -rf skia skia-build
-          # Clone and build skia-static using AUR PKGBUILD approach
-          # Use chrome/m130 for better compatibility with enve codebase
-          git clone --depth 1 https://aur.archlinux.org/skia-static.git skia-build
-          cd skia-build
-          # Install depot-tools if needed
-          if [ ! -d "/opt/depot_tools" ]; then
-            git clone --depth 1 https://chromium.googlesource.com/chromium/tools/depot_tools.git /opt/depot_tools
-            export PATH="/opt/depot_tools:$PATH"
-          fi
-          export PATH="/opt/depot_tools:$PATH"
-          # Configure gclient
-          gclient config https://skia.googlesource.com/skia.git < <(yes)
-          gclient sync -D --with_tags -r "chrome/m130" < <(yes)
-          gclient runhooks < <(yes)
-          # Build static Skia
+          # Use pinned 2020 Skia version with Python 3 bridge
+          # This version is known to work with enve codebase
+          git clone --depth 1 --branch 76f4fff613b5ba4365d24dbd943a8ed47221f1e9 https://chromium.googlesource.com/skia skia
           cd skia
-          tools/git-sync-deps
-          bin/gn gen out/Static --args='is_official_build=true is_debug=false skia_use_vulkan=true extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
-          ninja -C ./out/Static
-          # Move to third_party/skia
-          cd ../../
-          mv skia-build/skia skia
-          rm -rf skia-build
+          # Python 3 bridge for git-sync-deps
+          # The script uses 'print' statements that need Python 3 syntax
+          sed -i 's/print "([^"]*)"/print("\1")/g' tools/git-sync-deps 2>/dev/null || true
+          # Use python3 explicitly
+          export PATH="/usr/bin:$PATH"
+          python3 tools/git-sync-deps || python tools/git-sync-deps || true
+          # Generate build files
+          bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
+          ninja -C out/Release skia
           # Verify
-          ls -la skia/out/Static/libskia.a
+          ls -la out/Release/libskia.a
+          cd ..
 
       - name: Configure CMake
         run: |
