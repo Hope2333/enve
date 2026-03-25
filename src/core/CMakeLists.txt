@@ -752,6 +752,16 @@ target_include_directories(envecore PUBLIC
 )
 
 # Add compiler definitions
+target_compile_definitions(envecore PUBLIC
+    SK_GL
+    SK_GANPATH
+    GR_GL_ALLOW_UNSAFE_OPENGL_USAGE=1
+)
+
+# Skia static library
+target_link_libraries(envecore PUBLIC
+    ${CMAKE_SOURCE_DIR}/third_party/skia/out/Static/libskia.a
+)
 target_compile_definitions(envecore PRIVATE
     CORE_LIBRARY
     QT_NO_FOREACH

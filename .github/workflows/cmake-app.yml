@@ -43,7 +43,9 @@ jobs:
             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev \
             libfreetype6-dev libfontconfig1-dev libpng-dev libharfbuzz-dev \
             libglib2.0-dev libmypaint-dev libzstd-dev \
-            zlib1g-dev
+            zlib1g-dev \
+            libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
+            libexpat1-dev libwebp-dev
           # Verify FFmpeg 6.x
           pkg-config --modversion libavcodec libavutil
 
@@ -77,16 +79,34 @@ jobs:
       - name: Build vendored Skia (if not cached)
         if: steps.cache-third-party.outputs.cache-hit != 'true'
         run: |
-          # Create minimal stub libskia.a for CMake proof
-          # Full Skia build requires Python 2, which is unavailable on Ubuntu 24.04
-          # This stub allows CMake to proceed to actual app-side compilation
-          mkdir -p third_party/skia/out/Release
-          mkdir -p third_party/skia/include
-          echo "Stub Skia library for CMake proof - full build requires Python 2" > third_party/skia/out/Release/README
-          # Create empty but valid static library
-          echo "" | gcc -c -x c - -o /tmp/empty.o
-          ar rcs third_party/skia/out/Release/libskia.a /tmp/empty.o
-          ls -la third_party/skia/out/Release/libskia.a
+          cd third_party
+          # Remove old stub
+          rm -rf skia
+          # Clone and build skia-static using AUR PKGBUILD approach
+          git clone --depth 1 https://aur.archlinux.org/skia-static.git skia-build
+          cd skia-build
+          # Install depot-tools if needed
+          if [ ! -d "/opt/depot_tools" ]; then
+            git clone --depth 1 https://chromium.googlesource.com/chromium/tools/depot_tools.git /opt/depot_tools
+            export PATH="/opt/depot_tools:$PATH"
+          fi
+          export PATH="/opt/depot_tools:$PATH"
+          # Configure gclient
+          gclient config https://skia.googlesource.com/skia.git < <(yes)
+          gclient sync -D --with_tags -r "chrome/m144" < <(yes)
+          gclient runhooks < <(yes)
+          # Build static Skia
+          cd skia
+          tools/git-sync-deps
+          bin/gn gen out/Static --args='is_official_build=true is_debug=false skia_use_vulkan=true extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
+          ninja -C ./out/Static
+          # Move to third_party/skia
+          cd ../..
+          rm -rf skia
+          mv skia-build/skia skia
+          # Verify
+          ls -la skia/out/Static/libskia.a
+          cd ..
 
       - name: Configure CMake
         run: |

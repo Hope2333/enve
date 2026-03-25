@@ -89,6 +89,8 @@ target_link_libraries(enve PRIVATE
     Qt5::Concurrent
     Qt5::Multimedia
     Qt5::Widgets
+    # Skia dependencies
+    ${CMAKE_SOURCE_DIR}/third_party/skia/out/Static/libskia.a
 )
 
 # Optional: WebEngine (for SVG preview)
