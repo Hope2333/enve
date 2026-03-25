@@ -736,6 +736,10 @@ set(envecore_HEADERS
 # Create static library
 add_library(envecore STATIC ${envecore_SOURCES} ${envecore_HEADERS})
 
+# Core resources (.qrc)
+qt5_add_resources(envecore_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/coreresources.qrc)
+target_sources(envecore PRIVATE ${envecore_RESOURCES})
+
 # Set include directories
 target_include_directories(envecore PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
