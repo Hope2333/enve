@@ -758,9 +758,12 @@ target_compile_definitions(envecore PUBLIC
     GR_GL_ALLOW_UNSAFE_OPENGL_USAGE=1
 )
 
-# Skia static library
+# Skia static library and include path
 target_link_libraries(envecore PUBLIC
     ${CMAKE_SOURCE_DIR}/third_party/skia/out/Static/libskia.a
+)
+target_include_directories(envecore PUBLIC
+    ${CMAKE_SOURCE_DIR}/third_party/skia
 )
 target_compile_definitions(envecore PRIVATE
     CORE_LIBRARY
