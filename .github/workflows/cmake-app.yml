@@ -33,7 +33,7 @@ jobs:
       - name: Make CI scripts executable
         run: chmod +x scripts/ci/*.sh
 
-      - name: Install Linux build dependencies (FFmpeg 6.x)
+      - name: Install Linux build dependencies (FFmpeg 6.x + Skia)
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -45,7 +45,8 @@ jobs:
             libglib2.0-dev libmypaint-dev libzstd-dev \
             zlib1g-dev \
             libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
-            libexpat1-dev libwebp-dev
+            libexpat1-dev libwebp-dev \
+            libjpeg-turbo8-dev libxi-dev libxkbcommon-dev
           # Verify FFmpeg 6.x
           pkg-config --modversion libavcodec libavutil
 
