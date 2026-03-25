@@ -82,8 +82,9 @@ jobs:
         run: |
           cd third_party
           # Remove old stub
-          rm -rf skia
+          rm -rf skia skia-build
           # Clone and build skia-static using AUR PKGBUILD approach
+          # Use chrome/m130 for better compatibility with enve codebase
           git clone --depth 1 https://aur.archlinux.org/skia-static.git skia-build
           cd skia-build
           # Install depot-tools if needed
@@ -94,7 +95,7 @@ jobs:
           export PATH="/opt/depot_tools:$PATH"
           # Configure gclient
           gclient config https://skia.googlesource.com/skia.git < <(yes)
-          gclient sync -D --with_tags -r "chrome/m144" < <(yes)
+          gclient sync -D --with_tags -r "chrome/m130" < <(yes)
           gclient runhooks < <(yes)
           # Build static Skia
           cd skia
@@ -102,12 +103,11 @@ jobs:
           bin/gn gen out/Static --args='is_official_build=true is_debug=false skia_use_vulkan=true extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
           ninja -C ./out/Static
           # Move to third_party/skia
-          cd ../..
-          rm -rf skia
+          cd ../../
           mv skia-build/skia skia
+          rm -rf skia-build
           # Verify
           ls -la skia/out/Static/libskia.a
-          cd ..
 
       - name: Configure CMake
         run: |
