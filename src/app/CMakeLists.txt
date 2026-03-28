@@ -96,6 +96,8 @@ target_link_libraries(enve PRIVATE
     webpmux
     # GLX for Skia GL backend
     GLX
+    # JPEG for Skia JPEG decoder
+    jpeg
 )
 
 # Optional: WebEngine (for SVG preview)
