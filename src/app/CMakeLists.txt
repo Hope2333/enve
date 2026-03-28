@@ -94,6 +94,7 @@ target_link_libraries(enve PRIVATE
     # WebP for Skia WebP encoder
     webp
     webpmux
+    webpdemux
     # GLX for Skia GL backend
     GLX
     # JPEG for Skia JPEG decoder
