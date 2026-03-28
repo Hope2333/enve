@@ -94,6 +94,8 @@ target_link_libraries(enve PRIVATE
     # WebP for Skia WebP encoder
     webp
     webpmux
+    # GLX for Skia GL backend
+    GLX
 )
 
 # Optional: WebEngine (for SVG preview)
