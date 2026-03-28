@@ -91,7 +91,8 @@ target_link_libraries(enve PRIVATE
     Qt5::Widgets
     # Skia dependencies
     ${CMAKE_SOURCE_DIR}/third_party/skia/out/Release/libskia.a
-    # WebP mux for Skia WebP encoder
+    # WebP for Skia WebP encoder
+    webp
     webpmux
 )
 
