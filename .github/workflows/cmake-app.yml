@@ -45,7 +45,7 @@ jobs:
             libglib2.0-dev libmypaint-dev libzstd-dev \
             zlib1g-dev \
             libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
-            libexpat1-dev libwebp-dev \
+            libexpat1-dev libwebp-dev libwebpdemux-dev libwebpmux-dev \
             libjpeg-turbo8-dev libxi-dev libxkbcommon-dev
           # Verify FFmpeg 6.x
           pkg-config --modversion libavcodec libavutil
