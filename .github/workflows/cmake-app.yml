@@ -45,7 +45,7 @@ jobs:
             libglib2.0-dev libmypaint-dev libzstd-dev \
             zlib1g-dev \
             libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
-            libexpat1-dev libwebp-dev libwebpmux-dev \
+            libexpat1-dev libwebp-dev \
             libjpeg-turbo8-dev libxi-dev libxkbcommon-dev
           # Verify FFmpeg 6.x
           pkg-config --modversion libavcodec libavutil
@@ -97,7 +97,7 @@ jobs:
           export PATH="/usr/bin:$PATH"
           python3 tools/git-sync-deps || python tools/git-sync-deps || true
           # Generate build files
-          bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
+          bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true skia_enable_webp_encoder=false extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
           ninja -C out/Release skia
           # Verify
           ls -la out/Release/libskia.a
