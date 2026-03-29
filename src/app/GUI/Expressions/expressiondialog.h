@@ -16,6 +16,9 @@
 
 #ifndef EXPRESSIONDIALOG_H
 #define EXPRESSIONDIALOG_H
+
+#ifdef ENVE_USE_QSCINTILLA
+
 #include <QDialog>
 #include <QVBoxLayout>
 #include <QPushButton>
@@ -72,6 +75,16 @@ private:
     QLabel* mScriptError;
 
     ConnContext mAutoApplyConn;
+};
+
+#else // ENVE_USE_QSCINTILLA
+
+// Stub when QScintilla is disabled
+class ExpressionDialog {
+public:
+    ExpressionDialog(QrealAnimator* const target, QWidget * const parent = nullptr) {
+        // QScintilla disabled - ExpressionDialog not available
+    }
 };
 
 #endif // EXPRESSIONDIALOG_H
