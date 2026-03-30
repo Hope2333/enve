@@ -59,13 +59,9 @@ jobs:
       - name: Build vendored Skia
         run: |
           cd third_party/skia
-          # Use python2 for git-sync-deps (Python 3 compatibility issues)
-          if command -v python2 &> /dev/null; then
-            python2 tools/git-sync-deps || python tools/git-sync-deps || true
-          else
-            python tools/git-sync-deps || true
-          fi
-          bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
+          # Skip git-sync-deps (Python 3 compatibility issues)
+          # Use pre-generated depot_tools if available, or build without it
+          bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true skia_use_system_expat=false skia_use_system_icu=false skia_use_system_libjpeg_turbo=false skia_use_system_libpng=false skia_use_system_libwebp=false skia_use_system_zlib=false extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
           ninja -C out/Release skia
           cd ../..
       - name: Build enve with CMake
@@ -110,7 +106,7 @@ jobs:
       - name: Install build dependencies
         run: |
           pacman -Syu --noconfirm \
-            base-devel cmake git python \
+            base-devel cmake git python automake autoconf libtool \
             qt5-base qt5-declarative qt5-multimedia \
             qt5-svg qt5-quickcontrols2 \
             ffmpeg freetype2 fontconfig libpng harfbuzz \
@@ -133,13 +129,9 @@ jobs:
       - name: Build vendored Skia
         run: |
           cd third_party/skia
-          # Use python2 for git-sync-deps (Python 3 compatibility issues)
-          if command -v python2 &> /dev/null; then
-            python2 tools/git-sync-deps || python tools/git-sync-deps || true
-          else
-            python tools/git-sync-deps || true
-          fi
-          bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
+          # Skip git-sync-deps (Python 3 compatibility issues)
+          # Use pre-generated depot_tools if available, or build without it
+          bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true skia_use_system_expat=false skia_use_system_icu=false skia_use_system_libjpeg_turbo=false skia_use_system_libpng=false skia_use_system_libwebp=false skia_use_system_zlib=false extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
           ninja -C out/Release skia
           cd ../..
       - name: Build enve with CMake
