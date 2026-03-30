@@ -1,0 +1,8 @@
+12
+enve (0.0.0-1) unstable; urgency=medium
+
+  * Initial CMake-based build
+  * FFmpeg 6.x compatibility
+  * Skia graphics library integration
+
+ -- Hope2333 (幽零小喵) <u0catmiao@proton.me>  Sun, 30 Mar 2026 00:00:00 +0000

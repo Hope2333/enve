@@ -1,271 +1,236 @@
-name: Multi-Distro Build
+name: Multi-Distro Build (Phase 5 Packaging)
+
+# Phase 5: Build-System Migration - Packaging Infrastructure
+# Parallel builds for multiple Linux distributions
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - ".github/workflows/linux-multi-distro.yml"
-      - "Makefile"
-      - "scripts/ci/**"
-      - "*.pro"
-      - "src/**/*.pro"
   push:
     branches:
       - master
       - main
     paths:
       - ".github/workflows/linux-multi-distro.yml"
-      - "Makefile"
-      - "scripts/ci/**"
-      - "*.pro"
-      - "src/**/*.pro"
-
-env:
-  PROXY: http://localhost:7890
-  JOBS: 2
-  COMPRESS: 6
-  VER: 0.0.0
+      - "debian/**"
+      - "PKGBUILD"
+      - "AppImageBuilder.yml"
 
 jobs:
-  build-ubuntu:
-    name: Ubuntu 22.04 (Qt 5.15)
-    runs-on: ubuntu-22.04
-    timeout-minutes: 240
-
+  # Ubuntu LTS builds
+  ubuntu-2004:
+    name: Ubuntu 20.04 LTS (Focal)
+    runs-on: ubuntu-20.04
+    timeout-minutes: 180
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: Install dependencies
+      - name: Build with dpkg-buildpackage
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            qt5-qmake qtbase5-dev qtbase5-dev-tools \
-            qtmultimedia5-dev libqt5svg5-dev \
-            libqt5webchannel5-dev \
-            libavcodec-dev libavformat-dev libavutil-dev \
-            libswscale-dev libswresample-dev \
-            libmypaint-dev libgoogle-perftools-dev libunwind-dev \
-            libjson-c-dev libfontconfig1-dev \
-            libfreetype6-dev libpng-dev \
-            curl patch make g++ wget libfuse2
-
-      - name: Cache third-party builds
-        id: cache-third-party
-        uses: actions/cache@v4
+          sudo apt-get build-dep -y .
+          sudo apt-get install -y dpkg-dev debhelper
+          dpkg-buildpackage -us -uc -b
+      - uses: actions/upload-artifact@v4
         with:
-          path: |
-            build/Release/stamps/third_party
-            third_party/skia/out/Release
-            third_party/libmypaint/.libs
-            third_party/libmypaint/libmypaint
-            third_party/quazip/quazip
-            third_party/gperftools/.libs
-            third_party/qscintilla/Qt4Qt5
-          key: ${{ runner.os }}-third-party-${{ hashFiles('third_party/Makefile', 'third_party/**/Makefile') }}
-          restore-keys: |
-            ${{ runner.os }}-third-party-
+          name: enve-ubuntu-20.04
+          path: ../enve_*.deb
 
-      - name: Build with Makefile (default)
+  ubuntu-2204:
+    name: Ubuntu 22.04 LTS (Jammy)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build with dpkg-buildpackage
         run: |
-          make build VER=${{ env.VER }} JOBS=${{ env.JOBS }}
-
-      - name: Build with minimal dependencies
-        run: |
-          make clean
-          make build VER=${{ env.VER }} JOBS=${{ env.JOBS }} \
-            ENVE_USE_GPERFTOOLS=0 \
-            ENVE_USE_WEBENGINE=0 \
-            ENVE_USE_QSCINTILLA=0 \
-            ENVE_USE_OPENMP=0
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+          sudo apt-get update
+          sudo apt-get build-dep -y .
+          sudo apt-get install -y dpkg-dev debhelper
+          dpkg-buildpackage -us -uc -b
+      - uses: actions/upload-artifact@v4
         with:
           name: enve-ubuntu-22.04
-          path: |
-            build/Release/src/app/enve
-            build/Release/src/core/libenvecore.so*
+          path: ../enve_*.deb
 
-  build-debian:
-    name: Debian 12 (Bookworm)
-    runs-on: ubuntu-22.04
-    container: debian:bookworm
-    timeout-minutes: 240
-
+  ubuntu-2404:
+    name: Ubuntu 24.04 LTS (Noble)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
     steps:
-      - name: Install git in container
-        run: |
-          apt-get update && apt-get install -y git
-
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - name: Build with dpkg-buildpackage
+        run: |
+          sudo apt-get update
+          sudo apt-get build-dep -y .
+          sudo apt-get install -y dpkg-dev debhelper
+          dpkg-buildpackage -us -uc -b
+      - uses: actions/upload-artifact@v4
+        with:
+          name: enve-ubuntu-24.04
+          path: ../enve_*.deb
 
-      - name: Install dependencies
+  # Debian builds
+  debian-11:
+    name: Debian 11 (Bullseye)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 180
+    container: debian:11
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install build dependencies
         run: |
           apt-get update
-          apt-get install -y \
-            qt5-qmake qtbase5-dev qtbase5-dev-tools \
-            qtmultimedia5-dev libqt5svg5-dev \
-            libqt5webchannel5-dev \
-            libavcodec-dev libavformat-dev libavutil-dev \
-            libswscale-dev libswresample-dev \
-            libmypaint-dev libgoogle-perftools-dev \
-            libjson-c-dev libfontconfig1-dev \
-            libfreetype6-dev libpng-dev \
-            curl patch make g++ wget
-
-      - name: Cache third-party builds
-        id: cache-third-party
-        uses: actions/cache@v4
+          apt-get install -y sudo
+          apt-get build-dep -y .
+          apt-get install -y dpkg-dev debhelper
+      - name: Build with dpkg-buildpackage
+        run: dpkg-buildpackage -us -uc -b
+      - uses: actions/upload-artifact@v4
         with:
-          path: |
-            build/Release/stamps/third_party
-            third_party/skia/out/Release
-            third_party/libmypaint/.libs
-            third_party/libmypaint/libmypaint
-            third_party/quazip/quazip
-            third_party/gperftools/.libs
-            third_party/qscintilla/Qt4Qt5
-          key: Debian-12-third-party-${{ hashFiles('third_party/Makefile', 'third_party/**/Makefile') }}
-          restore-keys: |
-            Debian-12-third-party-
+          name: enve-debian-11
+          path: /enve_*.deb
 
-      - name: Build with Makefile
-        run: |
-          make build VER=${{ env.VER }} JOBS=${{ env.JOBS }}
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: enve-debian-12
-          path: |
-            build/Release/src/app/enve
-            build/Release/src/core/libenvecore.so*
-
-  build-arch:
-    name: Arch Linux (Latest Qt)
+  debian-12:
+    name: Debian 12 (Bookworm)
     runs-on: ubuntu-22.04
-    container: archlinux:latest
-    timeout-minutes: 240
-
+    timeout-minutes: 180
+    container: debian:12
     steps:
-      - name: Install git in container
-        run: |
-          pacman -Sy --noconfirm git
-
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: Install dependencies
+      - name: Install build dependencies
         run: |
-          pacman -Syu --noconfirm \
-            qt5-base qt5-multimedia qt5-svg qt5-declarative \
-            ffmpeg libmypaint gperftools \
-            json-c fontconfig freetype2 libpng \
-            curl patch make gcc git wget
-
-      - name: Cache third-party builds
-        id: cache-third-party
-        uses: actions/cache@v4
+          apt-get update
+          apt-get install -y sudo
+          apt-get build-dep -y .
+          apt-get install -y dpkg-dev debhelper
+      - name: Build with dpkg-buildpackage
+        run: dpkg-buildpackage -us -uc -b
+      - uses: actions/upload-artifact@v4
         with:
-          path: |
-            build/Release/stamps/third_party
-            third_party/skia/out/Release
-            third_party/libmypaint/.libs
-            third_party/libmypaint/libmypaint
-            third_party/quazip/quazip
-            third_party/gperftools/.libs
-            third_party/qscintilla/Qt4Qt5
-          key: Arch-Linux-third-party-${{ hashFiles('third_party/Makefile', 'third_party/**/Makefile') }}
-          restore-keys: |
-            Arch-Linux-third-party-
+          name: enve-debian-12
+          path: /enve_*.deb
 
-      - name: Build with Makefile
+  # Arch Linux build
+  archlinux:
+    name: Arch Linux
+    runs-on: ubuntu-22.04
+    timeout-minutes: 180
+    container: archlinux:latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install build dependencies
         run: |
-          make build VER=${{ env.VER }} JOBS=${{ env.JOBS }}
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+          pacman -Syu --noconfirm base-devel git cmake qt5-base qt5-tools
+      - name: Build with makepkg
+        run: |
+          makepkg -s --noconfirm
+      - uses: actions/upload-artifact@v4
         with:
           name: enve-archlinux
-          path: |
-            build/Release/src/app/enve
-            build/Release/src/core/libenvecore.so*
+          path: /enve-*.pkg.tar.zst
 
-  package-deb:
-    name: Debian Package
-    needs: [build-debian]
+  # AppImage build
+  appimage:
+    name: AppImage (Universal Linux)
     runs-on: ubuntu-22.04
-    timeout-minutes: 60
-    if: false  # Packaging follow-up lane, not a Phase 2 blocker
-
+    timeout-minutes: 180
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install build dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            qt5-qmake qtbase5-dev qtbase5-dev-tools \
-            qtmultimedia5-dev libqt5svg5-dev \
-            libqt5webchannel5-dev \
+            build-essential cmake ninja-build \
+            qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
+            libqt5svg5-dev qtquickcontrols2-5-dev \
             libavcodec-dev libavformat-dev libavutil-dev \
             libswscale-dev libswresample-dev \
-            libmypaint-dev libgoogle-perftools-dev libunwind-dev \
-            libjson-c-dev libfontconfig1-dev \
-            libfreetype6-dev libpng-dev \
-            curl patch make g++ wget
-
-      - name: Build and package with Makefile
+            libfreetype6-dev libfontconfig1-dev libpng-dev \
+            libharfbuzz-dev libglib2.0-dev libmypaint-dev \
+            libzstd-dev zlib1g-dev \
+            libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
+            libexpat1-dev libwebp-dev libjpeg-turbo8-dev \
+            libxi-dev libxkbcommon-dev \
+            desktop-file-utils appstream util-linux \
+            fuse libfuse2
+      - name: Build enve with CMake
         run: |
-          make all VER=${{ env.VER }} PKG=deb JOBS=${{ env.JOBS }} COMPRESS=${{ env.COMPRESS }} \
-            ENVE_USE_SYSTEM_LIBMYPAINT=1
-
-      - name: Upload .deb package
-        uses: actions/upload-artifact@v4
+          cmake -S . -B build/cmake -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/cmake -j"$(nproc)"
+      - name: Create AppImage
+        run: |
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage
+          ./linuxdeploy-x86_64.AppImage \
+            --appdir AppDir \
+            --executable build/cmake/bin/enve \
+            --desktop-file org.maurycy.enve.desktop \
+            --icon-file pixmaps/enve.svg \
+            --output appimage
+      - uses: actions/upload-artifact@v4
         with:
-          name: enve_0.0.0_amd64.deb
-          path: packing/deb/enve_*.deb
+          name: enve-appimage
+          path: Enve-*.AppImage
 
-  package-pkg:
-    name: Arch Package
-    needs: [build-arch]
+  # ARM64 builds (using emulation)
+  ubuntu-2404-arm64:
+    name: Ubuntu 24.04 ARM64
     runs-on: ubuntu-22.04
-    container: archlinux:latest
-    timeout-minutes: 60
-    if: false  # Packaging follow-up lane, not a Phase 2 blocker
-
+    timeout-minutes: 240
     steps:
-      - name: Install git in container
-        run: |
-          pacman -Sy --noconfirm git
-
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          pacman -Syu --noconfirm \
-            qt5-base qt5-multimedia qt5-svg qt5-declarative \
-            ffmpeg libmypaint gperftools \
-            json-c fontconfig freetype2 libpng \
-            curl patch make gcc git wget
-
-      - name: Build and package with Makefile
-        run: |
-          make all VER=${{ env.VER }} PKG=pkg JOBS=${{ env.JOBS }} COMPRESS=${{ env.COMPRESS }} \
-            ENVE_USE_SYSTEM_LIBMYPAINT=1
-
-      - name: Upload Arch package
-        uses: actions/upload-artifact@v4
+      - uses: actions/checkout@v4
         with:
-          name: enve-archlinux.pkg.tar.gz
-          path: packing/pacman/enve-*.pkg.tar.gz
+          submodules: recursive
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Build in ARM64 container
+        run: |
+          docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/work ubuntu:24.04 bash -c "
+            cd /work &&
+            apt-get update &&
+            apt-get build-dep -y . &&
+            apt-get install -y dpkg-dev debhelper &&
+            dpkg-buildpackage -us -uc -b -aarm64
+          "
+      - uses: actions/upload-artifact@v4
+        with:
+          name: enve-ubuntu-24.04-arm64
+          path: ../enve_*_arm64.deb
+
+  # RISC-V experimental (if feasible)
+  riscv64-experimental:
+    name: RISC-V 64 (Experimental)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 360
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build in RISC-V container (experimental)
+        run: |
+          docker run --rm --platform linux/riscv64 -v ${{ github.workspace }}:/work debian:unstable bash -c "
+            cd /work &&
+            apt-get update &&
+            apt-get build-dep -y . || true &&
+            apt-get install -y dpkg-dev debhelper &&
+            dpkg-buildpackage -us -uc -b -ariscv64 || true
+          "
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: enve-riscv64-experimental
+          path: ../enve_*_riscv64.deb

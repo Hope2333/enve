@@ -1,0 +1,81 @@
+# AppImage build configuration for enve
+# Uses AppImageBuilder (https://appimage-builder.readthedocs.io/)
+
+version: 1
+
+script:
+  # Clean up previous build
+  - rm -rf AppDir 2>/dev/null || true
+  - rm -rf build 2>/dev/null || true
+
+AppDir:
+  path: ./AppDir
+  app_info:
+    id: org.maurycy.enve
+    name: enve
+    icon: enve
+    version: 0.0.0
+    exec: usr/bin/enve
+    exec_args: $@
+  apt:
+    arch:
+      - amd64
+      - arm64
+    allow_unauthenticated: true
+    sources:
+      - sourceline: deb http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse
+      - sourceline: deb http://archive.ubuntu.com/ubuntu/ jammy-updates main restricted universe multiverse
+      - sourceline: deb http://archive.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse
+    include:
+      - qtbase5-dev
+      - qtdeclarative5-dev
+      - qtmultimedia5-dev
+      - libqt5svg5-dev
+      - qtquickcontrols2-5-dev
+      - libavcodec-dev
+      - libavformat-dev
+      - libavutil-dev
+      - libswscale-dev
+      - libswresample-dev
+      - libfreetype6-dev
+      - libfontconfig1-dev
+      - libpng-dev
+      - libharfbuzz-dev
+      - libglib2.0-dev
+      - libmypaint-dev
+      - libzstd-dev
+      - zlib1g-dev
+      - libgl1-mesa-dev
+      - libegl1-mesa-dev
+      - libglvnd-dev
+      - libexpat1-dev
+      - libwebp-dev
+      - libwebpmux-dev
+      - libwebpdemux-dev
+      - libjpeg-turbo8-dev
+      - libxi-dev
+      - libxkbcommon-dev
+      - libfuse2
+    exclude:
+      - adwaita-icon-theme:*
+      - humanity-icon-theme:*
+      - ubuntu-mono:*
+  runtime:
+    env:
+      QT_QPA_PLATFORM: xcb
+      QT_XCB_GL_INTEGRATION: glx
+  files:
+    include:
+      - usr/bin/enve
+      - usr/share/applications/org.maurycy.enve.desktop
+      - usr/share/icons/hicolor/scalable/apps/enve.svg
+    exclude:
+      - usr/share/man
+      - usr/share/doc/*/README.*
+      - usr/share/doc/*/changelog.*
+      - usr/share/doc/*/NEWS.*
+      - usr/share/doc/*/TODO.*
+
+AppImage:
+  arch: x86_64
+  update-information: guess

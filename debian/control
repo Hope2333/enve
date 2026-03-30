@@ -1,0 +1,84 @@
+Source: enve
+Section: graphics
+Priority: optional
+Maintainer: Hope2333 (幽零小喵) <u0catmiao@proton.me>
+Build-Depends: 
+ cmake (>= 3.16),
+ debhelper (>= 12),
+ qtbase5-dev (>= 5.12),
+ qtdeclarative5-dev,
+ qtmultimedia5-dev,
+ libqt5svg5-dev,
+ qtquickcontrols2-5-dev,
+ libavcodec-dev (>= 60),
+ libavformat-dev (>= 60),
+ libavutil-dev (>= 60),
+ libswscale-dev (>= 9),
+ libswresample-dev (>= 6),
+ libfreetype6-dev,
+ libfontconfig1-dev,
+ libpng-dev,
+ libharfbuzz-dev,
+ libglib2.0-dev,
+ libmypaint-dev,
+ libzstd-dev,
+ zlib1g-dev,
+ libgl1-mesa-dev,
+ libegl1-mesa-dev,
+ libglvnd-dev,
+ libexpat1-dev,
+ libwebp-dev,
+ libjpeg-turbo8-dev,
+ libxi-dev,
+ libxkbcommon-dev,
+ ninja-build,
+ autoconf,
+ automake,
+ libtool,
+ intltool
+Standards-Version: 4.6.2
+Homepage: https://maurycyliebner.github.io/
+Vcs-Git: https://github.com/Hope2333/enve.git
+Vcs-Browser: https://github.com/Hope2333/enve
+
+Package: enve
+Architecture: any
+Depends: 
+ ${shlibs:Depends},
+ ${misc:Depends},
+ qtbase5-abi (>= 5.15),
+ qtmultimedia5-plugins,
+ libqt5svg5,
+ libavcodec60,
+ libavformat60,
+ libavutil58,
+ libswscale7,
+ libswresample4,
+ libfreetype6,
+ libfontconfig1,
+ libpng16-16,
+ libharfbuzz0b,
+ libglib2.0-0,
+ libmypaint-1-0,
+ libzstd1,
+ zlib1g,
+ libgl1,
+ libegl1,
+ libexpat1,
+ libwebp7,
+ libwebpmux3,
+ libwebpdemux2,
+ libjpeg-turbo8,
+ libxi6,
+ libxkbcommon0
+Description: 2D animation software
+ Enve is a 2D animation software with support for vector and raster graphics.
+ It features a node-based workflow, advanced animation tools, and support
+ for various export formats including video and image sequences.
+ .
+ Features:
+  - Vector and raster graphics support
+  - Node-based compositing
+  - Advanced animation tools
+  - FFmpeg video export
+  - Skia graphics engine
