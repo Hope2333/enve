@@ -74,13 +74,41 @@ jobs:
           name: enve-ubuntu-24.04
           path: ../enve_*.deb
 
+  ubuntu-2604:
+    name: Ubuntu 26.04 LTS (Plucky - Pre-release)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build in Ubuntu 26.04 container
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/work ubuntu:26.04 bash -c "
+            cd /work &&
+            apt-get update &&
+            apt-get build-dep -y . || true &&
+            apt-get install -y dpkg-dev debhelper &&
+            dpkg-buildpackage -us -uc -b
+          "
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: enve-ubuntu-26.04
+          path: ../enve_*.deb
+
   # Debian builds
   debian-11:
     name: Debian 11 (Bullseye)
     runs-on: ubuntu-22.04
     timeout-minutes: 180
-    container: debian:11
+    container:
+      image: debian:11
+      options: --user root
     steps:
+      - name: Install Git
+        run: apt-get update && apt-get install -y git
       - uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -95,14 +123,18 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: enve-debian-11
-          path: /enve_*.deb
+          path: /__w/enve/enve_*.deb
 
   debian-12:
     name: Debian 12 (Bookworm)
     runs-on: ubuntu-22.04
     timeout-minutes: 180
-    container: debian:12
+    container:
+      image: debian:12
+      options: --user root
     steps:
+      - name: Install Git
+        run: apt-get update && apt-get install -y git
       - uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -117,15 +149,74 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: enve-debian-12
-          path: /enve_*.deb
+          path: /__w/enve/enve_*.deb
+
+  debian-13:
+    name: Debian 13 (Trixie - Testing)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 180
+    container:
+      image: debian:testing
+      options: --user root
+    steps:
+      - name: Install Git
+        run: apt-get update && apt-get install -y git
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y sudo
+          apt-get build-dep -y . || true
+          apt-get install -y dpkg-dev debhelper
+      - name: Build with dpkg-buildpackage
+        run: dpkg-buildpackage -us -uc -b || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: enve-debian-13
+          path: /__w/enve/enve_*.deb
+
+  debian-forky:
+    name: Debian 14 (Forky - Unstable/Experimental)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 180
+    continue-on-error: true
+    container:
+      image: debian:sid
+      options: --user root
+    steps:
+      - name: Install Git
+        run: apt-get update && apt-get install -y git
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y sudo
+          apt-get build-dep -y . || true
+          apt-get install -y dpkg-dev debhelper
+      - name: Build with dpkg-buildpackage
+        run: dpkg-buildpackage -us -uc -b || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: enve-debian-forky
+          path: /__w/enve/enve_*.deb
 
   # Arch Linux build
   archlinux:
     name: Arch Linux
     runs-on: ubuntu-22.04
     timeout-minutes: 180
-    container: archlinux:latest
+    container:
+      image: archlinux:latest
+      options: --user root
     steps:
+      - name: Install Git and base-devel
+        run: pacman -Syu --noconfirm git base-devel
       - uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -138,7 +229,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: enve-archlinux
-          path: /enve-*.pkg.tar.zst
+          path: /__w/enve/enve-*.pkg.tar.zst
 
   # AppImage build
   appimage:
@@ -168,7 +259,11 @@ jobs:
             fuse libfuse2
       - name: Build enve with CMake
         run: |
-          cmake -S . -B build/cmake -DCMAKE_BUILD_TYPE=Release
+          cmake -S . -B build/cmake \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DENVE_USE_WEBENGINE=OFF \
+            -DENVE_USE_QSCINTILLA=OFF \
+            -DENVE_USE_GPERFTOOLS=OFF
           cmake --build build/cmake -j"$(nproc)"
       - name: Create AppImage
         run: |
@@ -208,7 +303,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: enve-ubuntu-24.04-arm64
-          path: ../enve_*_arm64.deb
+          path: /__w/enve/enve_*_arm64.deb
 
   # RISC-V experimental (if feasible)
   riscv64-experimental:
@@ -233,4 +328,4 @@ jobs:
         if: always()
         with:
           name: enve-riscv64-experimental
-          path: ../enve_*_riscv64.deb
+          path: /__w/enve/enve_*_riscv64.deb
