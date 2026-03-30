@@ -82,9 +82,9 @@ private:
 // Stub when QScintilla is disabled
 class ExpressionDialog {
 public:
-    ExpressionDialog(QrealAnimator* const target, QWidget * const parent = nullptr) {
-        // QScintilla disabled - ExpressionDialog not available
-    }
+    ExpressionDialog(QrealAnimator* const target, QWidget * const parent = nullptr) {}
 };
+
+#endif // ENVE_USE_QSCINTILLA
 
 #endif // EXPRESSIONDIALOG_H

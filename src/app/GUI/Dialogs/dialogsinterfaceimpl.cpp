@@ -82,10 +82,15 @@ stdsptr<ShaderEffectCreator> DialogsInterfaceImpl::execShaderChooser(
 }
 
 void DialogsInterfaceImpl::showExpressionDialog(QrealAnimator* const target) const {
+#ifdef ENVE_USE_QSCINTILLA
     const auto parent = MainWindow::sGetInstance();
     const auto dialog = new ExpressionDialog(target, parent);
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     dialog->show();
+#else
+    // QScintilla disabled - ExpressionDialog not available
+    Q_UNUSED(target)
+#endif
 }
 
 void DialogsInterfaceImpl::showApplyExpressionDialog(QrealAnimator* const target) const {
