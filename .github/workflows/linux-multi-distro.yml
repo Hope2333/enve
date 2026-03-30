@@ -41,7 +41,7 @@ jobs:
             libharfbuzz-dev libglib2.0-dev libmypaint-dev \
             libzstd-dev zlib1g-dev \
             libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
-            libexpat1-dev libwebp-dev libwebpmux-dev libwebpdemux-dev \
+            libexpat1-dev libwebp-dev \
             libjpeg-turbo8-dev libxi-dev libxkbcommon-dev
       - name: Build vendored libmypaint
         run: |
@@ -86,15 +86,16 @@ jobs:
     name: Arch Linux
     runs-on: ubuntu-22.04
     timeout-minutes: 180
+    container:
+      image: archlinux:latest
+      options: --user root
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Make CI scripts executable
-        run: chmod +x scripts/ci/*.sh
       - name: Install build dependencies
         run: |
-          sudo pacman -Syu --noconfirm \
+          pacman -Syu --noconfirm \
             base-devel cmake git \
             qt5-base qt5-declarative qt5-multimedia \
             qt5-svg qt5-quickcontrols2 \
