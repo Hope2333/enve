@@ -1,8 +1,8 @@
 name: Multi-Distro Build (Phase 5 Packaging)
 
 # Phase 5: Build-System Migration - Packaging Infrastructure
-# Parallel builds for multiple Linux distributions
-# Based on proven CMake App Build (Phase 5) workflow
+# Focused builds: Arch Linux and Ubuntu 24.04 LTS only
+# Other distributions and architectures are queued but not built
 
 on:
   workflow_dispatch:
@@ -17,72 +17,7 @@ on:
       - "AppImageBuilder.yml"
 
 jobs:
-  # Ubuntu LTS builds - using proven CMake App Build pattern
-  ubuntu-2204:
-    name: Ubuntu 22.04 LTS (Jammy)
-    runs-on: ubuntu-22.04
-    timeout-minutes: 180
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Make CI scripts executable
-        run: chmod +x scripts/ci/*.sh
-      - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential cmake ninja-build autoconf automake libtool intltool \
-            qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
-            libqt5svg5-dev qtquickcontrols2-5-dev \
-            libavcodec-dev libavformat-dev libavutil-dev \
-            libswscale-dev libswresample-dev \
-            libfreetype6-dev libfontconfig1-dev libpng-dev \
-            libharfbuzz-dev libglib2.0-dev libmypaint-dev \
-            libzstd-dev zlib1g-dev \
-            libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
-            libexpat1-dev libwebp-dev libwebpmux-dev libwebpdemux-dev \
-            libjpeg-turbo8-dev libxi-dev libxkbcommon-dev \
-            dpkg-dev debhelper desktop-file-utils
-      - name: Build vendored libmypaint
-        run: |
-          cd third_party/libmypaint
-          ./autogen.sh
-          ./configure --disable-static --enable-shared
-          make -j"$(nproc)"
-          cd ../..
-      - name: Build vendored quazip
-        run: |
-          cd third_party/quazip
-          qmake quazip.pro CONFIG+=release
-          make -j"$(nproc)"
-          cd ../..
-      - name: Build enve with CMake
-        run: |
-          cmake -S . -B build/cmake \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DENVE_USE_SYSTEM_LIBMYPAINT=ON \
-            -DENVE_USE_WEBENGINE=OFF \
-            -DENVE_USE_QSCINTILLA=OFF \
-            -DENVE_USE_GPERFTOOLS=OFF
-          cmake --build build/cmake -j"$(nproc)"
-      - name: Create Debian package
-        run: |
-          mkdir -p debian-package/usr/bin
-          mkdir -p debian-package/usr/share/applications
-          mkdir -p debian-package/usr/share/icons/hicolor/scalable/apps
-          cp build/cmake/bin/enve debian-package/usr/bin/
-          cp org.maurycy.enve.desktop debian-package/usr/share/applications/
-          cp pixmaps/enve.svg debian-package/usr/share/icons/hicolor/scalable/apps/
-          cd debian-package
-          find . -type f | sed 's|^\./||' > ../FILES.txt
-          cd ..
-          tar -czf enve-ubuntu-22.04.tar.gz -C debian-package .
-      - uses: actions/upload-artifact@v4
-        with:
-          name: enve-ubuntu-22.04
-          path: enve-ubuntu-22.04.tar.gz
-
+  # Primary builds - Arch Linux and Ubuntu 24.04 LTS
   ubuntu-2404:
     name: Ubuntu 24.04 LTS (Noble)
     runs-on: ubuntu-24.04
@@ -107,8 +42,7 @@ jobs:
             libzstd-dev zlib1g-dev \
             libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
             libexpat1-dev libwebp-dev libwebpmux-dev libwebpdemux-dev \
-            libjpeg-turbo8-dev libxi-dev libxkbcommon-dev \
-            dpkg-dev debhelper desktop-file-utils
+            libjpeg-turbo8-dev libxi-dev libxkbcommon-dev
       - name: Build vendored libmypaint
         run: |
           cd third_party/libmypaint
@@ -131,249 +65,23 @@ jobs:
             -DENVE_USE_QSCINTILLA=OFF \
             -DENVE_USE_GPERFTOOLS=OFF
           cmake --build build/cmake -j"$(nproc)"
-      - name: Create Debian package
+      - name: Create package archive
         run: |
-          mkdir -p debian-package/usr/bin
-          mkdir -p debian-package/usr/share/applications
-          mkdir -p debian-package/usr/share/icons/hicolor/scalable/apps
-          cp build/cmake/bin/enve debian-package/usr/bin/
-          cp org.maurycy.enve.desktop debian-package/usr/share/applications/
-          cp pixmaps/enve.svg debian-package/usr/share/icons/hicolor/scalable/apps/
-          cd debian-package
+          mkdir -p package/usr/bin
+          mkdir -p package/usr/share/applications
+          mkdir -p package/usr/share/icons/hicolor/scalable/apps
+          cp build/cmake/bin/enve package/usr/bin/
+          cp org.maurycy.enve.desktop package/usr/share/applications/
+          cp pixmaps/enve.svg package/usr/share/icons/hicolor/scalable/apps/
+          cd package
           find . -type f | sed 's|^\./||' > ../FILES.txt
           cd ..
-          tar -czf enve-ubuntu-24.04.tar.gz -C debian-package .
+          tar -czf enve-ubuntu-24.04.tar.gz -C package .
       - uses: actions/upload-artifact@v4
         with:
           name: enve-ubuntu-24.04
           path: enve-ubuntu-24.04.tar.gz
 
-  ubuntu-2604:
-    name: Ubuntu 26.04 LTS (Plucky - Pre-release)
-    runs-on: ubuntu-24.04
-    timeout-minutes: 180
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Build in Ubuntu 26.04 container
-        run: |
-          docker run --rm -v ${{ github.workspace }}:/work ubuntu:26.04 bash -c "
-            cd /work &&
-            apt-get update &&
-            apt-get install -y \
-              build-essential cmake ninja-build autoconf automake libtool intltool \
-              qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
-              libqt5svg5-dev qtquickcontrols2-5-dev \
-              libavcodec-dev libavformat-dev libavutil-dev \
-              libswscale-dev libswresample-dev \
-              libfreetype6-dev libfontconfig1-dev libpng-dev \
-              libharfbuzz-dev libglib2.0-dev libmypaint-dev \
-              libzstd-dev zlib1g-dev \
-              libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
-              libexpat1-dev libwebp-dev libwebpmux-dev libwebpdemux-dev \
-              libjpeg-turbo8-dev libxi-dev libxkbcommon-dev \
-              dpkg-dev debhelper &&
-            cd third_party/libmypaint &&
-            ./autogen.sh &&
-            ./configure --disable-static --enable-shared &&
-            make -j\"\$(nproc)\" &&
-            cd ../.. &&
-            cd third_party/quazip &&
-            qmake quazip.pro CONFIG+=release &&
-            make -j\"\$(nproc)\" &&
-            cd ../.. &&
-            cmake -S . -B build/cmake \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DENVE_USE_SYSTEM_LIBMYPAINT=ON \
-              -DENVE_USE_WEBENGINE=OFF \
-              -DENVE_USE_QSCINTILLA=OFF \
-              -DENVE_USE_GPERFTOOLS=OFF &&
-            cmake --build build/cmake -j\"\$(nproc)\" &&
-            mkdir -p debian-package/usr/bin &&
-            cp build/cmake/bin/enve debian-package/usr/bin/ &&
-            tar -czf enve-ubuntu-26.04.tar.gz -C debian-package .
-          "
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: enve-ubuntu-26.04
-          path: enve-ubuntu-26.04.tar.gz
-
-  # Debian builds - using proven CMake App Build pattern
-  debian-12:
-    name: Debian 12 (Bookworm)
-    runs-on: ubuntu-22.04
-    timeout-minutes: 180
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Make CI scripts executable
-        run: chmod +x scripts/ci/*.sh
-      - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential cmake ninja-build autoconf automake libtool intltool \
-            qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
-            libqt5svg5-dev qtquickcontrols2-5-dev \
-            libavcodec-dev libavformat-dev libavutil-dev \
-            libswscale-dev libswresample-dev \
-            libfreetype6-dev libfontconfig1-dev libpng-dev \
-            libharfbuzz-dev libglib2.0-dev libmypaint-dev \
-            libzstd-dev zlib1g-dev \
-            libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
-            libexpat1-dev libwebp-dev libwebpmux-dev libwebpdemux-dev \
-            libjpeg-turbo8-dev libxi-dev libxkbcommon-dev \
-            dpkg-dev debhelper desktop-file-utils
-      - name: Build vendored libmypaint
-        run: |
-          cd third_party/libmypaint
-          ./autogen.sh
-          ./configure --disable-static --enable-shared
-          make -j"$(nproc)"
-          cd ../..
-      - name: Build vendored quazip
-        run: |
-          cd third_party/quazip
-          qmake quazip.pro CONFIG+=release
-          make -j"$(nproc)"
-          cd ../..
-      - name: Build enve with CMake
-        run: |
-          cmake -S . -B build/cmake \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DENVE_USE_SYSTEM_LIBMYPAINT=ON \
-            -DENVE_USE_WEBENGINE=OFF \
-            -DENVE_USE_QSCINTILLA=OFF \
-            -DENVE_USE_GPERFTOOLS=OFF
-          cmake --build build/cmake -j"$(nproc)"
-      - name: Create Debian package
-        run: |
-          mkdir -p debian-package/usr/bin
-          mkdir -p debian-package/usr/share/applications
-          mkdir -p debian-package/usr/share/icons/hicolor/scalable/apps
-          cp build/cmake/bin/enve debian-package/usr/bin/
-          cp org.maurycy.enve.desktop debian-package/usr/share/applications/
-          cp pixmaps/enve.svg debian-package/usr/share/icons/hicolor/scalable/apps/
-          cd debian-package
-          find . -type f | sed 's|^\./||' > ../FILES.txt
-          cd ..
-          tar -czf enve-debian-12.tar.gz -C debian-package .
-      - uses: actions/upload-artifact@v4
-        with:
-          name: enve-debian-12
-          path: enve-debian-12.tar.gz
-
-  debian-13:
-    name: Debian 13 (Trixie - Testing)
-    runs-on: ubuntu-22.04
-    timeout-minutes: 180
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Build in Debian Testing container
-        run: |
-          docker run --rm -v ${{ github.workspace }}:/work debian:testing bash -c "
-            cd /work &&
-            apt-get update &&
-            apt-get install -y \
-              build-essential cmake ninja-build autoconf automake libtool intltool \
-              qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
-              libqt5svg5-dev qtquickcontrols2-5-dev \
-              libavcodec-dev libavformat-dev libavutil-dev \
-              libswscale-dev libswresample-dev \
-              libfreetype6-dev libfontconfig1-dev libpng-dev \
-              libharfbuzz-dev libglib2.0-dev libmypaint-dev \
-              libzstd-dev zlib1g-dev \
-              libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
-              libexpat1-dev libwebp-dev libwebpmux-dev libwebpdemux-dev \
-              libjpeg-turbo8-dev libxi-dev libxkbcommon-dev \
-              dpkg-dev debhelper &&
-            cd third_party/libmypaint &&
-            ./autogen.sh &&
-            ./configure --disable-static --enable-shared &&
-            make -j\"\$(nproc)\" &&
-            cd ../.. &&
-            cd third_party/quazip &&
-            qmake quazip.pro CONFIG+=release &&
-            make -j\"\$(nproc)\" &&
-            cd ../.. &&
-            cmake -S . -B build/cmake \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DENVE_USE_SYSTEM_LIBMYPAINT=ON \
-              -DENVE_USE_WEBENGINE=OFF \
-              -DENVE_USE_QSCINTILLA=OFF \
-              -DENVE_USE_GPERFTOOLS=OFF &&
-            cmake --build build/cmake -j\"\$(nproc)\" &&
-            mkdir -p debian-package/usr/bin &&
-            cp build/cmake/bin/enve debian-package/usr/bin/ &&
-            tar -czf enve-debian-13.tar.gz -C debian-package .
-          "
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: enve-debian-13
-          path: enve-debian-13.tar.gz
-
-  debian-forky:
-    name: Debian 14 (Forky - Unstable/Experimental)
-    runs-on: ubuntu-22.04
-    timeout-minutes: 180
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Build in Debian Unstable container
-        run: |
-          docker run --rm -v ${{ github.workspace }}:/work debian:sid bash -c "
-            cd /work &&
-            apt-get update &&
-            apt-get install -y \
-              build-essential cmake ninja-build autoconf automake libtool intltool \
-              qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
-              libqt5svg5-dev qtquickcontrols2-5-dev \
-              libavcodec-dev libavformat-dev libavutil-dev \
-              libswscale-dev libswresample-dev \
-              libfreetype6-dev libfontconfig1-dev libpng-dev \
-              libharfbuzz-dev libglib2.0-dev libmypaint-dev \
-              libzstd-dev zlib1g-dev \
-              libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
-              libexpat1-dev libwebp-dev libwebpmux-dev libwebpdemux-dev \
-              libjpeg-turbo8-dev libxi-dev libxkbcommon-dev \
-              dpkg-dev debhelper &&
-            cd third_party/libmypaint &&
-            ./autogen.sh &&
-            ./configure --disable-static --enable-shared &&
-            make -j\"\$(nproc)\" &&
-            cd ../.. &&
-            cd third_party/quazip &&
-            qmake quazip.pro CONFIG+=release &&
-            make -j\"\$(nproc)\" &&
-            cd ../.. &&
-            cmake -S . -B build/cmake \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DENVE_USE_SYSTEM_LIBMYPAINT=ON \
-              -DENVE_USE_WEBENGINE=OFF \
-              -DENVE_USE_QSCINTILLA=OFF \
-              -DENVE_USE_GPERFTOOLS=OFF &&
-            cmake --build build/cmake -j\"\$(nproc)\" &&
-            mkdir -p debian-package/usr/bin &&
-            cp build/cmake/bin/enve debian-package/usr/bin/ &&
-            tar -czf enve-debian-forky.tar.gz -C debian-package .
-          "
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: enve-debian-forky
-          path: enve-debian-forky.tar.gz
-
-  # Arch Linux build - using proven CMake App Build pattern
   archlinux:
     name: Arch Linux
     runs-on: ubuntu-22.04
@@ -416,196 +124,101 @@ jobs:
             -DENVE_USE_QSCINTILLA=OFF \
             -DENVE_USE_GPERFTOOLS=OFF
           cmake --build build/cmake -j"$(nproc)"
-      - name: Create Arch package
+      - name: Create package archive
         run: |
-          mkdir -p arch-package/usr/bin
-          mkdir -p arch-package/usr/share/applications
-          mkdir -p arch-package/usr/share/icons/hicolor/scalable/apps
-          cp build/cmake/bin/enve arch-package/usr/bin/
-          cp org.maurycy.enve.desktop arch-package/usr/share/applications/
-          cp pixmaps/enve.svg arch-package/usr/share/icons/hicolor/scalable/apps/
-          cd arch-package
+          mkdir -p package/usr/bin
+          mkdir -p package/usr/share/applications
+          mkdir -p package/usr/share/icons/hicolor/scalable/apps
+          cp build/cmake/bin/enve package/usr/bin/
+          cp org.maurycy.enve.desktop package/usr/share/applications/
+          cp pixmaps/enve.svg package/usr/share/icons/hicolor/scalable/apps/
+          cd package
           find . -type f | sed 's|^\./||' > ../FILES.txt
           cd ..
-          tar -czf enve-archlinux.tar.gz -C arch-package .
+          tar -czf enve-archlinux.tar.gz -C package .
       - uses: actions/upload-artifact@v4
         with:
           name: enve-archlinux
           path: enve-archlinux.tar.gz
 
-  # AppImage build - using proven CMake App Build pattern
-  appimage:
-    name: AppImage (Universal Linux)
-    runs-on: ubuntu-22.04
-    timeout-minutes: 180
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Make CI scripts executable
-        run: chmod +x scripts/ci/*.sh
-      - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential cmake ninja-build autoconf automake libtool intltool \
-            qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
-            libqt5svg5-dev qtquickcontrols2-5-dev \
-            libavcodec-dev libavformat-dev libavutil-dev \
-            libswscale-dev libswresample-dev \
-            libfreetype6-dev libfontconfig1-dev libpng-dev \
-            libharfbuzz-dev libglib2.0-dev libmypaint-dev \
-            libzstd-dev zlib1g-dev \
-            libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
-            libexpat1-dev libwebp-dev libwebpmux-dev libwebpdemux-dev \
-            libjpeg-turbo8-dev libxi-dev libxkbcommon-dev \
-            desktop-file-utils appstream util-linux \
-            libfuse2
-      - name: Build vendored libmypaint
-        run: |
-          cd third_party/libmypaint
-          ./autogen.sh
-          ./configure --disable-static --enable-shared
-          make -j"$(nproc)"
-          cd ../..
-      - name: Build vendored quazip
-        run: |
-          cd third_party/quazip
-          qmake quazip.pro CONFIG+=release
-          make -j"$(nproc)"
-          cd ../..
-      - name: Build enve with CMake
-        run: |
-          cmake -S . -B build/cmake \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DENVE_USE_SYSTEM_LIBMYPAINT=ON \
-            -DENVE_USE_WEBENGINE=OFF \
-            -DENVE_USE_QSCINTILLA=OFF \
-            -DENVE_USE_GPERFTOOLS=OFF
-          cmake --build build/cmake -j"$(nproc)"
-      - name: Create AppImage
-        run: |
-          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-          chmod +x linuxdeploy-x86_64.AppImage
-          ./linuxdeploy-x86_64.AppImage \
-            --appdir AppDir \
-            --executable build/cmake/bin/enve \
-            --desktop-file org.maurycy.enve.desktop \
-            --icon-file pixmaps/enve.svg \
-            --output appimage
-      - uses: actions/upload-artifact@v4
-        with:
-          name: enve-appimage
-          path: Enve-*.AppImage
+  # Queued but not built - other distributions (commented out)
+  # To enable, remove the '# QUEUED:' prefix from job names
 
-  # ARM64 builds (using emulation, runs after amd64 builds complete)
-  ubuntu-2404-arm64:
-    name: Ubuntu 24.04 ARM64
-    runs-on: ubuntu-22.04
-    timeout-minutes: 240
-    needs: [ubuntu-2404]
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Build in ARM64 container
-        run: |
-          docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/work ubuntu:24.04 bash -c "
-            cd /work &&
-            apt-get update &&
-            apt-get install -y \
-              build-essential cmake ninja-build autoconf automake libtool intltool \
-              qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
-              libqt5svg5-dev qtquickcontrols2-5-dev \
-              libavcodec-dev libavformat-dev libavutil-dev \
-              libswscale-dev libswresample-dev \
-              libfreetype6-dev libfontconfig1-dev libpng-dev \
-              libharfbuzz-dev libglib2.0-dev libmypaint-dev \
-              libzstd-dev zlib1g-dev \
-              libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
-              libexpat1-dev libwebp-dev libwebpmux-dev libwebpdemux-dev \
-              libjpeg-turbo8-dev libxi-dev libxkbcommon-dev &&
-            cd third_party/libmypaint &&
-            ./autogen.sh &&
-            ./configure --disable-static --enable-shared &&
-            make -j\"\$(nproc)\" &&
-            cd ../.. &&
-            cd third_party/quazip &&
-            qmake quazip.pro CONFIG+=release &&
-            make -j\"\$(nproc)\" &&
-            cd ../.. &&
-            cmake -S . -B build/cmake \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DENVE_USE_SYSTEM_LIBMYPAINT=ON \
-              -DENVE_USE_WEBENGINE=OFF \
-              -DENVE_USE_QSCINTILLA=OFF \
-              -DENVE_USE_GPERFTOOLS=OFF &&
-            cmake --build build/cmake -j\"\$(nproc)\" &&
-            mkdir -p debian-package/usr/bin &&
-            cp build/cmake/bin/enve debian-package/usr/bin/ &&
-            tar -czf enve-ubuntu-24.04-arm64.tar.gz -C debian-package .
-          "
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: enve-ubuntu-24.04-arm64
-          path: enve-ubuntu-24.04-arm64.tar.gz
+  # QUEUED_ubuntu-2204:
+  #   name: Ubuntu 22.04 LTS (Jammy) - QUEUED
+  #   runs-on: ubuntu-22.04
+  #   timeout-minutes: 180
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
+  #     - name: Build (same as ubuntu-2404)
+  #       run: echo "Queued - not building"
 
-  # RISC-V experimental (runs after amd64 builds complete)
-  riscv64-experimental:
-    name: RISC-V 64 (Experimental)
-    runs-on: ubuntu-22.04
-    timeout-minutes: 360
-    needs: [ubuntu-2404]
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Build in RISC-V container (experimental)
-        run: |
-          docker run --rm --platform linux/riscv64 -v ${{ github.workspace }}:/work debian:unstable bash -c "
-            cd /work &&
-            apt-get update &&
-            apt-get install -y \
-              build-essential cmake ninja-build autoconf automake libtool intltool \
-              qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
-              libqt5svg5-dev qtquickcontrols2-5-dev \
-              libavcodec-dev libavformat-dev libavutil-dev \
-              libswscale-dev libswresample-dev \
-              libfreetype6-dev libfontconfig1-dev libpng-dev \
-              libharfbuzz-dev libglib2.0-dev libmypaint-dev \
-              libzstd-dev zlib1g-dev \
-              libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
-              libexpat1-dev libwebp-dev libwebpmux-dev libwebpdemux-dev \
-              libjpeg-turbo8-dev libxi-dev libxkbcommon-dev || true &&
-            cd third_party/libmypaint &&
-            ./autogen.sh &&
-            ./configure --disable-static --enable-shared &&
-            make -j\"\$(nproc)\" || true &&
-            cd ../.. &&
-            cd third_party/quazip &&
-            qmake quazip.pro CONFIG+=release &&
-            make -j\"\$(nproc)\" || true &&
-            cd ../.. &&
-            cmake -S . -B build/cmake \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DENVE_USE_SYSTEM_LIBMYPAINT=ON \
-              -DENVE_USE_WEBENGINE=OFF \
-              -DENVE_USE_QSCINTILLA=OFF \
-              -DENVE_USE_GPERFTOOLS=OFF &&
-            cmake --build build/cmake -j\"\$(nproc)\" || true &&
-            mkdir -p debian-package/usr/bin &&
-            cp build/cmake/bin/enve debian-package/usr/bin/ &&
-            tar -czf enve-riscv64-experimental.tar.gz -C debian-package . || true
-          "
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: enve-riscv64-experimental
-          path: enve-riscv64-experimental.tar.gz
+  # QUEUED_debian-12:
+  #   name: Debian 12 (Bookworm) - QUEUED
+  #   runs-on: ubuntu-22.04
+  #   timeout-minutes: 180
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
+  #     - name: Build (same as ubuntu-2404)
+  #       run: echo "Queued - not building"
+
+  # QUEUED_debian-13:
+  #   name: Debian 13 (Trixie) - QUEUED
+  #   runs-on: ubuntu-22.04
+  #   timeout-minutes: 180
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
+  #     - name: Build (same as ubuntu-2404)
+  #       run: echo "Queued - not building"
+
+  # QUEUED_debian-forky:
+  #   name: Debian 14 (Forky) - QUEUED
+  #   runs-on: ubuntu-22.04
+  #   timeout-minutes: 180
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
+  #     - name: Build (same as ubuntu-2404)
+  #       run: echo "Queued - not building"
+
+  # QUEUED_appimage:
+  #   name: AppImage - QUEUED
+  #   runs-on: ubuntu-22.04
+  #   timeout-minutes: 180
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
+  #     - name: Build (same as ubuntu-2404)
+  #       run: echo "Queued - not building"
+
+  # QUEUED_ubuntu-2404-arm64:
+  #   name: Ubuntu 24.04 ARM64 - QUEUED
+  #   runs-on: ubuntu-22.04
+  #   timeout-minutes: 240
+  #   needs: [ubuntu-2404]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
+  #     - name: Build (same as ubuntu-2404-arm64)
+  #       run: echo "Queued - not building"
+
+  # QUEUED_riscv64-experimental:
+  #   name: RISC-V 64 (Experimental) - QUEUED
+  #   runs-on: ubuntu-22.04
+  #   timeout-minutes: 360
+  #   needs: [ubuntu-2404]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
+  #     - name: Build (same as riscv64-experimental)
+  #       run: echo "Queued - not building"
