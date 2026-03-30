@@ -91,16 +91,23 @@ jobs:
           git clone https://chromium.googlesource.com/skia skia
           cd skia
           git checkout 76f4fff613b5ba4365d24dbd943a8ed47221f1e9
-          # Python 3 bridge for all Python scripts
-          # Fix subprocess.check_output bytes vs string issue
-          find tools gn -name "*.py" -exec sed -i 's/subprocess.check_output(\([^)]*\))/subprocess.check_output(\1, encoding="utf-8")/g' {} \; 2>/dev/null || true
-          # Fix print statements
-          sed -i 's/print "/print("/g' tools/git-sync-deps 2>/dev/null || true
+          
+          # Phase 6.C: Python 3 compatibility fixes
+          # Fix gn/is_clang.py: Use text=True for subprocess.check_output
+          sed -i 's/subprocess.check_output(\([^)]*\))/subprocess.check_output(\1, text=True)/g' gn/is_clang.py
+          sed -i "s/b'clang'/'clang'/g" gn/is_clang.py
+          sed -i 's|#!/usr/bin/env python|#!/usr/bin/env python3|' gn/is_clang.py
+          
+          # Fix tools/git-sync-deps: Use values() instead of itervalues()
+          sed -i 's/itervalues()/values()/g' tools/git-sync-deps
+          sed -i 's|#!/usr/bin/env python|#!/usr/bin/env python3|' tools/git-sync-deps
+          
           # Use python3 explicitly
           export PATH="/usr/bin:$PATH"
-          python3 tools/git-sync-deps || python tools/git-sync-deps || true
+          python3 tools/git-sync-deps || true
+          
           # Generate build files
-          bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true skia_enable_webp_encoder=false extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
+          bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true skia_use_system_expat=false skia_use_system_icu=false skia_use_system_libjpeg_turbo=false skia_use_system_libpng=false skia_use_system_libwebp=false skia_use_system_zlib=false extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
           ninja -C out/Release skia
           # Verify
           ls -la out/Release/libskia.a
