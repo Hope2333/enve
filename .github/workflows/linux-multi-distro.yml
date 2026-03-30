@@ -56,6 +56,13 @@ jobs:
           qmake quazip.pro CONFIG+=release
           make -j"$(nproc)"
           cd ../..
+      - name: Build vendored Skia
+        run: |
+          cd third_party/skia
+          python tools/git-sync-deps
+          bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
+          ninja -C out/Release skia
+          cd ../..
       - name: Build enve with CMake
         run: |
           cmake -S . -B build/cmake \
@@ -96,7 +103,7 @@ jobs:
       - name: Install build dependencies
         run: |
           pacman -Syu --noconfirm \
-            base-devel cmake git \
+            base-devel cmake git python \
             qt5-base qt5-declarative qt5-multimedia \
             qt5-svg qt5-quickcontrols2 \
             ffmpeg freetype2 fontconfig libpng harfbuzz \
@@ -115,6 +122,13 @@ jobs:
           cd third_party/quazip
           qmake quazip.pro CONFIG+=release
           make -j"$(nproc)"
+          cd ../..
+      - name: Build vendored Skia
+        run: |
+          cd third_party/skia
+          python tools/git-sync-deps
+          bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
+          ninja -C out/Release skia
           cd ../..
       - name: Build enve with CMake
         run: |
