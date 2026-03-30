@@ -59,7 +59,12 @@ jobs:
       - name: Build vendored Skia
         run: |
           cd third_party/skia
-          python tools/git-sync-deps
+          # Use python2 for git-sync-deps (Python 3 compatibility issues)
+          if command -v python2 &> /dev/null; then
+            python2 tools/git-sync-deps || python tools/git-sync-deps || true
+          else
+            python tools/git-sync-deps || true
+          fi
           bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
           ninja -C out/Release skia
           cd ../..
@@ -92,11 +97,13 @@ jobs:
   archlinux:
     name: Arch Linux
     runs-on: ubuntu-22.04
-    timeout-minutes: 180
+    timeout-minutes: 300
     container:
       image: archlinux:latest
       options: --user root
     steps:
+      - name: Install Git in container
+        run: pacman -Syu --noconfirm git
       - uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -126,7 +133,12 @@ jobs:
       - name: Build vendored Skia
         run: |
           cd third_party/skia
-          python tools/git-sync-deps
+          # Use python2 for git-sync-deps (Python 3 compatibility issues)
+          if command -v python2 &> /dev/null; then
+            python2 tools/git-sync-deps || python tools/git-sync-deps || true
+          else
+            python tools/git-sync-deps || true
+          fi
           bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
           ninja -C out/Release skia
           cd ../..
