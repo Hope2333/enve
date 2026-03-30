@@ -59,8 +59,14 @@ jobs:
       - name: Build vendored Skia
         run: |
           cd third_party/skia
-          # Skip git-sync-deps (Python 3 compatibility issues)
-          # Use pre-generated depot_tools if available, or build without it
+          # Fetch depot_tools for gn
+          if [ ! -d "../depot_tools" ]; then
+            git clone --depth 1 https://chromium.googlesource.com/chromium/tools/depot_tools.git ../depot_tools
+          fi
+          export PATH="$PWD/../depot_tools:$PATH"
+          # Fetch Skia dependencies
+          python3 tools/git-sync-deps || true
+          # Generate build files
           bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true skia_use_system_expat=false skia_use_system_icu=false skia_use_system_libjpeg_turbo=false skia_use_system_libpng=false skia_use_system_libwebp=false skia_use_system_zlib=false extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
           ninja -C out/Release skia
           cd ../..
@@ -129,8 +135,14 @@ jobs:
       - name: Build vendored Skia
         run: |
           cd third_party/skia
-          # Skip git-sync-deps (Python 3 compatibility issues)
-          # Use pre-generated depot_tools if available, or build without it
+          # Fetch depot_tools for gn
+          if [ ! -d "../depot_tools" ]; then
+            git clone --depth 1 https://chromium.googlesource.com/chromium/tools/depot_tools.git ../depot_tools
+          fi
+          export PATH="$PWD/../depot_tools:$PATH"
+          # Fetch Skia dependencies
+          python3 tools/git-sync-deps || true
+          # Generate build files
           bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true skia_use_system_expat=false skia_use_system_icu=false skia_use_system_libjpeg_turbo=false skia_use_system_libpng=false skia_use_system_libwebp=false skia_use_system_zlib=false extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
           ninja -C out/Release skia
           cd ../..
