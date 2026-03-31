@@ -55,7 +55,7 @@ jobs:
         run: |
           cd third_party/libmypaint
           ./autogen.sh
-          ./configure --disable-static --enable-shared
+          ./configure --enable-static --disable-shared
           make -j"$(nproc)"
           cd ../..
 
