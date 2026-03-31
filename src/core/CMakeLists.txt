@@ -816,16 +816,17 @@ endif()
 
 # libmypaint (vendored or system)
 if(ENVE_USE_SYSTEM_LIBMYPAINT AND MYPAINT_FOUND)
-    target_include_directories(envecore PRIVATE ${MYPAINT_INCLUDE_DIRS})
-    target_link_libraries(envecore PRIVATE ${MYPAINT_LIBRARIES})
+    target_include_directories(envecore PUBLIC ${MYPAINT_INCLUDE_DIRS})
+    target_link_libraries(envecore PUBLIC ${MYPAINT_LIBRARIES})
 else()
-    target_include_directories(envecore PRIVATE
+    target_include_directories(envecore PUBLIC
         ${CMAKE_SOURCE_DIR}/third_party/libmypaint
     )
     # Find json-c for libmypaint
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(JSONC REQUIRED json-c)
-    target_link_libraries(envecore PRIVATE ${JSONC_LIBRARIES} ${JSONC_INCLUDE_DIRS})
+    target_include_directories(envecore PUBLIC ${JSONC_INCLUDE_DIRS})
+    target_link_libraries(envecore PUBLIC ${JSONC_LIBRARIES})
     target_link_libraries(envecore PRIVATE
         ${CMAKE_SOURCE_DIR}/third_party/libmypaint/.libs/libmypaint.a
     )
