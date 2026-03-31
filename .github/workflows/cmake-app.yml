@@ -42,25 +42,22 @@ jobs:
             libqt5svg5-dev qtquickcontrols2-5-dev \
             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev \
             libfreetype6-dev libfontconfig1-dev libpng-dev libharfbuzz-dev \
-            libglib2.0-dev libmypaint-dev libzstd-dev \
+            libglib2.0-dev libzstd-dev \
             zlib1g-dev \
             libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
             libexpat1-dev libwebp-dev \
             libjpeg-turbo8-dev libxi-dev libxkbcommon-dev
           # Verify FFmpeg 6.x
           pkg-config --modversion libavcodec libavutil
-          # Verify libmypaint
-          pkg-config --modversion libmypaint
 
-      # Phase 6.B: Skip vendored libmypaint build, use system package
-      # - name: Build vendored libmypaint
-      #   run: |
-      #     cd third_party/libmypaint
-      #     ./autogen.sh
-      #     ./configure --disable-static --enable-shared
-      #     make -j4
-      #     ls -la mypaint-config.h
-      #     cd ../..
+      # Phase 6.B: Build vendored libmypaint (system package incomplete)
+      - name: Build vendored libmypaint
+        run: |
+          cd third_party/libmypaint
+          ./autogen.sh
+          ./configure --disable-static --enable-shared
+          make -j"$(nproc)"
+          cd ../..
 
       - name: Build vendored quazip
         run: |
@@ -116,7 +113,7 @@ jobs:
       - name: Configure CMake
         run: |
           cmake -S . -B build/cmake \
-            -DENVE_USE_SYSTEM_LIBMYPAINT=1 \
+            -DENVE_USE_SYSTEM_LIBMYPAINT=OFF \
             -DENVE_USE_WEBENGINE=OFF \
             -DENVE_USE_QSCINTILLA=OFF \
             -DENVE_USE_GPERFTOOLS=OFF \
