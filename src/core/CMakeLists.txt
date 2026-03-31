@@ -822,6 +822,10 @@ else()
     target_include_directories(envecore PRIVATE
         ${CMAKE_SOURCE_DIR}/third_party/libmypaint
     )
+    # Find json-c for libmypaint
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(JSONC REQUIRED json-c)
+    target_link_libraries(envecore PRIVATE ${JSONC_LIBRARIES} ${JSONC_INCLUDE_DIRS})
     target_link_libraries(envecore PRIVATE
         ${CMAKE_SOURCE_DIR}/third_party/libmypaint/.libs/libmypaint.a
     )
