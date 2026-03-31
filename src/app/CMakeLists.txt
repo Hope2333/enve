@@ -93,6 +93,8 @@ target_link_libraries(enve PRIVATE
     ${CMAKE_SOURCE_DIR}/third_party/skia/out/Release/libskia.a
     # WebP for Skia WebP encoder
     webp
+    # json-c for libmypaint (transitive through envecore)
+    json-c
     webpmux
     webpdemux
     # GLX for Skia GL backend
