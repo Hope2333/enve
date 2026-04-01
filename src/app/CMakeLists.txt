@@ -77,13 +77,7 @@ set_target_properties(enve PROPERTIES
 )
 
 # Link dependencies
-# Find json-c for libmypaint
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(JSONC REQUIRED json-c)
-
 target_link_libraries(enve PRIVATE
-    # json-c for libmypaint (must be before envecore)
-    ${JSONC_LIBRARIES}
     envecore
     Qt5::Core
     Qt5::Gui
@@ -105,10 +99,6 @@ target_link_libraries(enve PRIVATE
     GLX
     # JPEG for Skia JPEG decoder
     jpeg
-)
-
-target_include_directories(enve PRIVATE
-    ${JSONC_INCLUDE_DIRS}
 )
 
 # Optional: WebEngine (for SVG preview)

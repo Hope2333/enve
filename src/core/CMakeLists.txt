@@ -816,20 +816,34 @@ endif()
 
 # libmypaint (vendored or system)
 if(ENVE_USE_SYSTEM_LIBMYPAINT AND MYPAINT_FOUND)
-    target_include_directories(envecore PUBLIC ${MYPAINT_INCLUDE_DIRS})
-    target_link_libraries(envecore PUBLIC ${MYPAINT_LIBRARIES})
+    # Use imported target with proper transitive dependencies
+    target_link_libraries(envecore PUBLIC libmypaint::libmypaint)
 else()
     target_include_directories(envecore PUBLIC
         ${CMAKE_SOURCE_DIR}/third_party/libmypaint
     )
-    # Find json-c for libmypaint
+    # Build vendored libmypaint with json-c dependency
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(JSONC REQUIRED json-c)
-    target_include_directories(envecore PUBLIC ${JSONC_INCLUDE_DIRS})
+    ExternalProject_Add(libmypaint_build
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/third_party/libmypaint
+        CONFIGURE_COMMAND ${CMAKE_SOURCE_DIR}/third_party/libmypaint/autogen.sh
+        COMMAND ${CMAKE_SOURCE_DIR}/third_party/libmypaint/configure
+            --prefix=${CMAKE_BINARY_DIR}/third_party/libmypaint
+            --enable-static
+            --disable-shared
+        BUILD_COMMAND $(MAKE)
+        INSTALL_COMMAND ""
+        BUILD_IN_SOURCE 1
+        BUILD_BYPRODUCTS ${CMAKE_SOURCE_DIR}/third_party/libmypaint/.libs/libmypaint.a
+    )
+    # Add dependency on json-c for vendored build
     target_link_libraries(envecore PUBLIC ${JSONC_LIBRARIES})
+    target_include_directories(envecore PUBLIC ${JSONC_INCLUDE_DIRS})
     target_link_libraries(envecore PRIVATE
         ${CMAKE_SOURCE_DIR}/third_party/libmypaint/.libs/libmypaint.a
     )
+    add_dependencies(envecore libmypaint_build)
 endif()
 
 # QuaZip (vendored)

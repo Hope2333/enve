@@ -47,10 +47,13 @@ find_package_handle_standard_args(libmypaint
 )
 
 if(MYPAINT_FOUND AND NOT TARGET libmypaint::libmypaint)
+    # Create imported target with proper transitive dependencies
     add_library(libmypaint::libmypaint UNKNOWN IMPORTED)
     set_target_properties(libmypaint::libmypaint PROPERTIES
         IMPORTED_LOCATION "${MYPAINT_LIBRARIES}"
         INTERFACE_INCLUDE_DIRECTORIES "${MYPAINT_INCLUDE_DIRS}"
+        # Propagate transitive dependencies from pkg-config
+        INTERFACE_LINK_LIBRARIES "${PC_LIBMYPAINT_LIBRARIES}"
     )
 endif()
 
