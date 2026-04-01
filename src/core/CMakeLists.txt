@@ -833,6 +833,8 @@ else()
             --prefix=${CMAKE_BINARY_DIR}/third_party/libmypaint
             --enable-static
             --disable-shared
+            CPPFLAGS=${JSONC_CFLAGS_OTHER}
+            LIBS=${JSONC_LIBRARIES}
         BUILD_COMMAND $(MAKE)
         INSTALL_COMMAND ""
         BUILD_IN_SOURCE 1
