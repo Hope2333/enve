@@ -127,33 +127,7 @@ endif()
 
 # libmypaint (optional system/vendored)
 # Phase 6.B: Bridge to system package (low-risk debt cleanup)
-if(ENVE_USE_SYSTEM_LIBMYPAINT)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(MYPAINT libmypaint)
-    if(MYPAINT_FOUND)
-        message(STATUS "Using system libmypaint: ${MYPAINT_LIBRARIES}")
-    else()
-        message(WARNING "System libmypaint requested but not found")
-        set(ENVE_USE_SYSTEM_LIBMYPAINT OFF)
-    endif()
-else()
-    message(STATUS "Using vendored libmypaint (deprecated, migrate to system package)")
-    # Build vendored libmypaint
-    include(ExternalProject)
-    ExternalProject_Add(libmypaint_build
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/third_party/libmypaint
-        CONFIGURE_COMMAND ${CMAKE_SOURCE_DIR}/third_party/libmypaint/autogen.sh
-        COMMAND ${CMAKE_SOURCE_DIR}/third_party/libmypaint/configure
-            --prefix=${CMAKE_BINARY_DIR}/third_party/libmypaint
-            --disable-static
-            --enable-shared
-        BUILD_COMMAND $(MAKE)
-        INSTALL_COMMAND ""
-        BUILD_IN_SOURCE 1
-        BUILD_BYPRODUCTS ${CMAKE_SOURCE_DIR}/third_party/libmypaint/mypaint-config.h
-        ${CMAKE_SOURCE_DIR}/third_party/libmypaint/.libs/libmypaint.a
-    )
-endif()
+# Note: Actual libmypaint build is in src/core/CMakeLists.txt
 
 # FFmpeg (required)
 find_package(PkgConfig REQUIRED)
