@@ -823,6 +823,7 @@ else()
         ${CMAKE_SOURCE_DIR}/third_party/libmypaint
     )
     # Build vendored libmypaint with json-c dependency
+    include(ExternalProject)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(JSONC REQUIRED json-c)
     ExternalProject_Add(libmypaint_build
