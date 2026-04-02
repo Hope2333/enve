@@ -82,8 +82,8 @@ const std::map<uint64_t, QString> gChannelLayouts = {
     {AV_CH_WIDE_RIGHT, "Wide right"},
     {AV_CH_SURROUND_DIRECT_LEFT, "Surround direct left"},
     {AV_CH_SURROUND_DIRECT_RIGHT, "Surround direct right"},
-    {AV_CH_LOW_FREQUENCY_2, "Low frequency 2"},
-    {AV_CH_LAYOUT_NATIVE, "Native"}
+    {AV_CH_LOW_FREQUENCY_2, "Low frequency 2"}
+    // AV_CH_LAYOUT_NATIVE removed in FFmpeg 6.x
 };
 
 QString OutputSettings::sGetChannelsLayoutName(const uint64_t &layout) {

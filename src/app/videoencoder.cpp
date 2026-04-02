@@ -244,7 +244,6 @@ static void addAudioStream(OutputStream * const ost,
     c->sample_rate    = settings.fAudioSampleRate;
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
     av_channel_layout_copy(&c->ch_layout, &settings.fAudioChannelsLayout);
-    c->channels       = ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS(c->ch_layout);
 #else
     c->channel_layout = settings.fAudioChannelsLayout;
     c->channels       = av_get_channel_layout_nb_channels(c->channel_layout);
@@ -268,7 +267,11 @@ static void addAudioStream(OutputStream * const ost,
     ost->fSwrCtx = swr_alloc();
     if(!ost->fSwrCtx) RuntimeThrow("Error allocating the resampling context");
     av_opt_set_int(ost->fSwrCtx, "in_channel_count",  inSound.channelCount(), 0);
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+    av_opt_set_int(ost->fSwrCtx, "out_channel_count", c->ch_layout.nb_channels, 0);
+#else
     av_opt_set_int(ost->fSwrCtx, "out_channel_count", c->channels, 0);
+#endif
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
     av_opt_set_chlayout(ost->fSwrCtx, "in_chlayout",  &inSound.fChannelLayout, 0);
     av_opt_set_chlayout(ost->fSwrCtx, "out_chlayout", &c->ch_layout, 0);
@@ -288,7 +291,11 @@ static void addAudioStream(OutputStream * const ost,
 #ifdef QT_DEBUG
     qDebug() << "name" << "src" << "output";
     qDebug() << "channels" << inSound.channelCount() <<
-                              c->channels;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+                               c->ch_layout.nb_channels;
+#else
+                               c->channels;
+#endif
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
     char in_layout[64], out_layout[64];
     av_channel_layout_describe(&inSound.fChannelLayout, in_layout, sizeof(in_layout));
@@ -321,7 +328,6 @@ static AVFrame *allocAudioFrame(enum AVSampleFormat sample_fmt,
     frame->format = sample_fmt;
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
     av_channel_layout_copy(&frame->ch_layout, &channel_layout);
-    frame->channels = ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS(frame->ch_layout);
 #else
     frame->channel_layout = channel_layout;
     frame->channels = av_get_channel_layout_nb_channels(channel_layout);
@@ -580,7 +586,7 @@ static void flushStream(OutputStream * const ost,
 static void closeStream(OutputStream * const ost) {
     if(!ost) return;
     if(ost->fCodec) {
-        avcodec_close(ost->fCodec);
+        // avcodec_close removed in FFmpeg 6.x; avcodec_free_context handles cleanup
         avcodec_free_context(&ost->fCodec);
     }
     if(ost->fDstFrame) av_frame_free(&ost->fDstFrame);

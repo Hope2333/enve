@@ -815,7 +815,14 @@ if(ENVE_USE_QSCINTILLA AND QScintilla_FOUND)
 endif()
 
 # libmypaint (vendored or system)
-if(ENVE_USE_SYSTEM_LIBMYPAINT AND MYPAINT_FOUND)
+# Phase 6.B: Bridge to system package
+if(ENVE_USE_SYSTEM_LIBMYPAINT)
+    find_package(libmypaint)
+endif()
+
+# find_package_handle_standard_args sets <packagename>_FOUND (case-insensitive)
+# For "libmypaint" this becomes "libmypaint_FOUND", not "MYPAINT_FOUND"
+if(ENVE_USE_SYSTEM_LIBMYPAINT AND (MYPAINT_FOUND OR libmypaint_FOUND))
     # Use imported target with proper transitive dependencies
     target_link_libraries(envecore PUBLIC libmypaint::libmypaint)
 else()
@@ -833,8 +840,6 @@ else()
             --prefix=${CMAKE_BINARY_DIR}/third_party/libmypaint
             --enable-static
             --disable-shared
-            CPPFLAGS=${JSONC_CFLAGS_OTHER}
-            LIBS=${JSONC_LIBRARIES}
         BUILD_COMMAND $(MAKE)
         INSTALL_COMMAND ""
         BUILD_IN_SOURCE 1

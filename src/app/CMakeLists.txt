@@ -11,6 +11,13 @@
 #
 # qmake remains the authoritative release path for the application.
 
+# ============================================================
+# libmypaint transitive dependencies (Linux)
+# Matches qmake core.pri: LIBS += -lgobject-2.0 -lglib-2.0 -ljson-c
+# ============================================================
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBMYPAINT REQUIRED IMPORTED_TARGET libmypaint)
+
 # Collect all source files from disk
 file(GLOB_RECURSE enve_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
@@ -100,6 +107,10 @@ target_link_libraries(enve PRIVATE
     # JPEG for Skia JPEG decoder
     jpeg
 )
+
+# libmypaint transitive dependencies (Linux)
+# Matches qmake core.pri: LIBS += -lgobject-2.0 -lglib-2.0 -ljson-c
+target_link_libraries(enve PRIVATE PkgConfig::LIBMYPAINT)
 
 # Optional: WebEngine (for SVG preview)
 if(ENVE_USE_WEBENGINE AND Qt5WebEngineWidgets_FOUND)
