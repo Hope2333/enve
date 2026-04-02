@@ -1,0 +1,128 @@
+name: Release Build & Tag
+
+# Creates release tags and packages build artifacts.
+# Only triggers on successful cmake-app workflow completion.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v0.1.0-rc1)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark as prerelease'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  release-build:
+    name: Release Build (Ubuntu 24.04)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build \
+            qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
+            libqt5svg5-dev qtquickcontrols2-5-dev \
+            libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev \
+            libfreetype6-dev libfontconfig1-dev libpng-dev libharfbuzz-dev \
+            libglib2.0-dev libzstd-dev libjson-c-dev \
+            zlib1g-dev \
+            libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
+            libexpat1-dev libwebp-dev \
+            libjpeg-turbo8-dev libxi-dev libxkbcommon-dev \
+            libmypaint-dev
+
+      - name: Cache Skia build
+        id: cache-skia
+        uses: actions/cache@v4
+        with:
+          path: third_party/skia/out/Release
+          key: ${{ runner.os }}-release-skia-${{ hashFiles('third_party/skia/DEPS') }}
+          restore-keys: ${{ runner.os }}-release-skia-
+
+      - name: Build vendored Skia (if not cached)
+        if: steps.cache-skia.outputs.cache-hit != 'true'
+        run: |
+          cd third_party
+          rm -rf skia
+          git clone https://chromium.googlesource.com/skia skia
+          cd skia
+          git checkout 76f4fff613b5ba4365d24dbd943a8ed47221f1e9
+          sed -i 's/subprocess.check_output(\([^)]*\))/subprocess.check_output(\1, text=True)/g' gn/is_clang.py
+          sed -i "s/b'clang'/'clang'/g" gn/is_clang.py
+          sed -i 's|#!/usr/bin/env python|#!/usr/bin/env python3|' gn/is_clang.py
+          sed -i 's/itervalues()/values()/g' tools/git-sync-deps
+          sed -i 's|#!/usr/bin/env python|#!/usr/bin/env python3|' tools/git-sync-deps
+          python3 tools/git-sync-deps || true
+          bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true skia_use_system_expat=false skia_use_system_icu=false skia_use_system_libjpeg_turbo=false skia_use_system_libpng=false skia_use_system_libwebp=false skia_use_system_zlib=false extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
+          ninja -C out/Release skia
+          cd ..
+
+      - name: Build vendored quazip
+        run: |
+          cd third_party/quazip
+          qmake quazip.pro CONFIG+=release
+          make -j"$(nproc)"
+          cd ../..
+
+      - name: Configure CMake (Release)
+        run: |
+          cmake -S . -B build/release \
+            -DENVE_USE_SYSTEM_LIBMYPAINT=ON \
+            -DENVE_USE_WEBENGINE=OFF \
+            -DENVE_USE_QSCINTILLA=OFF \
+            -DENVE_USE_GPERFTOOLS=OFF \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build envecore
+        run: cmake --build build/release --target envecore -j"$(nproc)"
+
+      - name: Build enve app
+        run: cmake --build build/release --target enve -j"$(nproc)"
+
+      - name: Package release artifacts
+        run: |
+          mkdir -p release-artifacts
+          cp build/release/bin/enve release-artifacts/enve-${{ inputs.tag }}-linux-x86_64
+          cp build/release/lib/libenvecore.a release-artifacts/libenvecore-${{ inputs.tag }}-linux-x86_64.a
+          # Package for local reuse (intermediate artifacts)
+          tar czf release-artifacts/third-party-skia-${{ inputs.tag }}.tar.gz -C third_party skia/out/Release 2>/dev/null || true
+          tar czf release-artifacts/third-party-quazip-${{ inputs.tag }}.tar.gz -C third_party quazip/*.so* 2>/dev/null || true
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: enve-${{ inputs.tag }}-release
+          path: release-artifacts/
+
+      - name: Create Git tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a ${{ inputs.tag }} -m "Release ${{ inputs.tag }}"
+          git push origin ${{ inputs.tag }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          name: enve ${{ inputs.tag }}
+          prerelease: ${{ inputs.prerelease }}
+          generate_release_notes: true
+          files: |
+            release-artifacts/enve-${{ inputs.tag }}-linux-x86_64
+            release-artifacts/libenvecore-${{ inputs.tag }}-linux-x86_64.a
+            release-artifacts/third-party-skia-${{ inputs.tag }}.tar.gz
+            release-artifacts/third-party-quazip-${{ inputs.tag }}.tar.gz
