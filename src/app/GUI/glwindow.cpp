@@ -89,8 +89,8 @@ void GLWindow::initialize() {
 
     const auto intrface = GrGLMakeNativeInterface();
     if(!intrface) RuntimeThrow("Failed to make native intrface.");
-    mGrContext = GrContext::MakeGL(intrface);
-    if(!mGrContext) RuntimeThrow("Failed to make GrContext.");
+    mGrContext = GrDirectContext::MakeGL(intrface);
+    if(!mGrContext) RuntimeThrow("Failed to make GrDirectContext.");
 
     try {
         bindSkia(width(), height());
