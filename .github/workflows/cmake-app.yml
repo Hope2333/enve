@@ -46,18 +46,10 @@ jobs:
             zlib1g-dev \
             libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
             libexpat1-dev libwebp-dev \
-            libjpeg-turbo8-dev libxi-dev libxkbcommon-dev
+            libjpeg-turbo8-dev libxi-dev libxkbcommon-dev \
+            libmypaint-dev
           # Verify FFmpeg 6.x
           pkg-config --modversion libavcodec libavutil
-
-      # Phase 6.B: Build vendored libmypaint (system package incomplete)
-      - name: Build vendored libmypaint
-        run: |
-          cd third_party/libmypaint
-          ./autogen.sh
-          ./configure --enable-static --disable-shared
-          make -j"$(nproc)"
-          cd ../..
 
       - name: Build vendored quazip
         run: |
@@ -67,53 +59,46 @@ jobs:
           ls -la quazip/*.so*
           cd ../..
 
-      - name: Cache third-party builds
-        id: cache-third-party
+      - name: Cache Skia build
+        id: cache-skia
         uses: actions/cache@v4
         with:
           path: |
             third_party/skia/out/Release
-          key: ${{ runner.os }}-cmake-app-third-party-${{ hashFiles('third_party/skia/DEPS') }}
+          key: ${{ runner.os }}-cmake-app-skia-${{ hashFiles('third_party/skia/DEPS') }}
           restore-keys: |
-            ${{ runner.os }}-cmake-app-third-party-
+            ${{ runner.os }}-cmake-app-skia-
 
       - name: Build vendored Skia (if not cached)
-        if: steps.cache-third-party.outputs.cache-hit != 'true'
+        if: steps.cache-skia.outputs.cache-hit != 'true'
         run: |
           cd third_party
           # Remove old attempts
           rm -rf skia skia-build
           # Use pinned 2020 Skia version with Python 3 bridge
-          # This version is known to work with enve codebase
           git clone https://chromium.googlesource.com/skia skia
           cd skia
           git checkout 76f4fff613b5ba4365d24dbd943a8ed47221f1e9
-          
+
           # Phase 6.C: Python 3 compatibility fixes
-          # Fix gn/is_clang.py: Use text=True for subprocess.check_output
           sed -i 's/subprocess.check_output(\([^)]*\))/subprocess.check_output(\1, text=True)/g' gn/is_clang.py
           sed -i "s/b'clang'/'clang'/g" gn/is_clang.py
           sed -i 's|#!/usr/bin/env python|#!/usr/bin/env python3|' gn/is_clang.py
-          
-          # Fix tools/git-sync-deps: Use values() instead of itervalues()
           sed -i 's/itervalues()/values()/g' tools/git-sync-deps
           sed -i 's|#!/usr/bin/env python|#!/usr/bin/env python3|' tools/git-sync-deps
-          
-          # Use python3 explicitly
+
           export PATH="/usr/bin:$PATH"
           python3 tools/git-sync-deps || true
-          
-          # Generate build files
+
           bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true skia_use_system_expat=false skia_use_system_icu=false skia_use_system_libjpeg_turbo=false skia_use_system_libpng=false skia_use_system_libwebp=false skia_use_system_zlib=false extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
           ninja -C out/Release skia
-          # Verify
           ls -la out/Release/libskia.a
           cd ..
 
       - name: Configure CMake
         run: |
           cmake -S . -B build/cmake \
-            -DENVE_USE_SYSTEM_LIBMYPAINT=OFF \
+            -DENVE_USE_SYSTEM_LIBMYPAINT=ON \
             -DENVE_USE_WEBENGINE=OFF \
             -DENVE_USE_QSCINTILLA=OFF \
             -DENVE_USE_GPERFTOOLS=OFF \
@@ -121,21 +106,21 @@ jobs:
 
       - name: Build envecore
         run: |
-          cmake --build build/cmake --target envecore -j4
+          cmake --build build/cmake --target envecore -j"$(nproc)"
 
       - name: Build enve app
         run: |
-          cmake --build build/cmake --target enve -j4
+          cmake --build build/cmake --target enve -j"$(nproc)"
 
-      - name: Upload enve artifact
+      - name: Upload enve binary artifact
         uses: actions/upload-artifact@v4
         with:
           name: enve-cmake-app
-          if-no-files-found: warn
+          if-no-files-found: error
           path: build/cmake/bin/enve
 
-      - name: Upload build logs
-        if: always()
+      - name: Upload build logs on failure
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: cmake-app-build-logs
