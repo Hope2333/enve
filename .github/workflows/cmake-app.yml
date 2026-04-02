@@ -96,9 +96,18 @@ jobs:
           find third_party/externals/icu/scripts -name '*.py' -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} \;
           find third_party/externals -name '*.py' -path '*/scripts/*' -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} \;
           # Fix Python 3 bytes/str issues in ICU script
-          # 1. hexlify returns bytes in Python 3, need .decode()
-          # 2. .lstrip('0') on bytes needs b'0'
-          sed -i 's/binascii.hexlify(input_data\[i:i + 4\]\[::step\])\.upper()\.lstrip('\''0'\'')/binascii.hexlify(input_data[i:i + 4][::step]).decode("ascii").upper().lstrip('\''0'\'')/g' third_party/externals/icu/scripts/make_data_assembly.py
+          # hexlify returns bytes in Python 3, need .decode('ascii') before string ops
+          python3 -c "
+import re
+with open('third_party/externals/icu/scripts/make_data_assembly.py', 'r') as f:
+    content = f.read()
+content = content.replace(
+    'binascii.hexlify(input_data[i:i + 4][::step]).upper()',
+    'binascii.hexlify(input_data[i:i + 4][::step]).decode(\"ascii\").upper()'
+)
+with open('third_party/externals/icu/scripts/make_data_assembly.py', 'w') as f:
+    f.write(content)
+"
 
           bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true skia_use_system_expat=false skia_use_system_icu=false skia_use_system_libjpeg_turbo=false skia_use_system_libpng=false skia_use_system_libwebp=false skia_use_system_zlib=false extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
           ninja -C out/Release skia
