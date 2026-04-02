@@ -97,16 +97,13 @@ jobs:
           find third_party/externals -name '*.py' -path '*/scripts/*' -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} \;
           # Fix Python 3 bytes/str issues in ICU script
           # hexlify returns bytes in Python 3, need .decode('ascii') before string ops
-          python3 << 'PYEOF'
-with open('third_party/externals/icu/scripts/make_data_assembly.py', 'r') as f:
-    content = f.read()
-content = content.replace(
-    'binascii.hexlify(input_data[i:i + 4][::step]).upper()',
-    'binascii.hexlify(input_data[i:i + 4][::step]).decode("ascii").upper()'
-)
-with open('third_party/externals/icu/scripts/make_data_assembly.py', 'w') as f:
-    f.write(content)
-PYEOF
+          python3 -c "
+          import pathlib
+          p = pathlib.Path('third_party/externals/icu/scripts/make_data_assembly.py')
+          t = p.read_text()
+          t = t.replace('.hexlify(input_data[i:i + 4][::step]).upper()', '.hexlify(input_data[i:i + 4][::step]).decode(\"ascii\").upper()')
+          p.write_text(t)
+          "
 
           bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true skia_use_system_expat=false skia_use_system_icu=true skia_use_system_libjpeg_turbo=false skia_use_system_libpng=false skia_use_system_libwebp=false skia_use_system_zlib=false extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
           ninja -C out/Release skia
