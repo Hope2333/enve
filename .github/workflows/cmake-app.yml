@@ -95,6 +95,8 @@ jobs:
           # Convert: print "..." + var → print("..." + var)
           find third_party/externals/icu/scripts -name '*.py' -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} \;
           find third_party/externals -name '*.py' -path '*/scripts/*' -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} \;
+          # Fix Python 3 bytes/str issue in ICU script: hexlify returns bytes in Python 3
+          sed -i 's/binascii.hexlify(input_data\[i:i + 4\]\[::step\])/binascii.hexlify(input_data[i:i + 4][::step]).decode("ascii")/g' third_party/externals/icu/scripts/make_data_assembly.py
 
           bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true skia_use_system_expat=false skia_use_system_icu=false skia_use_system_libjpeg_turbo=false skia_use_system_libpng=false skia_use_system_libwebp=false skia_use_system_zlib=false extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
           ninja -C out/Release skia
