@@ -22,135 +22,55 @@ on:
       - "src/core/**"
 
 jobs:
-  cmake-core:
-    name: CMake Core (Ubuntu 22.04 Baseline)
-    runs-on: ubuntu-22.04
-    timeout-minutes: 180
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Make CI scripts executable
-        run: chmod +x scripts/ci/*.sh
-
-      - name: Install Linux build dependencies
-        run: scripts/ci/install-linux-build-deps.sh
-
-      - name: Cache third-party builds
-        id: cache-third-party
-        uses: actions/cache@v4
-        with:
-          path: |
-            build/cmake/stamps/third_party
-            third_party/skia/out/Release
-            third_party/libmypaint/.libs
-            third_party/libmypaint/libmypaint
-            third_party/quazip/quazip
-            third_party/gperftools/.libs
-            third_party/qscintilla/Qt4Qt5
-          key: ${{ runner.os }}-cmake-third-party-${{ hashFiles('third_party/Makefile', 'third_party/**/Makefile', 'third_party/**/configure', 'third_party/**/configure.ac') }}
-          restore-keys: |
-            ${{ runner.os }}-cmake-third-party-
-
-      - name: Build vendored libmypaint
-        run: |
-          cd third_party/libmypaint
-          ./autogen.sh
-          ./configure --disable-static --enable-shared
-          make -j4
-          # Generated mypaint-config.h is already in source dir
-          ls -la mypaint-config.h
-          cd ../..
-
-      - name: Configure CMake
-        run: |
-          cmake -S . -B build/cmake \
-            -DENVE_USE_SYSTEM_LIBMYPAINT=0 \
-            -DCMAKE_BUILD_TYPE=Release
-
-      - name: Build envecore
-        run: |
-          cmake --build build/cmake --target envecore -j4
-
-      - name: Upload envecore artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: envecore-cmake-core
-          if-no-files-found: warn
-          path: build/cmake/lib/libenvecore.a
-
-      - name: Upload build logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cmake-core-build-logs
-          if-no-files-found: warn
-          path: |
-            build/cmake/CMakeFiles/CMakeOutput.log
-            build/cmake/CMakeFiles/CMakeError.log
-
   cmake-core-ffmpeg6:
     name: CMake Core (FFmpeg 6.x on Ubuntu 24.04)
     runs-on: ubuntu-24.04
-    timeout-minutes: 180
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: Make CI scripts executable
-        run: chmod +x scripts/ci/*.sh
 
       - name: Install Linux build dependencies (FFmpeg 6.x)
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential cmake ninja-build autoconf automake libtool intltool \
+            build-essential cmake ninja-build \
             qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
             libqt5svg5-dev qtquickcontrols2-5-dev \
             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev \
             libfreetype6-dev libfontconfig1-dev libpng-dev libharfbuzz-dev \
-            libglib2.0-dev libmypaint-dev libzstd-dev \
+            libglib2.0-dev libmypaint-dev libzstd-dev libjson-c-dev \
             zlib1g-dev
-          # Verify FFmpeg 6.x
-          pkg-config --modversion libavcodec libavutil
-
-      - name: Build vendored libmypaint
-        run: |
-          cd third_party/libmypaint
-          ./autogen.sh
-          ./configure --disable-static --enable-shared
-          make -j4
-          ls -la mypaint-config.h
-          cd ../..
+          pkg-config --modversion libavcodec libavutil libmypaint
 
       - name: Configure CMake
         run: |
           cmake -S . -B build/cmake \
-            -DENVE_USE_SYSTEM_LIBMYPAINT=1 \
+            -DENVE_USE_SYSTEM_LIBMYPAINT=ON \
+            -DENVE_USE_WEBENGINE=OFF \
+            -DENVE_USE_QSCINTILLA=OFF \
+            -DENVE_USE_GPERFTOOLS=OFF \
             -DCMAKE_BUILD_TYPE=Release
 
       - name: Build envecore
         run: |
-          cmake --build build/cmake --target envecore -j4
+          cmake --build build/cmake --target envecore -j"$(nproc)"
 
       - name: Upload envecore artifact
         uses: actions/upload-artifact@v4
         with:
           name: envecore-ffmpeg6
-          if-no-files-found: warn
+          if-no-files-found: error
           path: build/cmake/lib/libenvecore.a
 
-      - name: Upload build logs
-        if: always()
+      - name: Upload build logs on failure
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ffmpeg6-build-logs
+          name: cmake-core-build-logs
           if-no-files-found: warn
           path: |
             build/cmake/CMakeFiles/CMakeOutput.log
