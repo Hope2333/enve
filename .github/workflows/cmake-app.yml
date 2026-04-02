@@ -82,7 +82,7 @@ jobs:
 
           # Phase 6.C: Python 3 compatibility fixes
           sed -i 's/subprocess.check_output(\([^)]*\))/subprocess.check_output(\1, text=True)/g' gn/is_clang.py
-          sed -i "s/b'clang'/'clang'/g' gn/is_clang.py
+          sed -i "s/b'clang'/'clang'/g" gn/is_clang.py
           sed -i 's|#!/usr/bin/env python|#!/usr/bin/env python3|' gn/is_clang.py
           sed -i 's/itervalues()/values()/g' tools/git-sync-deps
           sed -i 's|#!/usr/bin/env python|#!/usr/bin/env python3|' tools/git-sync-deps
