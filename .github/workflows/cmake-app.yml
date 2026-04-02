@@ -65,9 +65,9 @@ jobs:
         with:
           path: |
             third_party/skia/out/Release
-          key: ${{ runner.os }}-cmake-app-skia-${{ hashFiles('third_party/skia/DEPS') }}
+          key: ${{ runner.os }}-cmake-app-skia-m88-${{ hashFiles('third_party/skia/DEPS') }}
           restore-keys: |
-            ${{ runner.os }}-cmake-app-skia-
+            ${{ runner.os }}-cmake-app-skia-m88-
 
       - name: Build vendored Skia (if not cached)
         if: steps.cache-skia.outputs.cache-hit != 'true'
