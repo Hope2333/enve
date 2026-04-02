@@ -40,7 +40,7 @@ void GLWindow::bindSkia(const int w, const int h) {
     // To use distance field text, use commented out SkSurfaceProps instead
     // SkSurfaceProps props(SkSurfaceProps::kUseDeviceIndependentFonts_Flag,
     //                      SkSurfaceProps::kLegacyFontHost_InitType);
-    SkSurfaceProps props(SkSurfaceProps::kLegacyFontHost_InitType);
+    SkSurfaceProps props(SkSurfaceProps::kUseDeviceIndependentFonts_Flag, SkPixelGeometry::kRGB_H_SkPixelGeometry);
 
 //    sk_sp<SkColorSpace> colorSpace = SkColorSpace::MakeSRGB();
     mSurface = SkSurface::MakeFromBackendRenderTarget(

@@ -56,7 +56,7 @@ SkBlendMode XmlExportHelpers::stringToBlendMode(const QString& compOpStr) {
     } else if(compOpStr == "svg:saturation") {
         return SkBlendMode::kSaturation;
     } else if(compOpStr == "svg:plus") {
-        return SkBlendMode::kPlus;
+        return SkBlendMode::kPlus_;
     } else if(compOpStr == "svg:dst-in") {
         return SkBlendMode::kDstIn;
     } else if(compOpStr == "svg:dst-out") {
@@ -85,7 +85,7 @@ QString XmlExportHelpers::blendModeToString(const SkBlendMode blendMode) {
     case SkBlendMode::kLuminosity: return "svg:luminosity";
     case SkBlendMode::kHue: return "svg:hue";
     case SkBlendMode::kSaturation: return "svg:saturation";
-    case SkBlendMode::kPlus: return "svg:plus";
+    case SkBlendMode::kPlus_: return "svg:plus";
     case SkBlendMode::kDstIn: return "svg:dst-in";
     case SkBlendMode::kDstOut: return "svg:dst-out";
     case SkBlendMode::kSrcATop: return "svg:src-atop";

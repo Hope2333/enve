@@ -45,7 +45,7 @@ SkIRect OnionSkin::SkinsSide::boundingRect() const {
 
 void OnionSkin::SkinsSide::draw(SkCanvas * const canvas) {
     if(fSkins.isEmpty()) return;
-    if(!fImage) setupImage(canvas->getGrDirectContext());
+    if(!fImage) setupImage(canvas->recordingContext());
     SkPaint paint;
     paint.setAlphaf(0.5f);
     canvas->drawImage(fImage, fImageXY.x(), fImageXY.y(), &paint);
@@ -62,7 +62,7 @@ void OnionSkin::SkinsSide::setupImage(GrDirectContext * const grContext) {
     fImageXY = bRect.topLeft();
     const auto grTex = grContext->createBackendTexture(
                 bRect.width(), bRect.height(),
-                kRGBA_8888_SkColorType, GrMipMapped::kNo,
+                kRGBA_8888_SkColorType, GrMipmapped::kNo,
                 GrRenderable::kYes);
 
     sk_sp<SkSurface> gpuSurface = SkSurface::MakeFromBackendTexture(

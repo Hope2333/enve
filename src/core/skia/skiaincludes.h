@@ -62,7 +62,7 @@ QT_WARNING_DISABLE_GCC("-Wattributes")
 
 #include <QtGui/qopengl.h>
 
-#include "src/gpu/gl/GrGLDefines.h"
+#include "include/gpu/gl/GrGLDefines.h"
 
 #include "src/core/SkStroke.h"
 #include "src/core/SkGeometry.h" // for SkAutoConicToQuads

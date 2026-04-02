@@ -478,21 +478,21 @@ void NodeList::setPath(const SkPath &path) {
     SkPath::Verb verb = iter.next(pts);
     for(;;) {
         switch(verb) {
-            case SkPath::kMove_Verb: {
+            case SkPathVerb::kMove: {
                 if(firstNode) return;
                 const QPointF qPt = toQPointF(pts[0]);
                 firstNode = appendAndGetNode(Node(qPt));
                 prevNode = firstNode;
             }
                 break;
-            case SkPath::kLine_Verb: {
+            case SkPathVerb::kLine: {
                 const QPointF qPt = toQPointF(pts[1]);
 
                 prevNode->setC2Enabled(false);
                 prevNode->mC2 = prevNode->mP1;
 
                 bool appendNode;
-                if(iter.peek() == SkPath::kClose_Verb) {
+                if(iter.peek() == SkPathVerb::kClose) {
                     firstNode->setC0Enabled(false);
                     firstNode->mC0 = firstNode->mP1;
                     appendNode = !isZero4Dec(pointToLen(firstNode->p1() - qPt));
@@ -500,7 +500,7 @@ void NodeList::setPath(const SkPath &path) {
                 if(appendNode) prevNode = appendAndGetNode(Node(qPt));
             }
                 break;
-            case SkPath::kConic_Verb: {
+            case SkPathVerb::kConic: {
                 const QPointF p0 = toQPointF(pts[0]);
                 const QPointF p1 = toQPointF(pts[1]);
                 const QPointF p2 = toQPointF(pts[2]);
@@ -510,18 +510,18 @@ void NodeList::setPath(const SkPath &path) {
                 pts[1] = toSkPoint(seg.c1());
                 pts[2] = toSkPoint(seg.c2());
                 pts[3] = toSkPoint(seg.p3());
-                verb = SkPath::kCubic_Verb;
+                verb = SkPathVerb::kCubic;
                 continue;
             }
-            case SkPath::kQuad_Verb: {
+            case SkPathVerb::kQuad: {
                 const SkPoint ctrlPtT = pts[1];
                 pts[1] = pts[0] + (ctrlPtT - pts[0])*0.66667f;
                 pts[3] = pts[2];
                 pts[2] = pts[3] + (ctrlPtT - pts[3])*0.66667f;
-                verb = SkPath::kCubic_Verb;
+                verb = SkPathVerb::kCubic;
                 continue;
             }
-            case SkPath::kCubic_Verb: {
+            case SkPathVerb::kCubic: {
                 const QPointF c0Pt = toQPointF(pts[1]);
                 const QPointF c1Pt = toQPointF(pts[2]);
                 const QPointF p2Pt = toQPointF(pts[3]);
@@ -532,7 +532,7 @@ void NodeList::setPath(const SkPath &path) {
                 prevNode->guessCtrlsMode();
 
                 bool appendNode;
-                if(iter.peek() == SkPath::kClose_Verb && quadsCount == 0) {
+                if(iter.peek() == SkPathVerb::kClose && quadsCount == 0) {
                     appendNode = !isZero4Dec(pointToLen(firstNode->p1() - p2Pt));
                     if(!appendNode) {
                         firstNode->setC0Enabled(true);
@@ -542,10 +542,10 @@ void NodeList::setPath(const SkPath &path) {
                 if(appendNode) prevNode = appendAndGetNode(Node(c1Pt, p2Pt, p2Pt));
             }
                 break;
-            case SkPath::kClose_Verb:
+            case SkPathVerb::kClose:
                 setClosed(true);
                 break;
-            case SkPath::kDone_Verb:
+            case SkPathVerb::kDone:
                 return;
         }
         if(quadsCount > 0) {
@@ -553,7 +553,7 @@ void NodeList::setPath(const SkPath &path) {
             pts[0] = ptsT[firstPtId];
             pts[1] = ptsT[firstPtId + 1];
             pts[2] = ptsT[firstPtId + 2];
-            verb = SkPath::kQuad_Verb;
+            verb = SkPathVerb::kQuad;
             quadId++;
             quadsCount--;
         } else {

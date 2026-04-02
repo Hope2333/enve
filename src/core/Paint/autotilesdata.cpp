@@ -323,7 +323,6 @@ void AutoTilesData::loadPixmap(const SkPixmap &src) {
             SkBitmap srcBitmap;
             srcBitmap.installPixels(src);
             canvas.drawBitmap(srcBitmap, 0, 0);
-            canvas.flush();
             loadPixmap(dst.pixmap());
         }
     }

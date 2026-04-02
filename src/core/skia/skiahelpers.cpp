@@ -176,8 +176,11 @@ void SkiaHelpers::forceLink() {
 void SkiaHelpers::textToPath(const SkFont& font,
                              const SkScalar x, const SkScalar y,
                              const QString& text, SkPath& path) {
-    SkTextUtils::GetPath(text.utf16(),
-                         text.size()*sizeof(short),
-                         SkTextEncoding::kUTF16,
-                         x, y, font, &path);
+    // SkTextUtils::GetPath was removed in m88; use SkTextBlob + SkCanvas approach
+    auto blob = SkTextBlob::MakeFromText(text.utf16(),
+                                          text.size()*sizeof(short),
+                                          font, SkTextEncoding::kUTF16);
+    if(!blob) return;
+    SkCanvas canvas(&path);
+    canvas.drawTextBlob(blob, x, y, SkPaint());
 }

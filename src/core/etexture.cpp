@@ -35,7 +35,7 @@ void eTexture::gen(GrDirectContext* const context,
     fGrTex = context->createBackendTexture(width, height,
                                            kRGBA_8888_SkColorType,
                                            SkColors::kTransparent,
-                                           GrMipMapped::kNo,
+                                           GrMipmapped::kNo,
                                            GrRenderable::kYes);
     GrGLTextureInfo texInfo;
     fGrTex.getGLTextureInfo(&texInfo);

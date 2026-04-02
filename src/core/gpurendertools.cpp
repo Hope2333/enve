@@ -79,7 +79,7 @@ bool GpuRenderTools::imageToTexture(sk_sp<SkImage> img, eTexture& texture) {
     if(!img) return false;
     mContext.switchToSkia();
     if(!img->isTextureBacked())
-        img = img->makeTextureImage(mContext.grContext(), GrMipMapped::kNo);
+        img = img->makeTextureImage(mContext.grContext(), GrMipmapped::kNo);
     const auto grTex = img->getBackendTexture(true);
     GrGLTextureInfo texInfo;
     grTex.getGLTextureInfo(&texInfo);
@@ -125,5 +125,5 @@ GrBackendTexture GpuRenderTools::sourceBackedTexture() {
     texInfo.fFormat = GR_GL_RGBA8;
     texInfo.fTarget = GR_GL_TEXTURE_2D;
     return GrBackendTexture(mSrcTexture.fWidth, mSrcTexture.fHeight,
-                            GrMipMapped::kNo, texInfo);
+                            GrMipmapped::kNo, texInfo);
 }

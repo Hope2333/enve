@@ -110,7 +110,7 @@ void BoxRenderData::processGpu(QGL33 * const gl,
 
     const auto grTex = grContext->createBackendTexture(
                 fGlobalRect.width(), fGlobalRect.height(),
-                kRGBA_8888_SkColorType, GrMipMapped::kNo,
+                kRGBA_8888_SkColorType, GrMipmapped::kNo,
                 GrRenderable::kYes);
     if(!grTex.isValid()) return;
     const auto surf = SkSurface::MakeFromBackendTexture(
