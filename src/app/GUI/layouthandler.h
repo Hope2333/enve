@@ -126,9 +126,7 @@ public:
         }
         int relCurrentId; src >> relCurrentId;
         if(relCurrentId == -1) return;
-        const int absId = relCurrentId < nLays ? relCurrentId :
-                                                 mNumberLayouts - nLays + relCurrentId;
-        setCurrent(absId);
+        setCurrent(resolveAbsoluteId(relCurrentId, nLays));
     }
 
     void writeXEV(QDomElement& ele, QDomDocument& doc,
@@ -148,34 +146,43 @@ public:
         ele.setAttribute("currentId", mCurrentId);
     }
 
+    int resolveAbsoluteId(const int relId, const int nCustomLayouts) const {
+        return relId < nCustomLayouts ? relId : mNumberLayouts - nCustomLayouts + relId;
+    }
+
     void readXEV(XevReadBoxesHandler& boxReadHandler,
                  const QDomElement& ele,
                  RuntimeIdToWriteId& objListIdConv) {
         setCurrent(-1);
 
-        const auto cLays = ele.elementsByTagName("CustomLayout");
-        const int nCLays = cLays.count();
-        for(int i = 0; i < nCLays; i++) {
-            const auto layNode = cLays.at(i);
-            const auto layEle = layNode.toElement();
-            newLayout()->readXEV(boxReadHandler, layEle, objListIdConv);
-        }
-
-        const auto sLays = ele.elementsByTagName("SceneLayout");
-        const int nSLays = sLays.count();
-        for(int i = 0; i < nSLays; i++) {
-            const auto layNode = sLays.at(i);
-            const auto layEle = layNode.toElement();
-            const auto layout = mLayouts.at(uint(i + mNumberLayouts));
-            layout->readXEV(boxReadHandler, layEle, objListIdConv);
-        }
+        readLayoutsFromXEV(boxReadHandler, ele, objListIdConv);
+        readSceneLayoutsFromXEV(boxReadHandler, ele, objListIdConv);
 
         const auto currentIdStr = ele.attribute("currentId");
         const int relCurrentId = XmlExportHelpers::stringToInt(currentIdStr);
         if(relCurrentId == -1) return;
-        const int absId = relCurrentId < nCLays ? relCurrentId :
-                                                 mNumberLayouts - nCLays + relCurrentId;
-        setCurrent(absId);
+        const int nCLays = ele.elementsByTagName("CustomLayout").count();
+        setCurrent(resolveAbsoluteId(relCurrentId, nCLays));
+    }
+
+    void readLayoutsFromXEV(XevReadBoxesHandler& boxReadHandler,
+                            const QDomElement& ele,
+                            RuntimeIdToWriteId& objListIdConv) {
+        const auto cLays = ele.elementsByTagName("CustomLayout");
+        for(int i = 0; i < cLays.count(); i++) {
+            const auto layEle = cLays.at(i).toElement();
+            newLayout()->readXEV(boxReadHandler, layEle, objListIdConv);
+        }
+    }
+
+    void readSceneLayoutsFromXEV(XevReadBoxesHandler& boxReadHandler,
+                                 const QDomElement& ele,
+                                 RuntimeIdToWriteId& objListIdConv) {
+        const auto sLays = ele.elementsByTagName("SceneLayout");
+        for(int i = 0; i < sLays.count(); i++) {
+            const auto layEle = sLays.at(i).toElement();
+            mLayouts.at(uint(i + mNumberLayouts))->readXEV(boxReadHandler, layEle, objListIdConv);
+        }
     }
 private:
     void rename(const int id, const QString& newName) {

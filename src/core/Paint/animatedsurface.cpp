@@ -342,42 +342,55 @@ public:
         if(setValue(mKeyRelFrame)) return finish();
         if(done()) return;
 
-        bool first = mKeyId == 0;
-        if(first) {
-            const auto idRange = mSrc->prp_getIdenticalRelRange(mVisRage.fMin);
-            const int span = mExp.fAbsRange.span();
-
-            if(idRange.inRange(mVisRage) || span == 1) {
-                addSurface(mVisRage.fMin, nullptr);
-                mKeyRelFrame = mVisRage.fMax;
-                return nextStep();
-            }
+        const bool isFirstIteration = (mKeyId == 0);
+        if(isFirstIteration) {
+            if(tryHandleIdenticalRange()) return nextStep();
         }
 
-        const auto& keys = mSrc->anim_getKeys();
-        if(mKeyId >= keys.count()) {
+        if(mKeyId >= mSrc->anim_getKeys().count()) {
             mKeyRelFrame = mVisRage.fMax;
             return nextStep();
         }
+
+        processNextKey(isFirstIteration);
+    }
+
+    //! Try to handle the case where the entire visible range is identical.
+    //! Returns true if the range was handled (caller should call nextStep()).
+    bool tryHandleIdenticalRange() {
+        const auto idRange = mSrc->prp_getIdenticalRelRange(mVisRage.fMin);
+        const int span = mExp.fAbsRange.span();
+        if(idRange.inRange(mVisRage) || span == 1) {
+            addSurface(mVisRage.fMin, nullptr);
+            mKeyRelFrame = mVisRage.fMax;
+            return true;
+        }
+        return false;
+    }
+
+    void processNextKey(const bool first) {
+        const auto& keys = mSrc->anim_getKeys();
         const auto key = static_cast<ASKey*>(keys.atId(mKeyId++));
         mKeyRelFrame = key->getRelFrame();
         if(mKeyRelFrame >= mVisRage.fMax) return nextStep();
-        if(mKeyRelFrame >= mVisRage.fMin) {
-            DrawableAutoTiledSurface* surf = nullptr;
-            if(first) {
-                first = false;
-                const int prevId = mKeyId - 2;
-                const auto null = static_cast<Key*>(nullptr);
-                const auto prevKey = prevId >= 0 ? keys.atId(prevId) : null;
-                const auto prevASKey = static_cast<ASKey*>(prevKey);
-                const bool keyOnFirstFrame = mKeyRelFrame == mVisRage.fMin;
-                const bool useKey = keyOnFirstFrame || !prevKey;
-                const auto firstKey = useKey ? key : prevASKey;
-                surf = &firstKey->dSurface();
-            } else surf = &key->dSurface();
-            const bool wait = addSurface(mKeyRelFrame, surf);
-            if(!wait) addEmptyTask();
-        } else nextStep();
+        if(mKeyRelFrame < mVisRage.fMin) { nextStep(); return; }
+
+        DrawableAutoTiledSurface* surf = resolveSurfaceForKey(key, first);
+        const bool wait = addSurface(mKeyRelFrame, surf);
+        if(!wait) addEmptyTask();
+    }
+
+    DrawableAutoTiledSurface* resolveSurfaceForKey(Key* key, const bool first) {
+        if(!first) return &static_cast<ASKey*>(key)->dSurface();
+
+        const auto& keys = mSrc->anim_getKeys();
+        const int prevId = mKeyId - 2;
+        const auto prevKey = prevId >= 0 ? keys.atId(prevId) : static_cast<Key*>(nullptr);
+        const bool keyOnFirstFrame = mKeyRelFrame == mVisRage.fMin;
+        const auto effectiveKey = (keyOnFirstFrame || !prevKey)
+            ? static_cast<ASKey*>(key)
+            : static_cast<ASKey*>(prevKey);
+        return &effectiveKey->dSurface();
     }
 
 private:
@@ -426,50 +439,49 @@ private:
         mUse.setAttribute("x", x);
         mUse.setAttribute("y", y);
         if(mHrefValues.count() > 1) {
-            if(mKeyTimes.last() != "1") {
-                mHrefValues << mHrefValues.last();
-                mXValues << mXValues.last();
-                mYValues << mYValues.last();
-                mKeyTimes << "1";
-            }
-            if(mKeyTimes.first() != "0") {
-                mHrefValues.prepend(mHrefValues.first());
-                mXValues.prepend(mXValues.first());
-                mYValues.prepend(mYValues.first());
-                mKeyTimes.prepend("0");
-            }
+            ensureAnimationEndpoints();
 
             const qreal dur = mDiv/mExp.fFps;
             const auto durStr = QString::number(dur)  + 's';
             const auto keyTimesStr = mKeyTimes.join(';');
-            {
-                auto anim = mExp.createElement("animate");
-                anim.setAttribute("attributeName", "href");
-                anim.setAttribute("dur", durStr);
-                anim.setAttribute("values", mHrefValues.join(';'));
-                anim.setAttribute("keyTimes", keyTimesStr);
-                SvgExportHelpers::assignLoop(anim, mExp.fLoop);
-                mUse.appendChild(anim);
-            }
-            {
-                auto anim = mExp.createElement("animate");
-                anim.setAttribute("attributeName", "x");
-                anim.setAttribute("dur", durStr);
-                anim.setAttribute("values", mXValues.join(';'));
-                anim.setAttribute("keyTimes", keyTimesStr);
-                SvgExportHelpers::assignLoop(anim, mExp.fLoop);
-                mUse.appendChild(anim);
-            }
-            {
-                auto anim = mExp.createElement("animate");
-                anim.setAttribute("attributeName", "y");
-                anim.setAttribute("dur", durStr);
-                anim.setAttribute("values", mYValues.join(';'));
-                anim.setAttribute("keyTimes", keyTimesStr);
-                SvgExportHelpers::assignLoop(anim, mExp.fLoop);
-                mUse.appendChild(anim);
-            }
+
+            createAnimateAttribute("href", durStr, mHrefValues.join(';'));
+            createAnimateAttribute("x", durStr, mXValues.join(';'));
+            createAnimateAttribute("y", durStr, mYValues.join(';'));
         }
+    }
+
+    void ensureAnimationEndpoints() {
+        if(mKeyTimes.last() != "1") {
+            appendAnimationValue(mHrefValues.last(), mXValues.last(), mYValues.last(), "1");
+        }
+        if(mKeyTimes.first() != "0") {
+            prependAnimationValue(mHrefValues.first(), mXValues.first(), mYValues.first(), "0");
+        }
+    }
+
+    void appendAnimationValue(const QString& href, const QString& x, const QString& y, const QString& time) {
+        mHrefValues << href;
+        mXValues << x;
+        mYValues << y;
+        mKeyTimes << time;
+    }
+
+    void prependAnimationValue(const QString& href, const QString& x, const QString& y, const QString& time) {
+        mHrefValues.prepend(href);
+        mXValues.prepend(x);
+        mYValues.prepend(y);
+        mKeyTimes.prepend(time);
+    }
+
+    void createAnimateAttribute(const QString& attributeName, const QString& dur, const QString& values) {
+        auto anim = mExp.createElement("animate");
+        anim.setAttribute("attributeName", attributeName);
+        anim.setAttribute("dur", dur);
+        anim.setAttribute("values", values);
+        anim.setAttribute("keyTimes", mKeyTimes.join(';'));
+        SvgExportHelpers::assignLoop(anim, mExp.fLoop);
+        mUse.appendChild(anim);
     }
 
     const QPointer<AnimatedSurface> mSrc;

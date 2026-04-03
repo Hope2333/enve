@@ -46,31 +46,32 @@ public:
         mFirst = false;
 
         if(first) {
-            const FrameRange idRange{qMin(mVisRange.fMin, 0), 0};
-            const int span = mExp.fAbsRange.span();
-
-            if(idRange.inRange(mVisRange) || span == 1) {
-                addSurface(0, mVisRange.fMin);
-                mRelFrame = mVisRange.fMax;
-                return nextStep();
-            }
+            if(tryHandleIdenticalRange()) return nextStep();
         }
 
         if(mRelFrame >= mSrc->getFrameCount()) {
             mRelFrame = mVisRange.fMax;
             return nextStep();
         }
+
         mRelFrame++;
         if(mRelFrame >= mVisRange.fMax) return nextStep();
-        if(mRelFrame >= mVisRange.fMin) {
-            bool wait;
-            if(mRelFrame < 0) {
-                wait = addSurface(0, mRelFrame);
-            } else {
-                wait = addSurface(mRelFrame, mRelFrame);
-            }
-            if(!wait) addEmptyTask();
-        } else nextStep();
+        if(mRelFrame < mVisRange.fMin) { nextStep(); return; }
+
+        const int srcFrame = mRelFrame < 0 ? 0 : mRelFrame;
+        const bool wait = addSurface(srcFrame, mRelFrame);
+        if(!wait) addEmptyTask();
+    }
+
+    bool tryHandleIdenticalRange() {
+        const FrameRange idRange{qMin(mVisRange.fMin, 0), 0};
+        const int span = mExp.fAbsRange.span();
+        if(idRange.inRange(mVisRange) || span == 1) {
+            addSurface(0, mVisRange.fMin);
+            mRelFrame = mVisRange.fMax;
+            return true;
+        }
+        return false;
     }
 
 private:
@@ -110,28 +111,33 @@ private:
         const QString href = mHrefValues.first();
         mUse.setAttribute("href", href);
         if(mHrefValues.count() > 1) {
-            if(mKeyTimes.last() != "1") {
-                mHrefValues << mHrefValues.last();
-                mKeyTimes << "1";
-            }
-            if(mKeyTimes.first() != "0") {
-                mHrefValues.prepend(mHrefValues.first());
-                mKeyTimes.prepend("0");
-            }
+            ensureAnimationEndpoints();
 
             const qreal dur = mDiv/mExp.fFps;
             const auto durStr = QString::number(dur)  + 's';
-            const auto keyTimesStr = mKeyTimes.join(';');
-            {
-                auto anim = mExp.createElement("animate");
-                anim.setAttribute("attributeName", "href");
-                anim.setAttribute("dur", durStr);
-                anim.setAttribute("values", mHrefValues.join(';'));
-                anim.setAttribute("keyTimes", keyTimesStr);
-                SvgExportHelpers::assignLoop(anim, mExp.fLoop);
-                mUse.appendChild(anim);
-            }
+            createAnimateAttribute(durStr, mHrefValues.join(';'));
         }
+    }
+
+    void ensureAnimationEndpoints() {
+        if(mKeyTimes.last() != "1") {
+            mHrefValues << mHrefValues.last();
+            mKeyTimes << "1";
+        }
+        if(mKeyTimes.first() != "0") {
+            mHrefValues.prepend(mHrefValues.first());
+            mKeyTimes.prepend("0");
+        }
+    }
+
+    void createAnimateAttribute(const QString& dur, const QString& values) {
+        auto anim = mExp.createElement("animate");
+        anim.setAttribute("attributeName", "href");
+        anim.setAttribute("dur", dur);
+        anim.setAttribute("values", values);
+        anim.setAttribute("keyTimes", mKeyTimes.join(';'));
+        SvgExportHelpers::assignLoop(anim, mExp.fLoop);
+        mUse.appendChild(anim);
     }
 
     const QPointer<AnimationFrameHandler> mSrc;
