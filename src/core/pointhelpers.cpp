@@ -608,45 +608,45 @@ SkPath gPathToPolyline(const SkPath& path) {
     SkPath result;
     QPointF lastMovePos;
     QPointF lastPos;
-    SkPath::RawIter iter(path, false);
+    SkPath::Iter iter(path, false);
     for(;;) {
         qCubicSegment2D seg;
         SkPoint pts[4];
         switch(iter.next(pts)) {
-        case SkPathVerb::kLine: {
+        case SkPath::kLine_Verb: {
             const QPointF pt1 = toQPointF(pts[1]);
             result.lineTo(pts[1]);
             lastPos = pt1;
             continue;
         }
-        case SkPathVerb::kQuad: {
+        case SkPath::kQuad_Verb: {
             const QPointF pt2 = toQPointF(pts[2]);
             seg = qCubicSegment2D::sFromQuad(lastPos, toQPointF(pts[1]), pt2);
             lastPos = pt2;
         } break;
-        case SkPathVerb::kConic: {
+        case SkPath::kConic_Verb: {
             const QPointF pt2 = toQPointF(pts[2]);
             seg = qCubicSegment2D::sFromConic(lastPos, toQPointF(pts[1]), pt2,
                                              toQreal(iter.conicWeight()));
             lastPos = pt2;
         } break;
-        case SkPathVerb::kCubic: {
+        case SkPath::kCubic_Verb: {
             const QPointF pt3 = toQPointF(pts[3]);
             seg = qCubicSegment2D(lastPos, toQPointF(pts[1]),
                                   toQPointF(pts[2]), pt3);
             lastPos = pt3;
         } break;
-        case SkPathVerb::kClose: {
+        case SkPath::kClose_Verb: {
             result.close();
             continue;
         }
-        case SkPathVerb::kMove: {
+        case SkPath::kMove_Verb: {
             result.moveTo(pts[0]);
             lastMovePos = toQPointF(pts[0]);
             lastPos = lastMovePos;
             continue;
         }
-        case SkPathVerb::kDone:
+        case SkPath::kDone_Verb:
             return result;
         }
         if(!seg.isLine()) {
@@ -663,43 +663,43 @@ void gForEverySegmentInPath(
         const std::function<void(const qCubicSegment2D&)>& func) {
     QPointF lastMovePos;
     QPointF lastPos;
-    SkPath::RawIter iter(path, false);
+    SkPath::Iter iter(path, false);
     for(;;) {
         SkPoint pts[4];
         switch(iter.next(pts)) {
-        case SkPathVerb::kLine: {
+        case SkPath::kLine_Verb: {
             const QPointF pt1 = toQPointF(pts[1]);
             func(qCubicSegment2D(lastPos, lastPos, pt1, pt1));
             lastPos = pt1;
         } break;
-        case SkPathVerb::kQuad: {
+        case SkPath::kQuad_Verb: {
             const QPointF pt2 = toQPointF(pts[2]);
             func(qCubicSegment2D::sFromQuad(lastPos, toQPointF(pts[1]), pt2));
             lastPos = pt2;
         } break;
-        case SkPathVerb::kConic: {
+        case SkPath::kConic_Verb: {
             const QPointF pt2 = toQPointF(pts[2]);
             func(qCubicSegment2D::sFromConic(lastPos, toQPointF(pts[1]), pt2,
                                             toQreal(iter.conicWeight())));
             lastPos = pt2;
         } break;
-        case SkPathVerb::kCubic: {
+        case SkPath::kCubic_Verb: {
             const QPointF pt3 = toQPointF(pts[3]);
             func(qCubicSegment2D(lastPos, toQPointF(pts[1]),
                                  toQPointF(pts[2]), pt3));
             lastPos = pt3;
         } break;
-        case SkPathVerb::kClose: {
+        case SkPath::kClose_Verb: {
             if(!isZero2Dec(pointToLen(lastPos - lastMovePos))) {
                 func({lastPos, lastPos, lastMovePos, lastMovePos});
                 lastPos = lastMovePos;
             }
         } break;
-        case SkPathVerb::kMove: {
+        case SkPath::kMove_Verb: {
             lastMovePos = toQPointF(pts[0]);
             lastPos = lastMovePos;
         } break;
-        case SkPathVerb::kDone:
+        case SkPath::kDone_Verb:
             return;
         }
     }
@@ -710,11 +710,11 @@ void gForEverySegmentInPath(
         const std::function<void(const SkPath&)>& func) {
     SkPoint lastMovePos{0, 0};
     SkPoint lastPos{0, 0};
-    SkPath::RawIter iter(path, false);
+    SkPath::Iter iter(path, false);
     for(;;) {
         SkPoint pts[4];
         switch(iter.next(pts)) {
-        case SkPathVerb::kLine: {
+        case SkPath::kLine_Verb: {
             const SkPoint pt1 = pts[1];
             SkPath seg;
             seg.moveTo(lastPos);
@@ -722,7 +722,7 @@ void gForEverySegmentInPath(
             func(seg);
             lastPos = pt1;
         } break;
-        case SkPathVerb::kQuad: {
+        case SkPath::kQuad_Verb: {
             const SkPoint pt2 = pts[2];
             SkPath seg;
             seg.moveTo(lastPos);
@@ -730,7 +730,7 @@ void gForEverySegmentInPath(
             func(seg);
             lastPos = pt2;
         } break;
-        case SkPathVerb::kConic: {
+        case SkPath::kConic_Verb: {
             const SkPoint pt2 = pts[2];
             SkPath seg;
             seg.moveTo(lastPos);
@@ -738,7 +738,7 @@ void gForEverySegmentInPath(
             func(seg);
             lastPos = pt2;
         } break;
-        case SkPathVerb::kCubic: {
+        case SkPath::kCubic_Verb: {
             const SkPoint pt3 = pts[3];
             SkPath seg;
             seg.moveTo(lastPos);
@@ -746,7 +746,7 @@ void gForEverySegmentInPath(
             func(seg);
             lastPos = pt3;
         } break;
-        case SkPathVerb::kClose: {
+        case SkPath::kClose_Verb: {
             if(!isZero2Dec(pointToLen(lastPos - lastMovePos))) {
                 SkPath seg;
                 seg.moveTo(lastPos);
@@ -754,11 +754,11 @@ void gForEverySegmentInPath(
                 func(seg);
             }
         } break;
-        case SkPathVerb::kMove: {
+        case SkPath::kMove_Verb: {
             lastMovePos = pts[0];
             lastPos = lastMovePos;
         } break;
-        case SkPathVerb::kDone:
+        case SkPath::kDone_Verb:
             return;
         }
     }
@@ -839,8 +839,8 @@ void gAtomicDisplaceFilterPath(const qreal baseSeed,
     dst->setFillType(src.getFillType());
 
     qreal seedContourInc = 0;
-    SkPath::RawIter iter(src, false);
-    SkPath::RawIter nextIter(src, false);
+    SkPath::Iter iter(src, false);
+    SkPath::Iter nextIter(src, false);
     SkPoint pts[4];
     nextIter.next(pts);
     SkPoint prevDisp{0, 0};
@@ -849,34 +849,34 @@ void gAtomicDisplaceFilterPath(const qreal baseSeed,
     for(;;) {
         const auto nextVerb = nextIter.next(pts);
         const auto verb = iter.next(pts);
-        if(verb == SkPathVerb::kMove) {
+        if(verb == SkPath::kMove_Verb) {
             seedContourInc += 1000.;
             i = 0;
         }
-        const auto disp = nextVerb == SkPathVerb::kClose ?
+        const auto disp = nextVerb == SkPath::kClose_Verb ?
                     firstDisp : randPt(baseSeed + (i++) + seedContourInc, maxDev);
 
         switch(verb) {
-        case SkPathVerb::kLine: {
+        case SkPath::kLine_Verb: {
             dst->lineTo(pts[1] + disp);
         } break;
-        case SkPathVerb::kQuad: {
+        case SkPath::kQuad_Verb: {
             dst->quadTo(pts[1] + (prevDisp + disp)*0.5f, pts[2] + disp);
         } break;
-        case SkPathVerb::kConic: {
+        case SkPath::kConic_Verb: {
             dst->conicTo(pts[1] + prevDisp, pts[2] + disp, iter.conicWeight());
         } break;
-        case SkPathVerb::kCubic: {
+        case SkPath::kCubic_Verb: {
             dst->cubicTo(pts[1] + prevDisp, pts[2] + disp, pts[3] + disp);
         } break;
-        case SkPathVerb::kClose: {
+        case SkPath::kClose_Verb: {
             dst->close();
         } break;
-        case SkPathVerb::kMove: {
+        case SkPath::kMove_Verb: {
             dst->moveTo(pts[0] + disp);
             firstDisp = disp;
         } break;
-        case SkPathVerb::kDone:
+        case SkPath::kDone_Verb:
             return;
         }
         prevDisp = disp;
@@ -897,29 +897,29 @@ void gSpatialDisplaceFilterPath(const qreal baseSeed,
     dst->reset();
     dst->setFillType(src.getFillType());
 
-    SkPath::RawIter iter(src, false);
+    SkPath::Iter iter(src, false);
     SkPoint pts[4];
     SkPoint prevDisp{0, 0};
     for(;;) {
         const auto verb = iter.next(pts);
         SkPoint targetPt{0, 0};
         switch(verb) {
-        case SkPathVerb::kLine: {
+        case SkPath::kLine_Verb: {
            targetPt = pts[1];
         } break;
-        case SkPathVerb::kQuad:
-        case SkPathVerb::kConic: {
+        case SkPath::kQuad_Verb:
+        case SkPath::kConic_Verb: {
             targetPt = pts[2];
         } break;
-        case SkPathVerb::kCubic: {
+        case SkPath::kCubic_Verb: {
             targetPt = pts[3];
         } break;
-        case SkPathVerb::kClose: {
+        case SkPath::kClose_Verb: {
         } break;
-        case SkPathVerb::kMove: {
+        case SkPath::kMove_Verb: {
             targetPt = pts[0];
         } break;
-        case SkPathVerb::kDone:
+        case SkPath::kDone_Verb:
             return;
         }
 
@@ -931,25 +931,25 @@ void gSpatialDisplaceFilterPath(const qreal baseSeed,
         const auto disp = SkPoint::Make(randX*maxDev, randY*maxDev);
 
         switch(verb) {
-        case SkPathVerb::kLine: {
+        case SkPath::kLine_Verb: {
             dst->lineTo(pts[1] + disp);
         } break;
-        case SkPathVerb::kQuad: {
+        case SkPath::kQuad_Verb: {
             dst->quadTo(pts[1] + (prevDisp + disp)*0.5f, pts[2] + disp);
         } break;
-        case SkPathVerb::kConic: {
+        case SkPath::kConic_Verb: {
             dst->conicTo(pts[1] + prevDisp, pts[2] + disp, iter.conicWeight());
         } break;
-        case SkPathVerb::kCubic: {
+        case SkPath::kCubic_Verb: {
             dst->cubicTo(pts[1] + prevDisp, pts[2] + disp, pts[3] + disp);
         } break;
-        case SkPathVerb::kClose: {
+        case SkPath::kClose_Verb: {
             dst->close();
         } break;
-        case SkPathVerb::kMove: {
+        case SkPath::kMove_Verb: {
             dst->moveTo(pts[0] + disp);
         } break;
-        case SkPathVerb::kDone:
+        case SkPath::kDone_Verb:
             return;
         }
         prevDisp = disp;
@@ -1410,34 +1410,34 @@ void gGetValuesForNodeRemoval(
 QList<SkPath> gBreakApart(const SkPath &src) {
     QList<SkPath> result;
 
-    SkPath::RawIter iter(src, false);
+    SkPath::Iter iter(src, false);
     SkPath current;
     for(;;) {
         SkPoint pts[4];
         switch(iter.next(pts)) {
-        case SkPathVerb::kLine: {
+        case SkPath::kLine_Verb: {
             current.lineTo(pts[1]);
         } break;
-        case SkPathVerb::kQuad: {
+        case SkPath::kQuad_Verb: {
             current.quadTo(pts[1], pts[2]);
         } break;
-        case SkPathVerb::kConic: {
+        case SkPath::kConic_Verb: {
             current.conicTo(pts[1], pts[2], iter.conicWeight());
         } break;
-        case SkPathVerb::kCubic: {
+        case SkPath::kCubic_Verb: {
             current.cubicTo(pts[1], pts[2], pts[3]);
         } break;
-        case SkPathVerb::kClose: {
+        case SkPath::kClose_Verb: {
             current.close();
         } break;
-        case SkPathVerb::kMove: {
+        case SkPath::kMove_Verb: {
             if(!current.isEmpty()) {
                 result << current;
                 current.reset();
             }
             current.moveTo(pts[0]);
         } break;
-        case SkPathVerb::kDone: {
+        case SkPath::kDone_Verb: {
             if(!current.isEmpty()) {
                 result << current;
                 current.reset();

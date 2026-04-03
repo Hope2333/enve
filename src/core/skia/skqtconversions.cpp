@@ -127,18 +127,18 @@ QPainterPath toQPainterPath(const SkPath& path) {
     for(;;) {
         auto verb = iter.next(pts);
         switch(verb) {
-            case SkPathVerb::kMove: {
+            case SkPath::kMove_Verb: {
                 const SkPoint pt = pts[0];
                 qPath.moveTo(toQPointF(pt));
             }
                 break;
-            case SkPathVerb::kLine: {
+            case SkPath::kLine_Verb: {
                 const SkPoint pt = pts[1];
 
                 qPath.lineTo(toQPointF(pt));
             }
                 break;
-            case SkPathVerb::kConic: {
+            case SkPath::kConic_Verb: {
                 const QPointF p0 = toQPointF(pts[0]);
                 const QPointF p1 = toQPointF(pts[1]);
                 const QPointF p2 = toQPointF(pts[2]);
@@ -148,10 +148,10 @@ QPainterPath toQPainterPath(const SkPath& path) {
                 pts[1] = toSkPoint(seg.c1());
                 pts[2] = toSkPoint(seg.c2());
                 pts[3] = toSkPoint(seg.p3());
-                verb = SkPathVerb::kCubic;
+                verb = SkPath::kCubic_Verb;
                 continue;
             }
-            case SkPathVerb::kCubic: {
+            case SkPath::kCubic_Verb: {
                 const SkPoint endPt = pts[1];
                 const SkPoint startPt = pts[2];
                 const SkPoint targetPt = pts[3];
@@ -160,17 +160,17 @@ QPainterPath toQPainterPath(const SkPath& path) {
                               toQPointF(targetPt));
             }
                 break;
-            case SkPathVerb::kClose:
+            case SkPath::kClose_Verb:
                 qPath.closeSubpath();
                 break;
-            case SkPathVerb::kQuad: {
+            case SkPath::kQuad_Verb: {
                 const SkPoint ctrlPt = pts[1];
                 const SkPoint targetPt = pts[2];
                 qPath.quadTo(toQPointF(ctrlPt),
                              toQPointF(targetPt));
             }
                 break;
-            case SkPathVerb::kDone:
+            case SkPath::kDone_Verb:
                 return qPath;
         }
     }

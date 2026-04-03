@@ -114,27 +114,27 @@ QList<CubicList> CubicList::sMakeFromSkPath(const SkPath &src) {
 
     QPointF lastMovePos;
     QPointF lastPos;
-    SkPath::RawIter iter(src, false);
+    SkPath::Iter iter(src, false);
     for(;;) {
         SkPoint pts[4];
         switch(iter.next(pts)) {
-        case SkPathVerb::kLine: {
+        case SkPath::kLine_Verb: {
             QPointF pt1 = toQPointF(pts[1]);
             segs << qCubicSegment2D(lastPos, lastPos, pt1, pt1);
             lastPos = pt1;
         } break;
-        case SkPathVerb::kQuad: {
+        case SkPath::kQuad_Verb: {
             QPointF pt2 = toQPointF(pts[2]);
             segs << qCubicSegment2D::sFromQuad(lastPos, toQPointF(pts[1]), pt2);
             lastPos = pt2;
         } break;
-        case SkPathVerb::kConic: {
+        case SkPath::kConic_Verb: {
             QPointF pt2 = toQPointF(pts[2]);
             segs << qCubicSegment2D::sFromConic(lastPos, toQPointF(pts[1]), pt2,
                                                toQreal(iter.conicWeight()));
             lastPos = pt2;
         } break;
-        case SkPathVerb::kCubic: {
+        case SkPath::kCubic_Verb: {
             QPointF pt3 = toQPointF(pts[3]);
             segs << qCubicSegment2D(lastPos,
                                     toQPointF(pts[1]),
@@ -142,11 +142,11 @@ QList<CubicList> CubicList::sMakeFromSkPath(const SkPath &src) {
                                     pt3);
             lastPos = pt3;
         } break;
-        case SkPathVerb::kClose: {
+        case SkPath::kClose_Verb: {
 //            SkCubicSegment2D seg{lastPos, lastPos, lastMovePos, lastMovePos};
 //            segs << qCubicSegment2D(seg);
         } break;
-        case SkPathVerb::kMove: {
+        case SkPath::kMove_Verb: {
             if(!segs.isEmpty()) {
                 result << segs;
                 segs.clear();
@@ -154,7 +154,7 @@ QList<CubicList> CubicList::sMakeFromSkPath(const SkPath &src) {
             lastMovePos = toQPointF(pts[0]);
             lastPos = lastMovePos;
         } break;
-        case SkPathVerb::kDone: {
+        case SkPath::kDone_Verb: {
             if(!segs.isEmpty()) {
                 result << segs;
                 segs.clear();
