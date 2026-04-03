@@ -188,8 +188,7 @@ void drawTransparencyMesh(SkCanvas * const canvas,
     const float scale = canvas->getTotalMatrix().getMinScale();
     const float dim = eSizesUI::widget*0.5f / (scale > 1.f ? 1.f : scale);
     matr.setScale(dim, dim);
-    auto shader = bitmap.makeShader(SkSamplingOptions{SkFilterMode::kLinear},
-                                    SkTileMode::kRepeat, SkTileMode::kRepeat);
+    auto shader = bitmap.makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat);
     if(shader && !matr.isIdentity()) {
         shader = shader->makeWithLocalMatrix(matr);
     }
