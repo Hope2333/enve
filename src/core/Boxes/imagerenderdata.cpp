@@ -52,7 +52,7 @@ void ImageRenderData::drawSk(SkCanvas * const canvas) {
     if(fFilterQuality != SkSamplingOptions{SkFilterMode::kNearest}) {
         SkPaint paint;
         paint.setAntiAlias(true);
-        canvas->drawImage(fImage, x, y, &paint, fFilterQuality);
+        canvas->drawImage(fImage, x, y, fFilterQuality, &paint);
     } else if(fImage) canvas->drawImage(fImage, x, y);
 }
 

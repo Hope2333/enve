@@ -94,7 +94,7 @@ void BoxRenderData::drawOnParentLayer(SkCanvas * const canvas,
     paint.setAlpha(static_cast<U8CPU>(qRound(fOpacity*2.55)));
     paint.setBlendMode(fBlendMode);
     paint.setAntiAlias(fAntiAlias);
-    canvas->drawImage(fRenderedImage, fGlobalRect.x(), fGlobalRect.y(), &paint, sampling);
+    canvas->drawImage(fRenderedImage, fGlobalRect.x(), fGlobalRect.y(), sampling, &paint);
 }
 
 void BoxRenderData::processGpu(QGL33 * const gl,
