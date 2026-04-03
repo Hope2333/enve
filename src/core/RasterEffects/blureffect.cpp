@@ -85,7 +85,7 @@ void BlurEffectCaller::processGpu(QGL33 * const gl,
     Q_UNUSED(gl)
 
     const float sigma = mRadius*0.3333333f;
-    const auto filter = SkBlurImageFilter::Make(sigma, sigma, nullptr);
+    const auto filter = SkImageFilters::Blur(sigma, sigma, nullptr);
 
     SkPaint paint;
     paint.setImageFilter(filter);
@@ -95,7 +95,6 @@ void BlurEffectCaller::processGpu(QGL33 * const gl,
     canvas->clear(SK_ColorTRANSPARENT);
     const auto srcTex = renderTools.requestSrcTextureImageWrapper();
     canvas->drawImage(srcTex, 0, 0, &paint);
-    canvas->flush();
 
     renderTools.swapTextures();
 }
@@ -105,7 +104,7 @@ void BlurEffectCaller::processCpu(CpuRenderTools &renderTools,
     Q_UNUSED(data)
 
     const float sigma = mRadius*0.3333333f;
-    const auto filter = SkBlurImageFilter::Make(sigma, sigma, nullptr);
+    const auto filter = SkImageFilters::Blur(sigma, sigma, nullptr);
 
     SkPaint paint;
     paint.setImageFilter(filter);

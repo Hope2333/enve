@@ -111,7 +111,6 @@ void GLWindow::paintGL() {
     // cleared by Canvas
     // glClear(GL_COLOR_BUFFER_BIT);
     renderSk(mCanvas);
-    mCanvas->flush();
 }
 
 void GLWindow::showEvent(QShowEvent *e) {

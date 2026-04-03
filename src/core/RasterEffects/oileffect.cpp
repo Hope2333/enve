@@ -156,7 +156,6 @@ public:
             if(simulator.isFinished()) break;
         }
 
-        canvas->flush();
         renderTools.swapTextures();
 #ifdef OilEffect_TIMING
         TIME_END("GPU Oil Painting")

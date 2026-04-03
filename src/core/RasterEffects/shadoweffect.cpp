@@ -141,7 +141,6 @@ void ShadowEffectCaller::processGpu(QGL33 * const gl,
     setupPaint(paint);
     canvas->drawImage(srcTex, mTranslation.x(), -mTranslation.y(), &paint);
     canvas->drawImage(srcTex, 0, 0);
-    canvas->flush();
 
     renderTools.swapTextures();
 }

@@ -142,7 +142,6 @@ void OilSimulator::updatePixelArrays() {
 	updateVisitedPixels();
 
     if(mUseGpu) {
-        mGpuDst->flush();
         const bool ret = mGpuDst->readPixels(mCpuDst, 0, 0);
         if(!ret) RuntimeThrow("Could not read gpu canvas pixels");
     }

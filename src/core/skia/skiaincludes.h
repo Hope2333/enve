@@ -43,7 +43,6 @@ QT_WARNING_DISABLE_GCC("-Wattributes")
 #include "include/pathops/SkPathOps.h"
 
 #include "include/utils/SkRandom.h"
-#include "include/utils/SkTextUtils.h"
 #include "include/utils/SkParsePath.h"
 #include "include/utils/SkBase64.h"
 
@@ -52,7 +51,6 @@ QT_WARNING_DISABLE_GCC("-Wattributes")
 #include "include/effects/SkDiscretePathEffect.h"
 
 #include "include/effects/SkGradientShader.h"
-#include "include/effects/SkBlurImageFilter.h"
 #include "include/effects/SkDropShadowImageFilter.h"
 #include "include/effects/SkImageFilters.h"
 

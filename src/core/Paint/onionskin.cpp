@@ -86,7 +86,6 @@ void OnionSkin::SkinsSide::setupImage(GrDirectContext * const grContext) {
 
         skin.fSurface->drawOnCanvas(texCanvas, {0, 0}, &paint);
     }
-    texCanvas->flush();
     fImage = SkImage::MakeFromAdoptedTexture(grContext, grTex,
                                              kTopLeft_GrSurfaceOrigin,
                                              kRGBA_8888_SkColorType);

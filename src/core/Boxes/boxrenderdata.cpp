@@ -121,7 +121,6 @@ void BoxRenderData::processGpu(QGL33 * const gl,
     transformRenderCanvas(*canvas);
     canvas->clear(eraseColor());
     drawSk(canvas);
-    canvas->flush();
     fRenderedImage = SkImage::MakeFromAdoptedTexture(grContext, grTex,
                                                      kTopLeft_GrSurfaceOrigin,
                                                      kRGBA_8888_SkColorType);
