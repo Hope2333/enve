@@ -190,8 +190,29 @@ endif()
 # Installation
 # ============================================================
 
+# Install envecore library and headers for downstream use
+install(TARGETS envecore
+    ARCHIVE DESTINATION lib${LIB_SUFFIX}
+    LIBRARY DESTINATION lib${LIB_SUFFIX}
+)
+install(DIRECTORY include/enveCore/
+    DESTINATION include/enveCore
+    FILES_MATCHING PATTERN "*.h"
+)
+
+# Install enve application
 install(TARGETS enve
     RUNTIME DESTINATION bin
+)
+
+# Install shader files as runtime resources
+install(DIRECTORY src/core/shaders/
+    DESTINATION share/enve/shaders
+    FILES_MATCHING PATTERN "*.vert" PATTERN "*.frag"
+)
+install(DIRECTORY src/app/GUI/ColorWidgets/colorwidgetshaders/
+    DESTINATION share/enve/shaders/colorwidgets
+    FILES_MATCHING PATTERN "*.frag"
 )
 
 # Install desktop file and icons (Linux)
