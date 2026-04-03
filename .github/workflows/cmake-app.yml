@@ -65,9 +65,9 @@ jobs:
         with:
           path: |
             third_party/skia/out/Release
-          key: ${{ runner.os }}-cmake-app-skia-${{ hashFiles('third_party/skia/DEPS') }}
+          key: ${{ runner.os }}-cmake-app-skia-m100-${{ hashFiles('third_party/skia/DEPS') }}
           restore-keys: |
-            ${{ runner.os }}-cmake-app-skia-
+            ${{ runner.os }}-cmake-app-skia-m100-
 
       - name: Build vendored Skia (if not cached)
         if: steps.cache-skia.outputs.cache-hit != 'true'
@@ -75,10 +75,10 @@ jobs:
           cd third_party
           # Remove old attempts
           rm -rf skia skia-build
-          # Use pinned 2020 Skia version with Python 3 bridge
+          # Use Skia m100 (2022-06) — compatible with GCC 13
           git clone https://chromium.googlesource.com/skia skia
           cd skia
-          git checkout 76f4fff613b5ba4365d24dbd943a8ed47221f1e9
+          git checkout 9ea0f5911f804a73806ad3ae935769ba9f42f30d
 
           # Phase 6.C: Python 3 compatibility fixes
           sed -i 's/subprocess.check_output(\([^)]*\))/subprocess.check_output(\1, text=True)/g' gn/is_clang.py
@@ -105,7 +105,7 @@ jobs:
           p.write_text(t)
           "
 
-          bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true skia_use_system_expat=false skia_use_system_icu=true skia_use_system_libjpeg_turbo=false skia_use_system_libpng=false skia_use_system_libwebp=false skia_use_system_zlib=false extra_cflags_cc=["-USK_HIDE_PATH_EDIT_METHODS"]'
+          bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true skia_use_system_expat=false skia_use_system_icu=true skia_use_system_libjpeg_turbo=false skia_use_system_libpng=false skia_use_system_libwebp=false skia_use_system_zlib=false'
           ninja -C out/Release skia
           ls -la out/Release/libskia.a
           cd ..

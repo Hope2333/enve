@@ -39,12 +39,12 @@ void GLWindow::bindSkia(const int w, const int h) {
     // setup SkSurface
     // To use distance field text, use commented out SkSurfaceProps instead
     // SkSurfaceProps props(SkSurfaceProps::kUseDeviceIndependentFonts_Flag,
-    //                      SkSurfaceProps::kLegacyFontHost_InitType);
+    //                      SkSurfaceProps::kUseDeviceIndependentFonts_Flag, SkPixelGeometry::kRGB_H_SkPixelGeometry);
     SkSurfaceProps props(SkSurfaceProps::kUseDeviceIndependentFonts_Flag, SkPixelGeometry::kRGB_H_SkPixelGeometry);
 
 //    sk_sp<SkColorSpace> colorSpace = SkColorSpace::MakeSRGB();
     mSurface = SkSurface::MakeFromBackendRenderTarget(
-                                    mGrContext.get(),
+                                    mGrDirectContext.get(),
                                     backendRT,
                                     kBottomLeft_GrSurfaceOrigin,
                                     SkColorType::kRGBA_8888_SkColorType,
@@ -52,7 +52,7 @@ void GLWindow::bindSkia(const int w, const int h) {
                                     &props);
     if(!mSurface) RuntimeThrow("Failed to wrap buffer into SkSurface.");
     mCanvas = mSurface->getCanvas();
-    mGrContext->resetContext();
+    mGrDirectContext->resetContext();
 }
 
 void GLWindow::resizeGL(int, int) {
@@ -89,8 +89,8 @@ void GLWindow::initialize() {
 
     const auto intrface = GrGLMakeNativeInterface();
     if(!intrface) RuntimeThrow("Failed to make native intrface.");
-    mGrContext = GrDirectContext::MakeGL(intrface);
-    if(!mGrContext) RuntimeThrow("Failed to make GrDirectContext.");
+    mGrDirectContext = GrDirectContext::MakeGL(intrface);
+    if(!mGrDirectContext) RuntimeThrow("Failed to make GrDirectContext.");
 
     try {
         bindSkia(width(), height());

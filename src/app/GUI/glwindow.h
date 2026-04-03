@@ -44,7 +44,7 @@ protected:
     void updateFix();
 
     bool mRebind = false;
-    sk_sp<GrDirectContext> mGrContext;
+    sk_sp<GrDirectContext> mGrDirectContext;
     sk_sp<SkSurface> mSurface;
     SkCanvas *mCanvas = nullptr;
 };
