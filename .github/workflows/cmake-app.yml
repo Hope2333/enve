@@ -121,11 +121,11 @@ jobs:
 
       - name: Build envecore
         run: |
-          cmake --build build/cmake --target envecore -j"$(nproc)"
+          cmake --build build/cmake --target envecore -j"$(nproc)" 2>&1 | tee /tmp/build-envecore.log || { cat /tmp/build-envecore.log; exit 1; }
 
       - name: Build enve app
         run: |
-          cmake --build build/cmake --target enve -j"$(nproc)"
+          cmake --build build/cmake --target enve -j"$(nproc)" 2>&1 | tee /tmp/build-enve.log || { cat /tmp/build-enve.log; exit 1; }
 
       - name: Upload enve binary artifact
         uses: actions/upload-artifact@v4
@@ -141,5 +141,7 @@ jobs:
           name: cmake-app-build-logs
           if-no-files-found: warn
           path: |
+            /tmp/build-envecore.log
+            /tmp/build-enve.log
             build/cmake/CMakeFiles/CMakeOutput.log
             build/cmake/CMakeFiles/CMakeError.log
