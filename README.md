@@ -37,9 +37,46 @@ You can download the latest enve release for <a href="???" target="_blank">Linux
 
 ## Source and building instructions
 
-Current Linux baseline recovery work lives in [docs/modernization/README.md](docs/modernization/README.md). Start there for the active GitHub Actions lane, CI scripts, and modernization plan.
+### CMake (Recommended — Primary Build System)
 
-The older [Source and building info.md](Source and building info.md) file is kept as historical reference for the Travis-era manual setup across Linux, Windows, and macOS. It is not the source of truth for the current Linux CI recovery work.
+```bash
+# Initialize submodules and build third-party dependencies
+git submodule update --init --recursive
+cd third_party && make patch && make
+
+# Configure and build (Release)
+cd build/Release
+cmake ../.. -DCMAKE_BUILD_TYPE=Release \
+    -DENVE_USE_SYSTEM_LIBMYPAINT=ON \
+    -DENVE_USE_QSCINTILLA=OFF \
+    -DENVE_USE_GPERFTOOLS=OFF \
+    -DENVE_USE_WEBENGINE=OFF
+make -j"$(nproc)"
+
+# Run the application
+./bin/enve
+```
+
+**Build options:**
+| Option | Default | Description |
+|--------|---------|-------------|
+| `ENVE_USE_SYSTEM_LIBMYPAINT` | OFF | Use system libmypaint (recommended on Linux) |
+| `ENVE_USE_QSCINTILLA` | ON | Enable QScintilla script editor |
+| `ENVE_USE_GPERFTOOLS` | ON | Enable gperftools/tcmalloc |
+| `ENVE_USE_WEBENGINE` | ON | Enable Qt WebEngine for SVG preview |
+| `ENVE_BUILD_EXAMPLES` | OFF | Build example effects |
+
+### qmake (Legacy — Authoritative until full parity verified)
+
+```bash
+cd build/Release
+qmake ../../enve.pro && make -j"$(nproc)"
+```
+
+### CI Status
+
+[![CMake App Build](https://github.com/Hope2333/enve/actions/workflows/cmake-app.yml/badge.svg)](https://github.com/Hope2333/enve/actions/workflows/cmake-app.yml)
+[![Code Quality](https://github.com/Hope2333/enve/actions/workflows/code-quality.yml/badge.svg)](https://github.com/Hope2333/enve/actions/workflows/code-quality.yml)
 
 ## Authors
 

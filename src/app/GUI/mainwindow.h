@@ -347,6 +347,23 @@ private:
     void connectToolBarActions();
     void setupMenuBar();
 
+    // Menu setup helpers
+    void setupFileMenu();
+    void setupEditMenu();
+    void setupObjectMenu();
+    void setupPathMenu();
+    void setupSceneMenu();
+    void setupViewMenu();
+    void setupZoomMenu();
+    void setupFilteringMenu();
+    void setupDocksMenu();
+    void setupHelpMenu();
+
+    // Event filter helpers
+    bool handleKeyPressEvent(QKeyEvent *keyEvent);
+    bool handleShortcutOverride(QKeyEvent *keyEvent);
+    bool handleKeyReleaseEvent(QKeyEvent *keyEvent);
+
     QList<SceneBoundGradient*> mLoadedGradientsList;
 protected:
     void keyPressEvent(QKeyEvent *event);
