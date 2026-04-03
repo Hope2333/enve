@@ -59,7 +59,8 @@ void DrawableAutoTiledSurface::drawOnCanvas(SkCanvas * const canvas,
             const auto btmp = bitmapForTile(tx, ty);
             if(btmp.isNull()) continue;
             const float drawY = dst.y() + ty*TILE_SIZE;
-            canvas->drawBitmap(btmp, drawX, drawY, paint, sampling);
+            auto img = SkImage::MakeFromBitmap(btmp);
+            canvas->drawImage(img, drawX, drawY, sampling, paint);
         }
     }
 }

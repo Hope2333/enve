@@ -121,6 +121,7 @@ void BlurEffectCaller::processCpu(CpuRenderTools &renderTools,
         srcBtmp.extractSubset(&tileSrc, srcRect);
         const int drawX = srcRect.left() - texTile.left();
         const int drawY = srcRect.top() - texTile.top();
-        canvas.drawBitmap(tileSrc, drawX, drawY, &paint);
+        auto img = SkImage::MakeFromBitmap(tileSrc);
+        canvas.drawImage(img, drawX, drawY, SkSamplingOptions(), &paint);
     }
 }

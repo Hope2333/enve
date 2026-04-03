@@ -168,8 +168,9 @@ void ShadowEffectCaller::processCpu(CpuRenderTools &renderTools,
 
         SkPaint paint;
         setupPaint(paint);
-        canvas.drawBitmap(tileSrc, mTranslation.x() + drawX,
-                          mTranslation.y() + drawY, &paint);
-        canvas.drawBitmap(tileSrc, drawX, drawY);
+        auto img = SkImage::MakeFromBitmap(tileSrc);
+        canvas.drawImage(img, mTranslation.x() + drawX,
+                         mTranslation.y() + drawY, SkSamplingOptions(), &paint);
+        canvas.drawImage(img, drawX, drawY);
     }
 }

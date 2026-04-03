@@ -319,10 +319,9 @@ void AutoTilesData::loadPixmap(const SkPixmap &src) {
             loadPixmap(dst.pixmap());
         } else {
             dst.eraseColor(SK_ColorTRANSPARENT);
+            auto image = SkImage::MakeFromBitmap(src);
             SkCanvas canvas(dst);
-            SkBitmap srcBitmap;
-            srcBitmap.installPixels(src);
-            canvas.drawBitmap(srcBitmap, 0, 0);
+            canvas.drawImage(image, 0, 0);
             loadPixmap(dst.pixmap());
         }
     }
