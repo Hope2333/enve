@@ -94,7 +94,7 @@ void BlurEffectCaller::processGpu(QGL33 * const gl,
     const auto canvas = renderTools.requestTargetCanvas();
     canvas->clear(SK_ColorTRANSPARENT);
     const auto srcTex = renderTools.requestSrcTextureImageWrapper();
-    canvas->drawImage(srcTex, 0, 0, &paint);
+    canvas->drawImage(srcTex, 0, 0, SkSamplingOptions(), &paint);
 
     renderTools.swapTextures();
 }

@@ -48,7 +48,7 @@ void OnionSkin::SkinsSide::draw(SkCanvas * const canvas) {
     if(!fImage) setupImage(canvas->recordingContext());
     SkPaint paint;
     paint.setAlphaf(0.5f);
-    canvas->drawImage(fImage, fImageXY.x(), fImageXY.y(), &paint);
+    canvas->drawImage(fImage, fImageXY.x(), fImageXY.y(), SkSamplingOptions(), &paint);
 }
 
 void OnionSkin::SkinsSide::clear() {
