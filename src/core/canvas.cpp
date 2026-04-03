@@ -189,8 +189,10 @@ void drawTransparencyMesh(SkCanvas * const canvas,
     const float dim = eSizesUI::widget*0.5f / (scale > 1.f ? 1.f : scale);
     matr.setScale(dim, dim);
     const SkTileMode tileModes[2] = {SkTileMode::kRepeat, SkTileMode::kRepeat};
-    const auto shader = bitmap.makeShader(SkSamplingOptions{SkFilterMode::kLinear},
-                                          tileModes, &matr);
+    auto shader = bitmap.makeShader(SkSamplingOptions{SkFilterMode::kLinear}, tileModes);
+    if(shader && !matr.isIdentity()) {
+        shader = shader->makeWithLocalMatrix(matr);
+    }
     paint.setShader(shader);
     paint.setColor(SkColorSetARGB(255, 200, 200, 200));
     canvas->drawRect(drawRect, paint);
