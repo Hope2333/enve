@@ -1,0 +1,37 @@
+CompileFlags:
+  Add:
+    # Qt 5.15 include paths
+    - -I/usr/include/qt
+    - -I/usr/include/qt/QtCore
+    - -I/usr/include/qt/QtGui
+    - -I/usr/include/qt/QtWidgets
+    - -I/usr/include/qt/QtOpenGL
+    - -I/usr/include/qt/QtMultimedia
+    - -I/usr/include/qt/QtXml
+    - -I/usr/include/qt/QtSvg
+    - -I/usr/include/qt/QtQml
+    - -I/usr/include/qt/QtNetwork
+    # Third-party includes
+    - -I/home/miao/develop/enve/third_party/skia
+    - -I/home/miao/develop/enve/third_party/libmypaint
+    - -I/home/miao/develop/enve/third_party/quazip
+    # Project defines
+    - -DCORE_LIBRARY
+    - -DQT_DEPRECATED_WARNINGS
+    - -DQT_NO_FOREACH
+    - -DQT_CORE_LIB
+    - -DQT_GUI_LIB
+    - -DQT_WIDGETS_LIB
+    - -DQT_OPENGL_LIB
+    - -DQT_MULTIMEDIA_LIB
+    - -DQT_XML_LIB
+    - -DQT_SVG_LIB
+    - -DQT_QML_LIB
+    - -DQT_NETWORK_LIB
+    # C++ standard
+    - -std=c++14
+  Remove:
+    - -W*
+    - -m*
+    - -fopenmp
+    - -O*

@@ -51,7 +51,6 @@ QT_WARNING_DISABLE_GCC("-Wattributes")
 #include "include/effects/SkDiscretePathEffect.h"
 
 #include "include/effects/SkGradientShader.h"
-#include "include/effects/SkDropShadowImageFilter.h"
 #include "include/effects/SkImageFilters.h"
 
 #include "include/gpu/gl/GrGLTypes.h"
