@@ -176,11 +176,18 @@ void SkiaHelpers::forceLink() {
 void SkiaHelpers::textToPath(const SkFont& font,
                              const SkScalar x, const SkScalar y,
                              const QString& text, SkPath& path) {
-    // SkTextUtils::GetPath was removed in m88; use SkTextBlob + SkCanvas approach
-    auto blob = SkTextBlob::MakeFromText(text.utf16(),
-                                          text.size()*sizeof(short),
-                                          font, SkTextEncoding::kUTF16);
-    if(!blob) return;
-    SkCanvas canvas(&path);
-    canvas.drawTextBlob(blob, x, y, SkPaint());
+    SkTArray<SkGlyphID> glyphs;
+    glyphs.resize(text.size());
+    font.textToGlyphs(text.utf16(), text.size()*sizeof(short),
+                      SkTextEncoding::kUTF16, glyphs.begin(), text.size());
+    SkScalar cursorX = x;
+    for(SkGlyphID gid : glyphs) {
+        SkPath glyphPath;
+        font.getPath(gid, &glyphPath);
+        glyphPath.offset(cursorX, y);
+        path.addPath(glyphPath);
+        SkScalar advances[1];
+        font.getWidths(&gid, 1, advances);
+        cursorX += advances[0];
+    }
 }
