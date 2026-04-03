@@ -74,7 +74,7 @@ void TargetedBlendEffect::detachedBlendSetup(
         const BoundingBox* const boxToDraw,
         const qreal relFrame,
         SkCanvas * const canvas,
-        const SkFilterQuality filter,
+        const SkSamplingOptions sampling,
         const int drawId,
         QList<Delayed> &delayed) const {
     Q_UNUSED(drawId)
@@ -83,25 +83,25 @@ void TargetedBlendEffect::detachedBlendSetup(
     const bool isAbove = above();
     if(isPathValid()) {
         const auto clipPath = this->clipPath(relFrame);
-        delayed << [boxToDraw, target, isAbove, clipPath, canvas, filter]
+        delayed << [boxToDraw, target, isAbove, clipPath, canvas, sampling]
                    (int, BoundingBox* prev, BoundingBox* next) {
             const bool above = isAbove && prev == target;
             const bool below = !isAbove && next == target;
             if(!above && !below) return false;
             canvas->save();
             canvas->clipPath(clipPath, SkClipOp::kIntersect, false);
-            boxToDraw->drawPixmapSk(canvas, filter);
+            boxToDraw->drawPixmapSk(canvas, sampling);
             canvas->restore();
             return true;
         };
     } else {
-        delayed << [boxToDraw, target, isAbove, canvas, filter]
+        delayed << [boxToDraw, target, isAbove, canvas, sampling]
                    (int, BoundingBox* prev, BoundingBox* next) {
             const bool above = isAbove && prev == target;
             const bool below = !isAbove && next == target;
             if(!above && !below) return false;
             canvas->save();
-            boxToDraw->drawPixmapSk(canvas, filter);
+            boxToDraw->drawPixmapSk(canvas, sampling);
             canvas->restore();
             return true;
         };

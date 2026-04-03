@@ -48,8 +48,9 @@ void PathBoxRenderData::copyFrom(BoxRenderData *src) {
 }
 
 void PathBoxRenderData::drawOnParentLayer(SkCanvas * const canvas,
-                                          SkPaint& paint) {
-    if(!mDirectDraw) return BoxRenderData::drawOnParentLayer(canvas, paint);
+                                          SkPaint& paint,
+                                          const SkSamplingOptions sampling) {
+    if(!mDirectDraw) return BoxRenderData::drawOnParentLayer(canvas, paint, sampling);
     if(isZero4Dec(fOpacity)) return;
     canvas->concat(toSkMatrix(fScaledTransform));
     paint.setBlendMode(fBlendMode);

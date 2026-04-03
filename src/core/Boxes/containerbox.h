@@ -48,12 +48,12 @@ public:
 
 
     void drawContained(SkCanvas * const canvas,
-                       const SkFilterQuality filter) const;
+                       const SkSamplingOptions sampling) const;
     void drawContained(SkCanvas * const canvas,
-                       const SkFilterQuality filter, int& drawId,
+                       const SkSamplingOptions sampling, int& drawId,
                        QList<BlendEffect::Delayed>& delayed) const;
     void drawPixmapSk(SkCanvas * const canvas,
-                      const SkFilterQuality filter, int &drawId,
+                      const SkSamplingOptions sampling, int &drawId,
                       QList<BlendEffect::Delayed> &delayed) const;
 
     qsptr<BoundingBox> createLink(const bool inner);
@@ -240,7 +240,7 @@ public:
 
     void containedDetachedBlendSetup(
             SkCanvas * const canvas,
-            const SkFilterQuality filter, int& drawId,
+            const SkSamplingOptions sampling, int& drawId,
             QList<BlendEffect::Delayed> &delayed) const;
 
     void updateIfUsesProgram(const ShaderEffectProgram * const program) const final;

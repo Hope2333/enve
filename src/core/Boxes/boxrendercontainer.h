@@ -29,7 +29,7 @@ public:
     RenderContainer() {}
 
     void drawSk(SkCanvas * const canvas,
-                const SkFilterQuality filter) const;
+                const SkSamplingOptions sampling) const;
 
     void updatePaintTransformGivenNewTotalTransform(
             const QMatrix &totalTransform);

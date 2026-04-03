@@ -23,14 +23,14 @@ eFilterSettings::eFilterSettings() {
     sInstance = this;
 }
 
-void eFilterSettings::setEnveRenderFilter(const SkFilterQuality filter) {
-    if(filter == mEnveRender) return;
-    mEnveRender = filter;
+void eFilterSettings::setEnveRenderFilter(const SkSamplingOptions sampling) {
+    if(sampling == mEnveRender) return;
+    mEnveRender = sampling;
     updateRenderFilter();
 }
 
-void eFilterSettings::setOutputRenderFilter(const SkFilterQuality filter) {
-    if(filter == mOutputRender) return;
-    mOutputRender = filter;
+void eFilterSettings::setOutputRenderFilter(const SkSamplingOptions sampling) {
+    if(sampling == mOutputRender) return;
+    mOutputRender = sampling;
     updateRenderFilter();
 }

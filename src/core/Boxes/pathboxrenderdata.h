@@ -36,7 +36,8 @@ struct CORE_EXPORT PathBoxRenderData : public BoxRenderData {
 protected:
     void setupRenderData();
     void drawSk(SkCanvas * const canvas);
-    void drawOnParentLayer(SkCanvas * const canvas, SkPaint &paint);
+    void drawOnParentLayer(SkCanvas * const canvas, SkPaint &paint,
+                           const SkSamplingOptions sampling);
     void copyFrom(BoxRenderData *src);
 private:
     void setupDirectDraw();

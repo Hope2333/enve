@@ -660,7 +660,7 @@ void MainWindow::setupMenuBar() {
 
     mNoneQuality = filteringMenu->addAction(
                 tr("None", "MenuBar_View_Filtering"), [this]() {
-        eFilterSettings::sSetDisplayFilter(kNone_SkFilterQuality);
+        eFilterSettings::sSetDisplayFilter(SkSamplingOptions{SkFilterMode::kNearest});
         centralWidget()->update();
 
         mLowQuality->setChecked(false);
@@ -669,12 +669,12 @@ void MainWindow::setupMenuBar() {
         mDynamicQuality->setChecked(false);
     });
     mNoneQuality->setCheckable(true);
-    mNoneQuality->setChecked(eFilterSettings::sDisplay() == kNone_SkFilterQuality &&
+    mNoneQuality->setChecked(eFilterSettings::sDisplay() == SkSamplingOptions{SkFilterMode::kNearest} &&
                              !eFilterSettings::sSmartDisplat());
 
     mLowQuality = filteringMenu->addAction(
                 tr("Low", "MenuBar_View_Filtering"), [this]() {
-        eFilterSettings::sSetDisplayFilter(kLow_SkFilterQuality);
+        eFilterSettings::sSetDisplayFilter(SkSamplingOptions{SkFilterMode::kLinear, SkMipmapMode::kLinear});
         centralWidget()->update();
 
         mNoneQuality->setChecked(false);
@@ -683,12 +683,12 @@ void MainWindow::setupMenuBar() {
         mDynamicQuality->setChecked(false);
     });
     mLowQuality->setCheckable(true);
-    mLowQuality->setChecked(eFilterSettings::sDisplay() == kLow_SkFilterQuality &&
+    mLowQuality->setChecked(eFilterSettings::sDisplay() == SkSamplingOptions{SkFilterMode::kLinear, SkMipmapMode::kLinear} &&
                             !eFilterSettings::sSmartDisplat());
 
     mMediumQuality = filteringMenu->addAction(
                 tr("Medium", "MenuBar_View_Filtering"), [this]() {
-        eFilterSettings::sSetDisplayFilter(kMedium_SkFilterQuality);
+        eFilterSettings::sSetDisplayFilter(SkSamplingOptions{SkFilterMode::kLinear, SkMipmapMode::kLinear});
         centralWidget()->update();
 
         mNoneQuality->setChecked(false);
@@ -697,12 +697,12 @@ void MainWindow::setupMenuBar() {
         mDynamicQuality->setChecked(false);
     });
     mMediumQuality->setCheckable(true);
-    mMediumQuality->setChecked(eFilterSettings::sDisplay() == kMedium_SkFilterQuality &&
+    mMediumQuality->setChecked(eFilterSettings::sDisplay() == SkSamplingOptions{SkFilterMode::kLinear, SkMipmapMode::kLinear} &&
                                !eFilterSettings::sSmartDisplat());
 
     mHighQuality = filteringMenu->addAction(
                 tr("High", "MenuBar_View_Filtering"), [this]() {
-        eFilterSettings::sSetDisplayFilter(kHigh_SkFilterQuality);
+        eFilterSettings::sSetDisplayFilter(SkSamplingOptions{SkFilterMode::kLinear, SkMipmapMode::kLinear});
         centralWidget()->update();
 
         mNoneQuality->setChecked(false);
@@ -711,7 +711,7 @@ void MainWindow::setupMenuBar() {
         mDynamicQuality->setChecked(false);
     });
     mHighQuality->setCheckable(true);
-    mHighQuality->setChecked(eFilterSettings::sDisplay() == kHigh_SkFilterQuality &&
+    mHighQuality->setChecked(eFilterSettings::sDisplay() == SkSamplingOptions{SkFilterMode::kLinear, SkMipmapMode::kLinear} &&
                              !eFilterSettings::sSmartDisplat());
 
     mDynamicQuality = filteringMenu->addAction(

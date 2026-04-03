@@ -44,7 +44,8 @@ DrawableAutoTiledSurface &DrawableAutoTiledSurface::operator=(
 void DrawableAutoTiledSurface::drawOnCanvas(SkCanvas * const canvas,
                                             const SkPoint &dst,
                                             const QRect * const minPixSrc,
-                                            SkPaint * const paint) const {
+                                            SkPaint * const paint,
+                                            const SkSamplingOptions sampling) const {
     const QRect maxRect = tileBoundingRect();
     QRect tileRect;
     if(minPixSrc) {
@@ -58,7 +59,7 @@ void DrawableAutoTiledSurface::drawOnCanvas(SkCanvas * const canvas,
             const auto btmp = bitmapForTile(tx, ty);
             if(btmp.isNull()) continue;
             const float drawY = dst.y() + ty*TILE_SIZE;
-            canvas->drawBitmap(btmp, drawX, drawY, paint);
+            canvas->drawBitmap(btmp, drawX, drawY, paint, sampling);
         }
     }
 }

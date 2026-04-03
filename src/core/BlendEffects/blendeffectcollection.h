@@ -40,7 +40,7 @@ public:
                         QList<BlendEffect::UIDelayed> &delayed) const;
     void detachedBlendSetup(const BoundingBox * const boxToDraw,
                         SkCanvas * const canvas,
-                        const SkFilterQuality filter, int& drawId,
+                        const SkSamplingOptions sampling, int& drawId,
                         QList<BlendEffect::Delayed> &delayed) const;
     void drawBlendSetup(SkCanvas * const canvas);
 };

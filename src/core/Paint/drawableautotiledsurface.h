@@ -39,7 +39,15 @@ public:
     void drawOnCanvas(SkCanvas * const canvas,
                       const SkPoint &dst,
                       const QRect * const minPixSrc,
-                      SkPaint * const paint) const;
+                      SkPaint * const paint,
+                      const SkSamplingOptions sampling) const;
+
+    void drawOnCanvas(SkCanvas * const canvas,
+                      const SkPoint &dst,
+                      const QRect * const minPixSrc,
+                      SkPaint * const paint) const {
+        drawOnCanvas(canvas, dst, minPixSrc, paint, SkSamplingOptions{});
+    }
 
     void drawOnCanvas(SkCanvas * const canvas,
                       const SkPoint &dst,

@@ -19,13 +19,12 @@
 #include "skia/skiahelpers.h"
 
 void RenderContainer::drawSk(SkCanvas * const canvas,
-                             const SkFilterQuality filter) const {
+                             const SkSamplingOptions sampling) const {
     if(!mSrcRenderData) return;
     canvas->save();
     canvas->concat(mPaintTransform);
     SkPaint paint;
-    paint.setFilterQuality(filter);
-    mSrcRenderData->drawOnParentLayer(canvas, paint);
+    mSrcRenderData->drawOnParentLayer(canvas, paint, sampling);
     canvas->restore();
 }
 

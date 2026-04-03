@@ -33,7 +33,7 @@ struct CORE_EXPORT PaintTarget {
               const QMatrix& viewTrans,
               const SkScalar invScale,
               const QRect& drawRect,
-              const SkFilterQuality filter,
+              const SkSamplingOptions sampling,
               const bool drawOnion);
 
     void paintPress(const QPointF& pos,

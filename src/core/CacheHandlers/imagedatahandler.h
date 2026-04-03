@@ -33,7 +33,7 @@ public:
     int getImageByteCount() const;
 
     void drawImage(SkCanvas * const canvas,
-                   const SkFilterQuality filter) const;
+                   const SkSamplingOptions sampling) const;
 
     bool hasImage() const { return mImage.get(); }
     const sk_sp<SkImage>& getImage() const;

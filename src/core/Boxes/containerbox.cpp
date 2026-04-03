@@ -784,7 +784,7 @@ void handleDelayed(QList<BlendEffect::Delayed> &delayed,
 }
 
 void ContainerBox::drawContained(SkCanvas * const canvas,
-                                 const SkFilterQuality filter, int& drawId,
+                                 const SkSamplingOptions sampling, int& drawId,
                                  QList<BlendEffect::Delayed> &delayed) const {
     if(mContainedBoxes.isEmpty()) return;
     handleDelayed(delayed, drawId, nullptr, mContainedBoxes.last());
@@ -794,7 +794,7 @@ void ContainerBox::drawContained(SkCanvas * const canvas,
         const auto& box = mContainedBoxes.at(i);
         const auto& nextBox = i == 0 ? nullptr : mContainedBoxes.at(i - 1);
         if(box->isVisibleAndInVisibleDurationRect()) {
-            box->drawPixmapSk(canvas, filter, drawId, delayed);
+            box->drawPixmapSk(canvas, sampling, drawId, delayed);
             if(!box->isGroup()) drawId++;
         }
         handleDelayed(delayed, drawId, box, nextBox);
@@ -884,16 +884,16 @@ void ContainerBox::updateUIElementsForBlendEffects() {
 
 void ContainerBox::containedDetachedBlendSetup(
         SkCanvas * const canvas,
-        const SkFilterQuality filter, int& drawId,
+        const SkSamplingOptions sampling, int& drawId,
         QList<BlendEffect::Delayed> &delayed) const {
     for(int i = mContainedBoxes.count() - 1; i >= 0; i--) {
         const auto& box = mContainedBoxes.at(i);
         if(box->isVisibleAndInVisibleDurationRect()) {
             if(box->isGroup()) {
                 const auto cBox = static_cast<ContainerBox*>(box);
-                cBox->containedDetachedBlendSetup(canvas, filter, drawId, delayed);
+                cBox->containedDetachedBlendSetup(canvas, sampling, drawId, delayed);
             } else {
-                box->detachedBlendSetup(canvas, filter, drawId, delayed);
+                box->detachedBlendSetup(canvas, sampling, drawId, delayed);
                 drawId++;
             }
         }
@@ -901,28 +901,28 @@ void ContainerBox::containedDetachedBlendSetup(
 }
 
 void ContainerBox::drawContained(SkCanvas * const canvas,
-                                 const SkFilterQuality filter) const {
+                                 const SkSamplingOptions sampling) const {
     int drawId = 0;
     QList<BlendEffect::Delayed> delayed;
-    containedDetachedBlendSetup(canvas, filter, drawId, delayed);
+    containedDetachedBlendSetup(canvas, sampling, drawId, delayed);
     drawId = 0;
-    drawContained(canvas, filter, drawId, delayed);
+    drawContained(canvas, sampling, drawId, delayed);
     handleDelayed(delayed, INT_MAX, nullptr, nullptr);
 }
 
 void ContainerBox::drawPixmapSk(SkCanvas * const canvas,
-                                const SkFilterQuality filter, int& drawId,
+                                const SkSamplingOptions sampling, int& drawId,
                                 QList<BlendEffect::Delayed> &delayed) const {
-    if(isGroup()) return drawContained(canvas, filter, drawId, delayed);
+    if(isGroup()) return drawContained(canvas, sampling, drawId, delayed);
     if(mIsDescendantCurrentGroup) {
         SkPaint paint;
         const int intAlpha = qRound(mTransformAnimator->getOpacity()*2.55);
         paint.setAlpha(static_cast<U8CPU>(intAlpha));
         paint.setBlendMode(getBlendMode());
         canvas->saveLayer(nullptr, &paint);
-        drawContained(canvas, filter);
+        drawContained(canvas, sampling);
         canvas->restore();
-    } else BoundingBox::drawPixmapSk(canvas, filter, drawId, delayed);
+    } else BoundingBox::drawPixmapSk(canvas, sampling, drawId, delayed);
 }
 
 qsptr<BoundingBox> ContainerBox::createLink(const bool inner) {

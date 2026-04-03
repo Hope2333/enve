@@ -30,28 +30,28 @@ public:
 
     static eFilterSettings* sInstance;
 
-    static void sSetEnveRenderFilter(const SkFilterQuality filter) {
-        sInstance->setEnveRenderFilter(filter);
+    static void sSetEnveRenderFilter(const SkSamplingOptions sampling) {
+        sInstance->setEnveRenderFilter(sampling);
     }
 
-    static void sSetOutputRenderFilter(const SkFilterQuality filter) {
-        sInstance->setOutputRenderFilter(filter);
+    static void sSetOutputRenderFilter(const SkSamplingOptions sampling) {
+        sInstance->setOutputRenderFilter(sampling);
     }
 
-    static void sSetDisplayFilter(const SkFilterQuality filter) {
+    static void sSetDisplayFilter(const SkSamplingOptions sampling) {
         sSetSmartDisplay(false);
-        sInstance->mDisplayFilter = filter;
+        sInstance->mDisplayFilter = sampling;
     }
 
     static void sSetSmartDisplay(const bool smart) {
         sInstance->mSmartDisplay = smart;
     }
 
-    static SkFilterQuality sRender() {
+    static SkSamplingOptions sRender() {
         return sInstance->mRender;
     }
 
-    static SkFilterQuality sDisplay() {
+    static SkSamplingOptions sDisplay() {
         return sInstance->mDisplayFilter;
     }
 
@@ -59,14 +59,14 @@ public:
         return sInstance->mSmartDisplay;
     }
 
-    static SkFilterQuality sDisplay(const qreal zoom,
-                                    const qreal resolution) {
+    static SkSamplingOptions sDisplay(const qreal zoom,
+                                     const qreal resolution) {
         if(sInstance->mSmartDisplay) {
             const qreal scale = zoom/resolution;
-            if(isOne4Dec(scale)) return kNone_SkFilterQuality;
-            else if(scale > 2.5) return kNone_SkFilterQuality;
-            else if(scale < 0.5) return kMedium_SkFilterQuality;
-            return kLow_SkFilterQuality;
+            if(isOne4Dec(scale)) return SkSamplingOptions{SkFilterMode::kNearest};
+            else if(scale > 2.5) return SkSamplingOptions{SkFilterMode::kNearest};
+            else if(scale < 0.5) return SkSamplingOptions{SkFilterMode::kLinear, SkMipmapMode::kLinear};
+            return SkSamplingOptions{SkFilterMode::kLinear, SkMipmapMode::kLinear};
         } else return sDisplay();
     }
 
@@ -80,13 +80,13 @@ public:
         sInstance->updateRenderFilter();
     }
 
-    void setEnveRenderFilter(const SkFilterQuality filter);
-    void setOutputRenderFilter(const SkFilterQuality filter);
+    void setEnveRenderFilter(const SkSamplingOptions sampling);
+    void setOutputRenderFilter(const SkSamplingOptions sampling);
 signals:
-    void renderFilterChanged(const SkFilterQuality filter);
+    void renderFilterChanged(const SkSamplingOptions sampling);
 private:
     void updateRenderFilter() {
-        SkFilterQuality newFilter;
+        SkSamplingOptions newFilter;
         if(mCurrentRender == RenderFilter::enve) newFilter = mEnveRender;
         else newFilter = mOutputRender;
         if(newFilter == mRender) return;
@@ -94,15 +94,15 @@ private:
         emit renderFilterChanged(newFilter);
     }
 
-    SkFilterQuality mEnveRender = SkFilterQuality::kHigh_SkFilterQuality;
-    SkFilterQuality mOutputRender = SkFilterQuality::kHigh_SkFilterQuality;
+    SkSamplingOptions mEnveRender = SkSamplingOptions{SkFilterMode::kLinear, SkMipmapMode::kLinear};
+    SkSamplingOptions mOutputRender = SkSamplingOptions{SkFilterMode::kLinear, SkMipmapMode::kLinear};
 
     enum class RenderFilter { enve, output };
     RenderFilter mCurrentRender = RenderFilter::enve;
-    SkFilterQuality mRender = mEnveRender;
+    SkSamplingOptions mRender = mEnveRender;
 
     bool mSmartDisplay = true;
-    SkFilterQuality mDisplayFilter = SkFilterQuality::kNone_SkFilterQuality;
+    SkSamplingOptions mDisplayFilter = SkSamplingOptions{SkFilterMode::kNearest};
 };
 
 #endif // EFILTERSETTINGS_H

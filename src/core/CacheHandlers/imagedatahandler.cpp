@@ -42,10 +42,8 @@ int ImageDataHandler::getImageByteCount() const {
 }
 
 void ImageDataHandler::drawImage(SkCanvas * const canvas,
-                                     const SkFilterQuality filter) const {
-    SkPaint paint;
-    paint.setFilterQuality(filter);
-    canvas->drawImage(mImage, 0, 0, &paint);
+                                 const SkSamplingOptions sampling) const {
+    canvas->drawImage(mImage, 0, 0, sampling);
 }
 
 const sk_sp<SkImage>& ImageDataHandler::getImage() const {

@@ -148,7 +148,7 @@ public:
     { Q_UNUSED(alignment) }
 
     virtual void drawPixmapSk(SkCanvas * const canvas,
-                              const SkFilterQuality filter, int &drawId,
+                              const SkSamplingOptions sampling, int &drawId,
                               QList<BlendEffect::Delayed> &delayed) const;
     virtual void drawHoveredSk(SkCanvas *canvas, const float invScale);
 
@@ -397,12 +397,12 @@ public:
                     const int index, const qreal relFrame,
                     QList<ChildRenderData>& delayed) const;
     void drawPixmapSk(SkCanvas * const canvas,
-                      const SkFilterQuality filter) const;
+                      const SkSamplingOptions sampling) const;
     void detachedBlendUISetup(int& drawId,
             QList<BlendEffect::UIDelayed> &delayed) const;
     virtual void detachedBlendSetup(
             SkCanvas * const canvas,
-            const SkFilterQuality filter, int& drawId,
+            const SkSamplingOptions sampling, int& drawId,
             QList<BlendEffect::Delayed> &delayed) const;
 
     bool blendEffectsEnabled() const;

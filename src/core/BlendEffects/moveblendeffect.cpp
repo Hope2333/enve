@@ -70,7 +70,7 @@ void MoveBlendEffect::detachedBlendUISetup(
 void MoveBlendEffect::detachedBlendSetup(const BoundingBox* const boxToDraw,
                                          const qreal relFrame,
                                          SkCanvas * const canvas,
-                                         const SkFilterQuality filter,
+                                         const SkSamplingOptions sampling,
                                          const int drawId,
                                          QList<Delayed> &delayed) const {
     const int dIndex = calcDIndex(relFrame);
@@ -78,21 +78,21 @@ void MoveBlendEffect::detachedBlendSetup(const BoundingBox* const boxToDraw,
     const int zIndex = drawId + dIndex;
     if(isPathValid()) {
         const auto clipPath = this->clipPath(relFrame);
-        delayed << [boxToDraw, zIndex, clipPath, canvas, filter]
+        delayed << [boxToDraw, zIndex, clipPath, canvas, sampling]
                    (const int drawId, BoundingBox*, BoundingBox*) {
             if(drawId < zIndex) return false;
             canvas->save();
             canvas->clipPath(clipPath, SkClipOp::kIntersect, false);
-            boxToDraw->drawPixmapSk(canvas, filter);
+            boxToDraw->drawPixmapSk(canvas, sampling);
             canvas->restore();
             return true;
         };
     } else {
-        delayed << [boxToDraw, zIndex, canvas, filter]
+        delayed << [boxToDraw, zIndex, canvas, sampling]
                    (const int drawId, BoundingBox*, BoundingBox*) {
             if(drawId < zIndex) return false;
             canvas->save();
-            boxToDraw->drawPixmapSk(canvas, filter);
+            boxToDraw->drawPixmapSk(canvas, sampling);
             canvas->restore();
             return true;
         };

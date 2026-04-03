@@ -22,7 +22,7 @@ void PaintTarget::draw(SkCanvas * const canvas,
                        const QMatrix& viewTrans,
                        const SkScalar invScale,
                        const QRect& drawRect,
-                       const SkFilterQuality filter,
+                       const SkSamplingOptions sampling,
                        const bool drawOnion) {
     if(!isValid()) return;
     const auto canvasRect = viewTrans.inverted().mapRect(drawRect);
@@ -31,8 +31,7 @@ void PaintTarget::draw(SkCanvas * const canvas,
     canvas->concat(toSkMatrix(pDrawTrans));
     if(drawOnion) mPaintOnion.draw(canvas);
     SkPaint paint;
-    paint.setFilterQuality(filter);
-    mPaintDrawable->drawOnCanvas(canvas, mRelDrawPos, &relDRect, &paint);
+    mPaintDrawable->drawOnCanvas(canvas, mRelDrawPos, &relDRect, &paint, sampling);
     if(!mCropRect.isNull()) {
         paint.setStyle(SkPaint::kStroke_Style);
         paint.setAntiAlias(true);

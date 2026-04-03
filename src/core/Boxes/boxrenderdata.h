@@ -55,7 +55,8 @@ protected:
     }
 public:
     virtual void drawOnParentLayer(SkCanvas * const canvas,
-                                   SkPaint& paint);
+                                   SkPaint& paint,
+                                   const SkSamplingOptions sampling);
     void drawOnParentLayer(SkCanvas * const canvas);
 
     virtual QPointF getCenterPosition() {
@@ -102,7 +103,7 @@ public:
     // for motion blur
 
     SkBlendMode fBlendMode = SkBlendMode::kSrcOver;
-    const SkFilterQuality fFilterQuality;
+    const SkSamplingOptions fFilterQuality;
     bool fAntiAlias = false;
     bool fUseRenderTransform = false;
 
