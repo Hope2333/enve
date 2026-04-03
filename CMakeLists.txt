@@ -36,7 +36,7 @@ option(ENVE_USE_SYSTEM_LIBMYPAINT "Use system libmypaint instead of vendored" OF
 # CMake Configuration
 # ============================================================
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
