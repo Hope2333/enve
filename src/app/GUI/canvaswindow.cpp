@@ -584,7 +584,7 @@ int CanvasWindow::getMaxFrame() {
 }
 
 void CanvasWindow::dropEvent(QDropEvent *event) {
-    const QPointF pos = mapToCanvasCoord(event->position());
+    const QPointF pos = mapToCanvasCoord(event->posF());
     mActions.handleDropEvent(event, pos);
 }
 
