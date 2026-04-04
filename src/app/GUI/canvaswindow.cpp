@@ -249,10 +249,10 @@ void CanvasWindow::mouseMoveEvent(QMouseEvent *event) {
 
 void CanvasWindow::wheelEvent(QWheelEvent *event) {
     if(!mCurrentCanvas) return;
-    if(event->delta() > 0) {
-        zoomView(1.1, event->posF());
+    if(event->angleDelta().y() > 0) {
+        zoomView(1.1, event->position());
     } else {
-        zoomView(0.9, event->posF());
+        zoomView(0.9, event->position());
     }
     update();
 }
@@ -584,7 +584,7 @@ int CanvasWindow::getMaxFrame() {
 }
 
 void CanvasWindow::dropEvent(QDropEvent *event) {
-    const QPointF pos = mapToCanvasCoord(event->posF());
+    const QPointF pos = mapToCanvasCoord(event->position());
     mActions.handleDropEvent(event, pos);
 }
 

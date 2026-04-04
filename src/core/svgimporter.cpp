@@ -630,7 +630,7 @@ QMatrix getMatrixFromString(const QString &str) {
                        extractScale(str, matrix) ||
                        extractRotate(str, matrix);
     if(!found) qDebug() << "getMatrixFromString - could not extract "
-                           "values from string:" << endl << str;
+                           "values from string:"  << str;
     return matrix;
 }
 
@@ -921,7 +921,7 @@ static bool tryParsePaintValue(const QString &value, FillSvgAttributes *target,
     } else if(getGradientFromString(value, target)) {
         return true;
     }
-    qDebug() << funcName << "- format not recognised:" << endl << value;
+    qDebug() << funcName << "- format not recognised:"  << value;
     return false;
 }
 

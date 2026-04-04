@@ -39,7 +39,7 @@ public:
     static qsptr<IntAnimator> sCreateSeed() {
         const auto result = enve::make_shared<IntAnimator>("seed");
         result->setIntValueRange(0, 9999);
-        result->setCurrentIntValue(qrand() % 9999);
+        result->setCurrentIntValue(QRandomGenerator::global()->bounded(9999));
         return result;
     }
 };

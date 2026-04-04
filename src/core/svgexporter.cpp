@@ -32,8 +32,8 @@ void SvgExporter::nextStep() {
     if(!mOpen) {
         if(mFile.open(QIODevice::WriteOnly)) {
             mStream.setDevice(&mFile);
-            mStream << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" << endl;
-            mStream << "<!-- Created with enve https://maurycyliebner.github.io -->" << endl << endl;
+            mStream << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" << Qt::endl;
+            mStream << "<!-- Created with enve https://maurycyliebner.github.io -->" << Qt::endl << Qt::endl;
             fScene->saveSceneSVG(*this);
         } else {
             RuntimeThrow("Could not open:\n\"" + mFile.fileName() + "\"");

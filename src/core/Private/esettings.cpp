@@ -31,7 +31,7 @@ struct eSetting {
     void write(QTextStream &textStream) const {
         textStream << fName + ": ";
         writeValue(textStream);
-        textStream << endl;
+        textStream << Qt::endl;
     }
 
     const QString fName;
