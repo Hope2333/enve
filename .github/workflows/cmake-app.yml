@@ -65,7 +65,7 @@ jobs:
         with:
           path: |
             third_party/skia/out/Release
-          key: ${{ runner.os }}-cmake-app-skia-m100-${{ hashFiles('third_party/skia/DEPS') }}
+          key: ${{ runner.os }}-cmake-app-skia-m100-v2
           restore-keys: |
             ${{ runner.os }}-cmake-app-skia-m100-
 
