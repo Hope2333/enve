@@ -1533,7 +1533,7 @@ void ContainerBox::writeBoxOrSoundXEV(const stdsptr<XevZipFileSaver>& xevFileSav
         QDomDocument doc;
         auto stack = doc.createElement("Stack");
         for(const auto& cont : mContained) {
-            QDomElement ele = createElementForContainedXEV(doc, cont);
+            QDomElement ele = createElementForContainedXEV(doc, cont.data());
             stack.appendChild(ele);
         }
         doc.appendChild(stack);
@@ -1604,7 +1604,7 @@ static qsptr<BoundingBox> createNullObject() {
 
 using BoxCreator = qsptr<BoundingBox>(*)();
 
-static constexpr std::array<BoxCreator, int(eBoxType::count)> sBoxFactory = {{
+static const std::array<BoxCreator, int(eBoxType::count)> sBoxFactory = {{
     createVectorPath,         // eBoxType::vectorPath
     createCircle,             // eBoxType::circle
     createImage,              // eBoxType::image
