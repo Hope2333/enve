@@ -50,13 +50,13 @@ void ScrollArea::resizeEvent(QResizeEvent *e) {
 }
 #include "GUI/global.h"
 void ScrollArea::callWheelEvent(QWheelEvent *event) {
-    if(event->delta() > 0) {
+    if(event->angleDelta().y() > 0) {
         scrollBy(0, -eSizesUI::widget);
     } else {
         scrollBy(0, eSizesUI::widget);
     }
 //    verticalScrollBar()->triggerAction(
-//                (event->delta() > 0) ?
+//                (event->angleDelta().y() > 0) ?
 //                    QAbstractSlider::SliderSingleStepSub :
 //                    QAbstractSlider::SliderSingleStepAdd);
 }

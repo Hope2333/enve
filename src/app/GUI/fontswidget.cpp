@@ -31,7 +31,7 @@ FontsWidget::FontsWidget(QWidget *parent) : QWidget(parent) {
     mFontFamilyCombo->setFocusPolicy(Qt::NoFocus);
     mFontSizeCombo = new EditableComboBox(this);
     mFontSizeCombo->setFocusPolicy(Qt::ClickFocus);
-    mFontSizeCombo->setAutoCompletion(false);
+    mFontSizeCombo->setCompleter(nullptr);
     mFontSizeCombo->setMinimumContentsLength(3);
 
     MainWindow::sGetInstance()->installNumericFilter(mFontSizeCombo);

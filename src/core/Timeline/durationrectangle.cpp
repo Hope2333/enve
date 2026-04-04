@@ -339,7 +339,7 @@ void DurationRectangle::writeDurationRectangleXEV(QDomElement& ele) const {
 
 void DurationRectangle::readDurationRectangleXEV(const QDomElement& ele) {
     const auto visRangeStr = ele.attribute("visFrameRange");
-    const auto visRangeStrs = visRangeStr.split(' ', QString::SkipEmptyParts);
+    const auto visRangeStrs = visRangeStr.split(' ', Qt::SkipEmptyParts);
     if(visRangeStrs.count() != 2) RuntimeThrow("Invalid frame range " + visRangeStr);
     mMinFrame.setValueUnClamped(XmlExportHelpers::stringToInt(visRangeStrs[0]));
     mMaxFrame.setValueUnClamped(XmlExportHelpers::stringToInt(visRangeStrs[1]));
