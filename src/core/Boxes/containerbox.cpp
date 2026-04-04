@@ -1622,8 +1622,7 @@ static const std::array<BoxCreator, int(eBoxType::count)> sBoxFactory = {
     createGroup,              // eBoxType::group
     nullptr,                  // eBoxType::custom
     nullptr,                  // eBoxType::deprecated0
-    createNullObject,         // eBoxType::nullObject
-    nullptr,                  // eBoxType::count
+    createNullObject          // eBoxType::nullObject
 };
 
 qsptr<BoundingBox> createBoxOfNonCustomType(const eBoxType type) {
