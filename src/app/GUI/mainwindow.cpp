@@ -26,6 +26,41 @@
 #include <QToolBar>
 #include "GUI/ColorWidgets/colorsettingswidget.h"
 #include <QMenuBar>
+#include "GUI/edialogs.h"
+#include <QMessageBox>
+#include "timelinedockwidget.h"
+#include "Private/Tasks/taskexecutor.h"
+#include "qdoubleslider.h"
+#include "canvaswindow.h"
+#include "GUI/BoxesList/boxscrollwidget.h"
+#include "clipboardcontainer.h"
+#include "GUI/BoxesList/OptimalScrollArea/scrollarea.h"
+#include "GUI/BoxesList/boxscroller.h"
+#include "GUI/RenderWidgets/renderwidget.h"
+#include "actionbutton.h"
+#include "fontswidget.h"
+#include "GUI/global.h"
+#include "filesourcescache.h"
+#include "filesourcelist.h"
+#include "videoencoder.h"
+#include "fillstrokesettings.h"
+#include <QAudioOutput>
+#include "Sound/soundcomposition.h"
+#include "GUI/BoxesList/boxsinglewidget.h"
+#include "memoryhandler.h"
+#include "GUI/BrushWidgets/brushselectionwidget.h"
+#include "Animators/gradient.h"
+#include "GUI/GradientWidgets/gradientwidget.h"
+#include "GUI/Dialogs/scenesettingsdialog.h"
+#include "ShaderEffects/shadereffectprogram.h"
+#include "importhandler.h"
+#include "envesplash.h"
+#include "envelicense.h"
+#include "switchbutton.h"
+#include "centralwidget.h"
+#include "ColorWidgets/bookmarkedcolors.h"
+#include "GUI/edialogs.h"
+#include "GUI/dialogsinterface.h"
 #include "closesignalingdockwidget.h"
 #include "eimporters.h"
 #include "ColorWidgets/paintcolorwidget.h"
@@ -267,24 +302,6 @@ void MainWindow::setupMenuBar() {
     mMenuBar = new QMenuBar(nullptr);
     connectAppFont(mMenuBar);
 
-    setupFileMenu();
-    setupEditMenu();
-    setupObjectMenu();
-    setupPathMenu();
-    setupSceneMenu();
-    setupViewMenu();
-    setupHelpMenu();
-
-    mMenuBar->addSeparator();
-    mMenuBar->addAction(tr("Support enve", "MenuBar"), this, []() {
-        QDesktopServices::openUrl(QUrl("https://maurycyliebner.github.io/"));
-    });
-
-    setMenuBar(mMenuBar);
-    mMenuBar->setStyleSheet("QMenuBar { padding-top: 1px; }");
-}
-
-void MainWindow::setupFileMenu() {
     mFileMenu = mMenuBar->addMenu(tr("File", "MenuBar"));
     mFileMenu->addAction(tr("New...", "MenuBar_File"),
                          this, &MainWindow::newFile,
@@ -324,9 +341,7 @@ void MainWindow::setupFileMenu() {
     mFileMenu->addSeparator();
     mFileMenu->addAction(tr("Exit", "MenuBar_File"),
                          this, &MainWindow::close);
-}
 
-void MainWindow::setupEditMenu() {
     mEditMenu = mMenuBar->addMenu(tr("Edit", "MenuBar"));
 
     const auto undoQAct = mEditMenu->addAction(tr("Undo", "MenuBar_Edit"));
@@ -345,485 +360,6 @@ void MainWindow::setupEditMenu() {
         qAct->setShortcut(Qt::CTRL + Qt::Key_C);
         mActions.copyAction->connect(qAct);
     }
-
-    {
-        const auto qAct = new NoShortcutAction(tr("Cut", "MenuBar_Edit"));
-        mEditMenu->addAction(qAct);
-        qAct->setShortcut(Qt::CTRL + Qt::Key_X);
-        mActions.cutAction->connect(qAct);
-    }
-
-    {
-        const auto qAct = new NoShortcutAction(tr("Paste", "MenuBar_Edit"));
-        mEditMenu->addAction(qAct);
-        qAct->setShortcut(Qt::CTRL + Qt::Key_V);
-        mActions.pasteAction->connect(qAct);
-    }
-
-    mEditMenu->addSeparator();
-
-    {
-        const auto qAct = new NoShortcutAction(tr("Duplicate", "MenuBar_Edit"));
-        mEditMenu->addAction(qAct);
-        qAct->setShortcut(Qt::CTRL + Qt::Key_D);
-        mActions.duplicateAction->connect(qAct);
-    }
-
-    mEditMenu->addSeparator();
-
-    {
-        const auto qAct = new NoShortcutAction(tr("Delete", "MenuBar_Edit"));
-        mEditMenu->addAction(qAct);
-        qAct->setShortcut(Qt::Key_Delete);
-        mActions.deleteAction->connect(qAct);
-    }
-
-    mEditMenu->addSeparator();
-    mEditMenu->addAction(new NoShortcutAction(
-                             tr("Select All", "MenuBar_Edit"),
-                             &mActions, &Actions::selectAllAction,
-                             Qt::Key_A, mEditMenu));
-    mEditMenu->addAction(new NoShortcutAction(
-                             tr("Invert Selection", "MenuBar_Edit"),
-                             &mActions, &Actions::invertSelectionAction,
-                             Qt::Key_I, mEditMenu));
-    mEditMenu->addAction(new NoShortcutAction(
-                             tr("Clear Selection", "MenuBar_Edit"),
-                             &mActions, &Actions::clearSelectionAction,
-                             Qt::ALT + Qt::Key_A, mEditMenu));
-    mEditMenu->addSeparator();
-    mEditMenu->addAction(tr("Settings...", "MenuBar_Edit"), [this]() {
-        const auto settDial = new SettingsDialog(this);
-        settDial->setAttribute(Qt::WA_DeleteOnClose);
-        settDial->show();
-    });
-}
-
-void MainWindow::setupObjectMenu() {
-    mObjectMenu = mMenuBar->addMenu(tr("Object", "MenuBar"));
-
-    mObjectMenu->addSeparator();
-
-    const auto raiseQAct = mObjectMenu->addAction(
-                tr("Raise", "MenuBar_Object"));
-    raiseQAct->setShortcut(Qt::Key_PageUp);
-    mActions.raiseAction->connect(raiseQAct);
-
-    const auto lowerQAct = mObjectMenu->addAction(
-                tr("Lower", "MenuBar_Object"));
-    lowerQAct->setShortcut(Qt::Key_PageDown);
-    mActions.lowerAction->connect(lowerQAct);
-
-    const auto rttQAct = mObjectMenu->addAction(
-                tr("Raise to Top", "MenuBar_Object"));
-    rttQAct->setShortcut(Qt::Key_Home);
-    mActions.raiseToTopAction->connect(rttQAct);
-
-    const auto ltbQAct = mObjectMenu->addAction(
-                tr("Lower to Bottom", "MenuBar_Object"));
-    ltbQAct->setShortcut(Qt::Key_End);
-    mActions.lowerToBottomAction->connect(ltbQAct);
-
-    mObjectMenu->addSeparator();
-
-    {
-        const auto qAct = mObjectMenu->addAction(
-                    tr("Rotate 90° CW", "MenuBar_Object"));
-        mActions.rotate90CWAction->connect(qAct);
-    }
-
-    {
-        const auto qAct = mObjectMenu->addAction(
-                    tr("Rotate 90° CCW", "MenuBar_Object"));
-        mActions.rotate90CCWAction->connect(qAct);
-    }
-
-    {
-        const auto qAct = mObjectMenu->addAction(
-                    tr("Flip Horizontal", "MenuBar_Object"));
-        qAct->setShortcut(Qt::Key_H);
-        mActions.flipHorizontalAction->connect(qAct);
-    }
-
-    {
-        const auto qAct = mObjectMenu->addAction(
-                    tr("Flip Vertical", "MenuBar_Object"));
-        qAct->setShortcut(Qt::Key_V);
-        mActions.flipVerticalAction->connect(qAct);
-    }
-
-    mObjectMenu->addSeparator();
-
-    const auto groupQAct = mObjectMenu->addAction(
-                tr("Group", "MenuBar_Object"));
-    groupQAct->setShortcut(Qt::CTRL + Qt::Key_G);
-    mActions.groupAction->connect(groupQAct);
-
-    const auto ungroupQAct = mObjectMenu->addAction(
-                tr("Ungroup", "MenuBar_Object"));
-    ungroupQAct->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_G);
-    mActions.ungroupAction->connect(ungroupQAct);
-
-    mObjectMenu->addSeparator();
-
-    const auto transformMenu = mObjectMenu->addMenu(
-                tr("Transform", "MenuBar_Object_Transform"));
-    const auto moveAct = transformMenu->addAction(
-                tr("Move", "MenuBar_Object_Transform"));
-    moveAct->setShortcut(Qt::Key_G);
-    moveAct->setDisabled(true);
-    const auto rotateAct = transformMenu->addAction(
-                tr("Rotate", "MenuBar_Object_Transform"));
-    rotateAct->setShortcut(Qt::Key_R);
-    rotateAct->setDisabled(true);
-    const auto scaleAct = transformMenu->addAction(
-                tr("Scale", "MenuBar_Object_Transform"));
-    scaleAct->setShortcut(Qt::Key_S);
-    scaleAct->setDisabled(true);
-    transformMenu->addSeparator();
-    const auto xAct = transformMenu->addAction(
-                tr("X-Axis Only", "MenuBar_Object_Transform"));
-    xAct->setShortcut(Qt::Key_X);
-    xAct->setDisabled(true);
-    const auto yAct = transformMenu->addAction(
-                tr("Y-Axis Only", "MenuBar_Object_Transform"));
-    yAct->setShortcut(Qt::Key_Y);
-    yAct->setDisabled(true);
-}
-
-void MainWindow::setupPathMenu() {
-    mPathMenu = mMenuBar->addMenu(tr("Path", "MenuBar"));
-
-    const auto otpQAct = mPathMenu->addAction(
-                tr("Object to Path", "MenuBar_Path"));
-    mActions.objectsToPathAction->connect(otpQAct);
-
-    const auto stpQAct = mPathMenu->addAction(
-                tr("Stroke to Path", "MenuBar_Path"));
-    mActions.strokeToPathAction->connect(stpQAct);
-
-    mPathMenu->addSeparator();
-
-    {
-        const auto qAct = mPathMenu->addAction(
-                    tr("Union", "MenuBar_Path"));
-        qAct->setShortcut(Qt::CTRL + Qt::Key_Plus);
-        mActions.pathsUnionAction->connect(qAct);
-    }
-
-    {
-        const auto qAct = mPathMenu->addAction(
-                    tr("Difference", "MenuBar_Path"));
-        qAct->setShortcut(Qt::CTRL + Qt::Key_Minus);
-        mActions.pathsDifferenceAction->connect(qAct);
-    }
-
-    {
-        const auto qAct = mPathMenu->addAction(
-                    tr("Intersection", "MenuBar_Path"));
-        qAct->setShortcut(Qt::CTRL + Qt::Key_Asterisk);
-        mActions.pathsIntersectionAction->connect(qAct);
-    }
-
-    {
-        const auto qAct = mPathMenu->addAction(
-                    tr("Exclusion", "MenuBar_Path"));
-        qAct->setShortcut(Qt::CTRL + Qt::Key_AsciiCircum);
-        mActions.pathsExclusionAction->connect(qAct);
-    }
-
-    {
-        const auto qAct = mPathMenu->addAction(
-                    tr("Division", "MenuBar_Path"));
-        qAct->setShortcut(Qt::CTRL + Qt::Key_Slash);
-        mActions.pathsDivisionAction->connect(qAct);
-    }
-
-    mPathMenu->addSeparator();
-
-    {
-        const auto qAct = mPathMenu->addAction(
-                    tr("Combine", "MenuBar_Path"));
-        qAct->setShortcut(Qt::CTRL + Qt::Key_K);
-        mActions.pathsCombineAction->connect(qAct);
-    }
-
-    {
-        const auto qAct = mPathMenu->addAction(
-                    tr("Break Apart", "MenuBar_Path"));
-        qAct->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_K);
-        mActions.pathsBreakApartAction->connect(qAct);
-    }
-}
-
-void MainWindow::setupSceneMenu() {
-    mSceneMenu = mMenuBar->addMenu(tr("Scene", "MenuBar"));
-
-    mSceneMenu->addAction(tr("New Scene...", "MenuBar_Scene"), this, [this]() {
-        SceneSettingsDialog::sNewSceneDialog(mDocument, this);
-    });
-
-    {
-        const auto qAct = mSceneMenu->addAction(
-                    tr("Delete Scene", "MenuBar_Scene"));
-        mActions.deleteSceneAction->connect(qAct);
-    }
-
-    mSceneMenu->addSeparator();
-
-    mSceneMenu->addAction(tr("Add to Render Queue", "MenuBar_Scene"),
-                          this, &MainWindow::addCanvasToRenderQue);
-
-    mSceneMenu->addSeparator();
-
-    {
-        const auto qAct = mSceneMenu->addAction(
-                    tr("Settings...", "MenuBar_Scene"));
-        mActions.sceneSettingsAction->connect(qAct);
-    }
-}
-
-void MainWindow::setupViewMenu() {
-    mViewMenu = mMenuBar->addMenu(tr("View", "MenuBar"));
-
-    setupZoomMenu();
-    setupFilteringMenu();
-
-    mClipViewToCanvas = mViewMenu->addAction(
-                tr("Clip to Scene", "MenuBar_View"));
-    mClipViewToCanvas->setCheckable(true);
-    mClipViewToCanvas->setChecked(true);
-    mClipViewToCanvas->setShortcut(QKeySequence(Qt::Key_C));
-    connect(mClipViewToCanvas, &QAction::triggered,
-            &mActions, &Actions::setClipToCanvas);
-
-    mRasterEffectsVisible = mViewMenu->addAction(
-                tr("Raster Effects", "MenuBar_View"));
-    mRasterEffectsVisible->setCheckable(true);
-    mRasterEffectsVisible->setChecked(true);
-    connect(mRasterEffectsVisible, &QAction::triggered,
-            &mActions, &Actions::setRasterEffectsVisible);
-
-    mPathEffectsVisible = mViewMenu->addAction(
-                tr("Path Effects", "MenuBar_View"));
-    mPathEffectsVisible->setCheckable(true);
-    mPathEffectsVisible->setChecked(true);
-    connect(mPathEffectsVisible, &QAction::triggered,
-            &mActions, &Actions::setPathEffectsVisible);
-
-    setupDocksMenu();
-
-    mBrushColorBookmarksAction = mPanelsMenu->addAction(
-                tr("Brush/Color Bookmarks", "MenuBar_View_Docks"));
-    mBrushColorBookmarksAction->setCheckable(true);
-    mBrushColorBookmarksAction->setChecked(true);
-    mBrushColorBookmarksAction->setShortcut(QKeySequence(Qt::Key_U));
-
-    connect(mBrushColorBookmarksAction, &QAction::toggled,
-            mCentralWidget, &CentralWidget::setSidesVisibilitySetting);
-}
-
-void MainWindow::setupZoomMenu() {
-    const auto zoomMenu = mViewMenu->addMenu(
-                tr("Zoom","MenuBar_View"));
-
-    mZoomInAction = zoomMenu->addAction(tr("Zoom In", "MenuBar_View_Zoom"));
-    mZoomInAction->setShortcut(Qt::KeypadModifier + Qt::Key_Plus);
-    connect(mZoomInAction, &QAction::triggered,
-            this, [](){
-        const auto target = KeyFocusTarget::KFT_getCurrentTarget();
-        const auto cwTarget = dynamic_cast<CanvasWindow*>(target);
-        if (!cwTarget) return;
-        cwTarget->zoomInView();
-    });
-
-    mZoomOutAction = zoomMenu->addAction(tr("Zoom Out", "MenuBar_View_Zoom"));
-    mZoomOutAction->setShortcut(Qt::KeypadModifier + Qt::Key_Minus);
-    connect(mZoomOutAction, &QAction::triggered,
-            this, [](){
-        const auto target = KeyFocusTarget::KFT_getCurrentTarget();
-        const auto cwTarget = dynamic_cast<CanvasWindow*>(target);
-        if (!cwTarget) return;
-        cwTarget->zoomOutView();
-    });
-
-    mFitViewAction = zoomMenu->addAction(tr("Fit to Canvas", "MenuBar_View_Zoom"));
-    mFitViewAction->setShortcut(Qt::KeypadModifier + Qt::Key_0);
-    connect(mFitViewAction, &QAction::triggered,
-            this, [](){
-        const auto target = KeyFocusTarget::KFT_getCurrentTarget();
-        const auto cwTarget = dynamic_cast<CanvasWindow*>(target);
-        if (!cwTarget) return;
-        cwTarget->fitCanvasToSize();
-    });
-
-    mResetZoomAction = zoomMenu->addAction(tr("Reset Zoom", "MenuBar_View_Zoom"));
-    mResetZoomAction->setShortcut(Qt::KeypadModifier + Qt::Key_1);
-    connect(mResetZoomAction, &QAction::triggered,
-            this, [](){
-        const auto target = KeyFocusTarget::KFT_getCurrentTarget();
-        const auto cwTarget = dynamic_cast<CanvasWindow*>(target);
-        if (!cwTarget) return;
-        cwTarget->resetTransormation();
-    });
-}
-
-void MainWindow::setupFilteringMenu() {
-    const auto filteringMenu = mViewMenu->addMenu(
-                tr("Filtering", "MenuBar_View"));
-
-    mNoneQuality = filteringMenu->addAction(
-                tr("None", "MenuBar_View_Filtering"), [this]() {
-        eFilterSettings::sSetDisplayFilter(SkSamplingOptions{SkFilterMode::kNearest});
-        centralWidget()->update();
-
-        mLowQuality->setChecked(false);
-        mMediumQuality->setChecked(false);
-        mHighQuality->setChecked(false);
-        mDynamicQuality->setChecked(false);
-    });
-    mNoneQuality->setCheckable(true);
-    mNoneQuality->setChecked(eFilterSettings::sDisplay() == SkSamplingOptions{SkFilterMode::kNearest} &&
-                             !eFilterSettings::sSmartDisplat());
-
-    mLowQuality = filteringMenu->addAction(
-                tr("Low", "MenuBar_View_Filtering"), [this]() {
-        eFilterSettings::sSetDisplayFilter(SkSamplingOptions{SkFilterMode::kLinear, SkMipmapMode::kLinear});
-        centralWidget()->update();
-
-        mNoneQuality->setChecked(false);
-        mMediumQuality->setChecked(false);
-        mHighQuality->setChecked(false);
-        mDynamicQuality->setChecked(false);
-    });
-    mLowQuality->setCheckable(true);
-    mLowQuality->setChecked(eFilterSettings::sDisplay() == SkSamplingOptions{SkFilterMode::kLinear, SkMipmapMode::kLinear} &&
-                            !eFilterSettings::sSmartDisplat());
-
-    mMediumQuality = filteringMenu->addAction(
-                tr("Medium", "MenuBar_View_Filtering"), [this]() {
-        eFilterSettings::sSetDisplayFilter(SkSamplingOptions{SkFilterMode::kLinear, SkMipmapMode::kLinear});
-        centralWidget()->update();
-
-        mNoneQuality->setChecked(false);
-        mLowQuality->setChecked(false);
-        mHighQuality->setChecked(false);
-        mDynamicQuality->setChecked(false);
-    });
-    mMediumQuality->setCheckable(true);
-    mMediumQuality->setChecked(eFilterSettings::sDisplay() == SkSamplingOptions{SkFilterMode::kLinear, SkMipmapMode::kLinear} &&
-                               !eFilterSettings::sSmartDisplat());
-
-    mHighQuality = filteringMenu->addAction(
-                tr("High", "MenuBar_View_Filtering"), [this]() {
-        eFilterSettings::sSetDisplayFilter(SkSamplingOptions{SkFilterMode::kLinear, SkMipmapMode::kLinear});
-        centralWidget()->update();
-
-        mNoneQuality->setChecked(false);
-        mLowQuality->setChecked(false);
-        mMediumQuality->setChecked(false);
-        mDynamicQuality->setChecked(false);
-    });
-    mHighQuality->setCheckable(true);
-    mHighQuality->setChecked(eFilterSettings::sDisplay() == SkSamplingOptions{SkFilterMode::kLinear, SkMipmapMode::kLinear} &&
-                             !eFilterSettings::sSmartDisplat());
-
-    mDynamicQuality = filteringMenu->addAction(
-                tr("Dynamic", "MenuBar_View_Filtering"), [this]() {
-        eFilterSettings::sSetSmartDisplay(true);
-        centralWidget()->update();
-
-        mLowQuality->setChecked(false);
-        mMediumQuality->setChecked(false);
-        mHighQuality->setChecked(false);
-        mNoneQuality->setChecked(false);
-    });
-    mDynamicQuality->setCheckable(true);
-    mDynamicQuality->setChecked(eFilterSettings::sSmartDisplat());
-}
-
-void MainWindow::setupDocksMenu() {
-    mPanelsMenu = mViewMenu->addMenu(tr("Docks", "MenuBar_View"));
-
-    mSelectedObjectDockAct = mPanelsMenu->addAction(
-                tr("Selected Objects", "MenuBar_View_Docks"));
-    mSelectedObjectDockAct->setCheckable(true);
-    mSelectedObjectDockAct->setChecked(true);
-    mSelectedObjectDockAct->setShortcut(QKeySequence(Qt::Key_O));
-
-    connect(mSelectedObjectDock, &CloseSignalingDockWidget::madeVisible,
-            mSelectedObjectDockAct, &QAction::setChecked);
-    connect(mSelectedObjectDockAct, &QAction::toggled,
-            mSelectedObjectDock, &QDockWidget::setVisible);
-
-    mFilesDockAct = mPanelsMenu->addAction(
-                tr("Files", "MenuBar_View_Docks"));
-    mFilesDockAct->setCheckable(true);
-    mFilesDockAct->setChecked(true);
-    mFilesDockAct->setShortcut(QKeySequence(Qt::Key_F));
-
-    connect(mFilesDock, &CloseSignalingDockWidget::madeVisible,
-            mFilesDockAct, &QAction::setChecked);
-    connect(mFilesDockAct, &QAction::toggled,
-            mFilesDock, &QDockWidget::setVisible);
-
-    mTimelineDockAct = mPanelsMenu->addAction(
-                tr("Timeline", "MenuBar_View_Docks"));
-    mTimelineDockAct->setCheckable(true);
-    mTimelineDockAct->setChecked(true);
-    mTimelineDockAct->setShortcut(QKeySequence(Qt::Key_T));
-
-    connect(mTimelineDock, &CloseSignalingDockWidget::madeVisible,
-            mTimelineDockAct, &QAction::setChecked);
-    connect(mTimelineDockAct, &QAction::toggled,
-            mTimelineDock, &QDockWidget::setVisible);
-
-    mFillAndStrokeDockAct = mPanelsMenu->addAction(
-                tr("Fill and Stroke", "MenuBar_View_Docks"));
-    mFillAndStrokeDockAct->setCheckable(true);
-    mFillAndStrokeDockAct->setChecked(true);
-    mFillAndStrokeDockAct->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
-
-    connect(mFillStrokeSettingsDock, &CloseSignalingDockWidget::madeVisible,
-            mFillAndStrokeDockAct, &QAction::setChecked);
-    connect(mFillAndStrokeDockAct, &QAction::toggled,
-            mFillStrokeSettingsDock, &QDockWidget::setVisible);
-
-    mBrushDockAction = mPanelsMenu->addAction(
-                tr("Paint Brush", "MenuBar_View_Docks"));
-    mBrushDockAction->setCheckable(true);
-    mBrushDockAction->setChecked(false);
-    mBrushDockAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_B));
-
-    connect(mBrushSettingsDock, &CloseSignalingDockWidget::madeVisible,
-            mBrushDockAction, &QAction::setChecked);
-    connect(mBrushDockAction, &QAction::toggled,
-            mBrushSettingsDock, &QDockWidget::setVisible);
-
-    mAlignDockAction = mPanelsMenu->addAction(
-                tr("Align", "MenuBar_View_Docks"));
-    mAlignDockAction->setCheckable(true);
-    mAlignDockAction->setChecked(false);
-    mAlignDockAction->setShortcut(QKeySequence(Qt::Key_D));
-
-    connect(mAlignDock, &CloseSignalingDockWidget::madeVisible,
-            mAlignDockAction, &QAction::setChecked);
-    connect(mAlignDockAction, &QAction::toggled,
-            mAlignDock, &QDockWidget::setVisible);
-}
-
-void MainWindow::setupHelpMenu() {
-    const auto help = mMenuBar->addMenu(tr("Help", "MenuBar"));
-
-    help->addAction(tr("License", "MenuBar_Help"), this, [this]() {
-        if(EnveLicense::sInstance) {
-            delete EnveLicense::sInstance;
-        } else {
-            const auto license = new EnveLicense(this);
-            license->show();
-        }
-    });
-}
 
     {
         const auto qAct = new NoShortcutAction(tr("Cut", "MenuBar_Edit"));
@@ -1705,82 +1241,72 @@ void MainWindow::newFile() {
     }
 }
 
-static const std::pair<int, CanvasMode> sCanvasModeKeyMap[] = {
-    {Qt::Key_F1,  CanvasMode::boxTransform},
-    {Qt::Key_F2,  CanvasMode::pointTransform},
-    {Qt::Key_F3,  CanvasMode::pathCreate},
-    {Qt::Key_F4,  CanvasMode::drawPath},
-    {Qt::Key_F5,  CanvasMode::paint},
-    {Qt::Key_F6,  CanvasMode::circleCreate},
-    {Qt::Key_F7,  CanvasMode::rectCreate},
-    {Qt::Key_F8,  CanvasMode::textCreate},
-    {Qt::Key_F9,  CanvasMode::nullCreate},
-    {Qt::Key_F10, CanvasMode::pickFillStroke},
-};
-
 bool handleCanvasModeKeyPress(Document& document, const int key) {
-    for (const auto& mapping : sCanvasModeKeyMap) {
-        if (key == mapping.first) {
-            document.setCanvasMode(mapping.second);
-            KeyFocusTarget::KFT_sSetRandomTarget();
-            return true;
-        }
-    }
-    return false;
+    if(key == Qt::Key_F1) {
+        document.setCanvasMode(CanvasMode::boxTransform);
+    } else if(key == Qt::Key_F2) {
+        document.setCanvasMode(CanvasMode::pointTransform);
+    } else if(key == Qt::Key_F3) {
+        document.setCanvasMode(CanvasMode::pathCreate);
+    }  else if(key == Qt::Key_F4) {
+        document.setCanvasMode(CanvasMode::drawPath);
+    } else if(key == Qt::Key_F5) {
+        document.setCanvasMode(CanvasMode::paint);
+    } else if(key == Qt::Key_F6) {
+        document.setCanvasMode(CanvasMode::circleCreate);
+    } else if(key == Qt::Key_F7) {
+        document.setCanvasMode(CanvasMode::rectCreate);
+    } else if(key == Qt::Key_F8) {
+        document.setCanvasMode(CanvasMode::textCreate);
+    } else if(key == Qt::Key_F9) {
+        document.setCanvasMode(CanvasMode::nullCreate);
+    } else if(key == Qt::Key_F10) {
+        document.setCanvasMode(CanvasMode::pickFillStroke);
+    } else return false;
+    KeyFocusTarget::KFT_sSetRandomTarget();
+    return true;
 }
 
-bool MainWindow::handleKeyPressEvent(QKeyEvent *keyEvent) {
-    if (keyEvent->key() == Qt::Key_Delete) {
-        const auto focusWidget = QApplication::focusWidget();
-        if (focusWidget) {
+bool MainWindow::eventFilter(QObject *obj, QEvent *e) {
+    if(mLock) if(dynamic_cast<QInputEvent*>(e)) return true;
+    if(mEventFilterDisabled) return QMainWindow::eventFilter(obj, e);
+    const auto type = e->type();
+    const auto focusWidget = QApplication::focusWidget();
+    if(type == QEvent::KeyPress) {
+        const auto keyEvent = static_cast<QKeyEvent*>(e);
+        if(keyEvent->key() == Qt::Key_Delete && focusWidget) {
             mEventFilterDisabled = true;
             const bool widHandled =
                     QCoreApplication::sendEvent(focusWidget, keyEvent);
             mEventFilterDisabled = false;
-            if (widHandled) return false;
+            if(widHandled) return false;
         }
-    }
-    return processKeyEvent(keyEvent);
-}
-
-bool MainWindow::handleShortcutOverride(QKeyEvent *keyEvent) {
-    const int key = keyEvent->key();
-    if (key == Qt::Key_Tab) {
-        KeyFocusTarget::KFT_sTab();
-        return true;
-    }
-    if (handleCanvasModeKeyPress(mDocument, key)) return true;
-    if (keyEvent->modifiers() & Qt::SHIFT && key == Qt::Key_D) {
         return processKeyEvent(keyEvent);
-    }
-    if (keyEvent->modifiers() & Qt::CTRL) {
-        if (key == Qt::Key_C || key == Qt::Key_V ||
-            key == Qt::Key_X || key == Qt::Key_D) {
+    } else if(type == QEvent::ShortcutOverride) {
+        const auto keyEvent = static_cast<QKeyEvent*>(e);
+        const int key = keyEvent->key();
+        if(key == Qt::Key_Tab) {
+            KeyFocusTarget::KFT_sTab();
+            return true;
+        }
+        if(handleCanvasModeKeyPress(mDocument, key)) return true;
+        if(keyEvent->modifiers() & Qt::SHIFT && key == Qt::Key_D) {
             return processKeyEvent(keyEvent);
         }
-    } else if (key == Qt::Key_A || key == Qt::Key_I ||
-               key == Qt::Key_Delete) {
-          return processKeyEvent(keyEvent);
-    }
-    return false;
-}
-
-bool MainWindow::handleKeyReleaseEvent(QKeyEvent *keyEvent) {
-    if (processKeyEvent(keyEvent)) return true;
-    return false;
-}
-
-bool MainWindow::eventFilter(QObject *obj, QEvent *e) {
-    if (mLock) if (dynamic_cast<QInputEvent*>(e)) return true;
-    if (mEventFilterDisabled) return QMainWindow::eventFilter(obj, e);
-    const auto type = e->type();
-    if (type == QEvent::KeyPress) {
-        return handleKeyPressEvent(static_cast<QKeyEvent*>(e));
-    } else if (type == QEvent::ShortcutOverride) {
-        return handleShortcutOverride(static_cast<QKeyEvent*>(e));
-    } else if (type == QEvent::KeyRelease) {
-        return handleKeyReleaseEvent(static_cast<QKeyEvent*>(e));
-    } else if (type == QEvent::MouseButtonRelease) {
+        if(keyEvent->modifiers() & Qt::CTRL) {
+            if(key == Qt::Key_C || key == Qt::Key_V ||
+               key == Qt::Key_X || key == Qt::Key_D) {
+                return processKeyEvent(keyEvent);
+            }
+        } else if(key == Qt::Key_A || key == Qt::Key_I ||
+                  key == Qt::Key_Delete) {
+              return processKeyEvent(keyEvent);
+        }
+    } else if(type == QEvent::KeyRelease) {
+        const auto keyEvent = static_cast<QKeyEvent*>(e);
+        if(processKeyEvent(keyEvent)) return true;
+        //finishUndoRedoSet();
+    } else if(type == QEvent::MouseButtonRelease) {
         //finishUndoRedoSet();
     }
     return QMainWindow::eventFilter(obj, e);
