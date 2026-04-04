@@ -35,6 +35,9 @@
 #include "ReadWrite/evformat.h"
 #include "internallinkbox.h"
 
+#include <array>
+#include <functional>
+
 class FlipBookProperty : public BoolPropertyContainer {
     e_OBJECT
 
@@ -360,50 +363,38 @@ void ContainerBox::queTasks() {
     else BoundingBox::queTasks();
 }
 
-void ContainerBox::promoteToLayer() {
-    if(!isGroup()) return;
-    if(!isLink()) mType = eBoxType::layer;
-    mIsLayer = true;
+void ContainerBox::renameGroupToLayer() {
     if(prp_getName().contains("Group")) {
         auto newName  = prp_getName();
         newName.replace("Group", "Layer");
         rename(newName);
     }
-    mRasterEffectsAnimators->SWT_enable();
-    mBlendEffectCollection->SWT_enable();
-    prp_afterWholeInfluenceRangeChanged();
-
-    const auto pLayer = getFirstParentLayer();
-    if(pLayer) {
-        removeAllChildBoxesWithBlendEffects(pLayer);
-        pLayer->afterChildBlendEffectChanged();
-    }
-    addAllChildBoxesWithBlendEffects(this);
-    afterChildBlendEffectChanged();
-
-    {
-        prp_pushUndoRedoName("Promote to Layer");
-        UndoRedo ur;
-        ur.fUndo = [this]() { demoteToGroup(); };
-        ur.fRedo = [this]() { promoteToLayer(); };
-        prp_addUndoRedo(ur);
-    }
-    emit switchedGroupLayer(eBoxType::layer);
 }
 
-void ContainerBox::demoteToGroup() {
-    if(!isLayer()) return;
-    if(!isLink()) mType = eBoxType::group;
-    mIsLayer = false;
+void ContainerBox::renameLayerToGroup() {
     if(prp_getName().contains("Layer")) {
         auto newName  = prp_getName();
         newName.replace("Layer", "Group");
         rename(newName);
     }
+}
+
+void ContainerBox::enableLayerEffects() {
+    mRasterEffectsAnimators->SWT_enable();
+    mBlendEffectCollection->SWT_enable();
+}
+
+void ContainerBox::disableLayerEffects() {
     mRasterEffectsAnimators->SWT_disable();
     mBlendEffectCollection->SWT_disable();
-    prp_afterWholeInfluenceRangeChanged();
+}
 
+void ContainerBox::transferBlendEffectsToLayer(ContainerBox* targetLayer) {
+    addAllChildBoxesWithBlendEffects(targetLayer);
+    targetLayer->afterChildBlendEffectChanged();
+}
+
+void ContainerBox::clearBlendEffectsAndTransferToParent() {
     mBoxesWithBlendEffects.clear();
     clearBlendEffectUI();
     const auto pLayer = getFirstParentLayer();
@@ -411,14 +402,54 @@ void ContainerBox::demoteToGroup() {
         addAllChildBoxesWithBlendEffects(pLayer);
         pLayer->afterChildBlendEffectChanged();
     }
+}
 
-    {
-        prp_pushUndoRedoName("Demote to Group");
-        UndoRedo ur;
-        ur.fUndo = [this]() { promoteToLayer(); };
-        ur.fRedo = [this]() { demoteToGroup(); };
-        prp_addUndoRedo(ur);
+void ContainerBox::addUndoRedoForPromote() {
+    prp_pushUndoRedoName("Promote to Layer");
+    UndoRedo ur;
+    ur.fUndo = [this]() { demoteToGroup(); };
+    ur.fRedo = [this]() { promoteToLayer(); };
+    prp_addUndoRedo(ur);
+}
+
+void ContainerBox::addUndoRedoForDemote() {
+    prp_pushUndoRedoName("Demote to Group");
+    UndoRedo ur;
+    ur.fUndo = [this]() { promoteToLayer(); };
+    ur.fRedo = [this]() { demoteToGroup(); };
+    prp_addUndoRedo(ur);
+}
+
+void ContainerBox::promoteToLayer() {
+    if(!isGroup()) return;
+    if(!isLink()) mType = eBoxType::layer;
+    mIsLayer = true;
+    renameGroupToLayer();
+    enableLayerEffects();
+    prp_afterWholeInfluenceRangeChanged();
+
+    const auto pLayer = getFirstParentLayer();
+    if(pLayer) {
+        removeAllChildBoxesWithBlendEffects(pLayer);
+        pLayer->afterChildBlendEffectChanged();
     }
+    transferBlendEffectsToLayer(this);
+
+    addUndoRedoForPromote();
+    emit switchedGroupLayer(eBoxType::layer);
+}
+
+void ContainerBox::demoteToGroup() {
+    if(!isLayer()) return;
+    if(!isLink()) mType = eBoxType::group;
+    mIsLayer = false;
+    renameLayerToGroup();
+    disableLayerEffects();
+    prp_afterWholeInfluenceRangeChanged();
+
+    clearBlendEffectsAndTransferToParent();
+
+    addUndoRedoForDemote();
     emit switchedGroupLayer(eBoxType::group);
 }
 
@@ -1121,6 +1152,41 @@ void ContainerBox::addContained(const qsptr<eBoxOrSound>& child) {
 }
 
 #include "Sound/esoundlink.h"
+
+void ContainerBox::handleContainedNameUniqueness(const qsptr<eBoxOrSound>& child) {
+    const QString oldName = child->prp_getName();
+    const auto parentScene = getParentScene();
+    const auto nameCtxt = parentScene ? parentScene : this;
+    const QString newName = nameCtxt->makeNameUniqueForDescendants(oldName);
+    child->prp_setName(newName);
+}
+
+void ContainerBox::setupBlendEffectsForInsertedBox(BoundingBox* box) {
+    const auto pLayer = mIsLayer ? this : box->getFirstParentLayer();
+    if(pLayer) {
+        if(box->blendEffectsEnabled()) {
+            pLayer->addBoxWithBlendEffects(box);
+        }
+        if(box->isGroup()) {
+            const auto cBox = static_cast<ContainerBox*>(box);
+            cBox->addAllChildBoxesWithBlendEffects(pLayer);
+        }
+    }
+    if(box->hasBlendEffects()) afterChildBlendEffectChanged();
+}
+
+void ContainerBox::addUndoRedoForInsert(const int id, const qsptr<eBoxOrSound>& child) {
+    prp_pushUndoRedoName("Insert " + child->prp_getName());
+    UndoRedo ur;
+    ur.fUndo = [this, child]() {
+        removeContained(child);
+    };
+    ur.fRedo = [this, id, child]() {
+        insertContained(id, child);
+    };
+    prp_addUndoRedo(ur);
+}
+
 void ContainerBox::insertContained(
         const int id, const qsptr<eBoxOrSound>& child) {
     if(child->getParentGroup() == this) {
@@ -1132,11 +1198,7 @@ void ContainerBox::insertContained(
 
     const bool isBoxShadow = enve_cast<BlendEffectBoxShadow*>(child.get());
     if(!isBoxShadow) {
-        const QString oldName = child->prp_getName();
-        const auto parentScene = getParentScene();
-        const auto nameCtxt = parentScene ? parentScene : this;
-        const QString newName = nameCtxt->makeNameUniqueForDescendants(oldName);
-        child->prp_setName(newName);
+        handleContainedNameUniqueness(child);
     }
 
     auto& connCtx = mContained.insertObj(id, child);
@@ -1155,17 +1217,7 @@ void ContainerBox::insertContained(
                            this, &Property::prp_afterChangedAbsRange);
         connCtx << connect(box, &BoundingBox::blendEffectChanged,
                            this, &ContainerBox::afterChildBlendEffectChanged);
-        const auto pLayer = mIsLayer ? this : box->getFirstParentLayer();
-        if(pLayer) {
-            if(box->blendEffectsEnabled()) {
-                pLayer->addBoxWithBlendEffects(box);
-            }
-            if(box->isGroup()) {
-                const auto cBox = static_cast<ContainerBox*>(box);
-                cBox->addAllChildBoxesWithBlendEffects(pLayer);
-            }
-        }
-        if(box->hasBlendEffects()) afterChildBlendEffectChanged();
+        setupBlendEffectsForInsertedBox(box);
     }
 
     child->anim_setAbsFrame(anim_getCurrentAbsFrame());
@@ -1175,15 +1227,7 @@ void ContainerBox::insertContained(
     emit insertedObject(id, child.get());
 
     if(!isLink && !isBoxShadow) {
-        prp_pushUndoRedoName("Insert " + child->prp_getName());
-        UndoRedo ur;
-        ur.fUndo = [this, child]() {
-            removeContained(child);
-        };
-        ur.fRedo = [this, id, child]() {
-            insertContained(id, child);
-        };
-        prp_addUndoRedo(ur);
+        addUndoRedoForInsert(id, child);
     }
 }
 
@@ -1197,6 +1241,33 @@ void ContainerBox::updateContainedIds(const int firstId, const int lastId) {
 
 void ContainerBox::removeAllContained() {
     while(mContained.count() > 0) removeContained(mContained.last());
+}
+
+void ContainerBox::handleBlendEffectsForRemovedBox(BoundingBox* box) {
+    const auto pLayer = mIsLayer ? this : box->getFirstParentLayer();
+    if(pLayer) {
+        if(box->blendEffectsEnabled()) {
+            pLayer->removeBoxWithBlendEffects(box);
+        }
+        if(box->isGroup()) {
+            const auto cBox = static_cast<ContainerBox*>(box);
+            cBox->removeAllChildBoxesWithBlendEffects(pLayer);
+        }
+    }
+    if(box->hasBlendEffects()) afterChildBlendEffectChanged();
+    prp_afterWholeInfluenceRangeChanged();
+}
+
+void ContainerBox::addUndoRedoForRemove(const int id, const qsptr<eBoxOrSound>& child) {
+    prp_pushUndoRedoName("Remove " + child->prp_getName());
+    UndoRedo ur;
+    ur.fUndo = [this, id, child]() {
+        insertContained(id, child);
+    };
+    ur.fRedo = [this, id]() {
+        removeContainedFromList(id);
+    };
+    prp_addUndoRedo(ur);
 }
 
 void ContainerBox::removeContainedFromList(const int id) {
@@ -1214,32 +1285,13 @@ void ContainerBox::removeContainedFromList(const int id) {
 
     if(const auto box = enve_cast<BoundingBox*>(child)) {
         updateContainedBoxes();
-        const auto pLayer = mIsLayer ? this : box->getFirstParentLayer();
-        if(pLayer) {
-            if(box->blendEffectsEnabled()) {
-                pLayer->removeBoxWithBlendEffects(box);
-            }
-            if(box->isGroup()) {
-                const auto cBox = static_cast<ContainerBox*>(child.get());
-                cBox->removeAllChildBoxesWithBlendEffects(pLayer);
-            }
-        }
-        if(box->hasBlendEffects()) afterChildBlendEffectChanged();
-        prp_afterWholeInfluenceRangeChanged();
+        handleBlendEffectsForRemovedBox(box);
     }
 
     emit removedObject(id, child.get());
 
     if(!isLink() && !enve_cast<BlendEffectBoxShadow*>(child.get())) {
-        prp_pushUndoRedoName("Remove " + child->prp_getName());
-        UndoRedo ur;
-        ur.fUndo = [this, id, child]() {
-            insertContained(id, child);
-        };
-        ur.fRedo = [this, id]() {
-            removeContainedFromList(id);
-        };
-        prp_addUndoRedo(ur);
+        addUndoRedoForRemove(id, child);
     }
 }
 
@@ -1333,6 +1385,31 @@ void ContainerBox::moveContainedInList(const int from, const int to) {
     moveContainedInList(child, from, to);
 }
 
+void ContainerBox::handleMoveContainedUIUpdate(eBoxOrSound* child) {
+    if(enve_cast<BoundingBox*>(child)) {
+        updateContainedBoxes();
+        updateUIElementsForBlendEffects();
+        planUpdate(UpdateReason::userChange);
+        prp_afterWholeInfluenceRangeChanged();
+    }
+}
+
+void ContainerBox::addUndoRedoForMoveContained(const int from, const int to,
+                                                eBoxOrSound* child) {
+    prp_pushUndoRedoName("Change Z-Index");
+    UndoRedo ur;
+    qptr<eBoxOrSound> childQPtr = child;
+    ur.fUndo = [this, from, to, childQPtr]() {
+        if(!childQPtr) return;
+        moveContainedInList(childQPtr.data(), to, from);
+    };
+    ur.fRedo = [this, from, to, childQPtr]() {
+        if(!childQPtr) return;
+        moveContainedInList(childQPtr.data(), from, to);
+    };
+    prp_addUndoRedo(ur);
+}
+
 void ContainerBox::moveContainedInList(eBoxOrSound * const child,
                                        const int from, const int to) {
     const int boundTo = qBound(0, to, mContained.count() - 1);
@@ -1340,28 +1417,12 @@ void ContainerBox::moveContainedInList(eBoxOrSound * const child,
     updateContainedIds(qMin(from, boundTo), qMax(from, boundTo));
     SWT_moveChildTo(child, containedIdToAbstractionId(boundTo));
 
-    if(enve_cast<BoundingBox*>(child)) {
-        updateContainedBoxes();
-        updateUIElementsForBlendEffects();
-        planUpdate(UpdateReason::userChange);
-        prp_afterWholeInfluenceRangeChanged();
-    }
+    handleMoveContainedUIUpdate(child);
 
     emit movedObject(from, boundTo, child);
 
     if(!isLink()) {
-        prp_pushUndoRedoName("Change Z-Index");
-        UndoRedo ur;
-        qptr<eBoxOrSound> childQPtr = child;
-        ur.fUndo = [this, from, to, childQPtr]() {
-            if(!childQPtr) return;
-            moveContainedInList(childQPtr.data(), to, from);
-        };
-        ur.fRedo = [this, from, to, childQPtr]() {
-            if(!childQPtr) return;
-            moveContainedInList(childQPtr.data(), from, to);
-        };
-        prp_addUndoRedo(ur);
+        addUndoRedoForMoveContained(from, to, child);
     }
 }
 
@@ -1439,6 +1500,30 @@ void ContainerBox::writeAllContainedXEV(
     }
 }
 
+QDomElement ContainerBox::createElementForContainedXEV(QDomDocument& doc,
+                                                       eBoxOrSound* cont) const {
+    QDomElement ele;
+    if(const auto box = enve_cast<BoundingBox*>(cont)) {
+        ele = doc.createElement("Object");
+        const auto blendMode = box->getBlendMode();
+        if(blendMode != SkBlendMode::kSrcOver) {
+            const QString compositeOp =
+                    XmlExportHelpers::blendModeToString(blendMode);
+            ele.setAttribute("composite-op", compositeOp);
+        }
+        const int type = static_cast<int>(box->getBoxType());
+        ele.setAttribute("type", type);
+    } else {
+        ele = doc.createElement("Sound");
+    }
+    if(cont->isLocked()) ele.setAttribute("edit-locked", true);
+    if(cont->isSelected()) ele.setAttribute("selected", true);
+    if(!cont->isVisible()) ele.setAttribute("visibility", "hidden");
+
+    ele.setAttribute("name", cont->prp_getName());
+    return ele;
+}
+
 void ContainerBox::writeBoxOrSoundXEV(const stdsptr<XevZipFileSaver>& xevFileSaver,
                                       const RuntimeIdToWriteId& objListIdConv,
                                       const QString& path) const {
@@ -1448,25 +1533,7 @@ void ContainerBox::writeBoxOrSoundXEV(const stdsptr<XevZipFileSaver>& xevFileSav
         QDomDocument doc;
         auto stack = doc.createElement("Stack");
         for(const auto& cont : mContained) {
-            QDomElement ele;
-            if(const auto box = enve_cast<BoundingBox*>(cont)) {
-                ele = doc.createElement("Object");
-                const auto blendMode = box->getBlendMode();
-                if(blendMode != SkBlendMode::kSrcOver) {
-                    const QString compositeOp =
-                            XmlExportHelpers::blendModeToString(blendMode);
-                    ele.setAttribute("composite-op", compositeOp);
-                }
-                const int type = static_cast<int>(box->getBoxType());
-                ele.setAttribute("type", type);
-            } else {
-                ele = doc.createElement("Sound");
-            }
-            if(cont->isLocked()) ele.setAttribute("edit-locked", true);
-            if(cont->isSelected()) ele.setAttribute("selected", true);
-            if(!cont->isVisible()) ele.setAttribute("visibility", "hidden");
-
-            ele.setAttribute("name", cont->prp_getName());
+            QDomElement ele = createElementForContainedXEV(doc, cont);
             stack.appendChild(ele);
         }
         doc.appendChild(stack);
@@ -1489,44 +1556,123 @@ void ContainerBox::writeBoxOrSoundXEV(const stdsptr<XevZipFileSaver>& xevFileSav
 #include "svglinkbox.h"
 #include "nullobject.h"
 
+static qsptr<BoundingBox> createVectorPath() {
+    return enve::make_shared<SmartVectorPath>();
+}
+static qsptr<BoundingBox> createImage() {
+    return enve::make_shared<ImageBox>();
+}
+static qsptr<BoundingBox> createText() {
+    return enve::make_shared<TextBox>();
+}
+static qsptr<BoundingBox> createVideo() {
+    return enve::make_shared<VideoBox>();
+}
+static qsptr<BoundingBox> createRectangle() {
+    return enve::make_shared<RectangleBox>();
+}
+static qsptr<BoundingBox> createCircle() {
+    return enve::make_shared<Circle>();
+}
+static qsptr<BoundingBox> createLayer() {
+    return enve::make_shared<ContainerBox>(eBoxType::layer);
+}
+static qsptr<BoundingBox> createInternalLink() {
+    return enve::make_shared<InternalLinkBox>(nullptr, false);
+}
+static qsptr<BoundingBox> createInternalLinkGroup() {
+    return enve::make_shared<InternalLinkGroupBox>(nullptr, false);
+}
+static qsptr<BoundingBox> createInternalLinkCanvas() {
+    return enve::make_shared<InternalLinkCanvas>(nullptr, false);
+}
+static qsptr<BoundingBox> createSvgLink() {
+    return enve::make_shared<SvgLinkBox>();
+}
+static qsptr<BoundingBox> createPaint() {
+    return enve::make_shared<PaintBox>();
+}
+static qsptr<BoundingBox> createGroup() {
+    return enve::make_shared<ContainerBox>(eBoxType::group);
+}
+static qsptr<BoundingBox> createImageSequence() {
+    return enve::make_shared<ImageSequenceBox>();
+}
+static qsptr<BoundingBox> createNullObject() {
+    return enve::make_shared<NullObject>();
+}
+
+using BoxCreator = qsptr<BoundingBox>(*)();
+
+static constexpr std::array<BoxCreator, int(eBoxType::count)> sBoxFactory = {{
+    createVectorPath,         // eBoxType::vectorPath
+    createCircle,             // eBoxType::circle
+    createImage,              // eBoxType::image
+    createRectangle,          // eBoxType::rectangle
+    createText,               // eBoxType::text
+    createLayer,              // eBoxType::layer
+    nullptr,                  // eBoxType::canvas
+    createInternalLink,       // eBoxType::internalLink
+    createInternalLinkGroup,  // eBoxType::internalLinkGroup
+    createInternalLinkCanvas, // eBoxType::internalLinkCanvas
+    createSvgLink,            // eBoxType::svgLink
+    createVideo,              // eBoxType::video
+    createImageSequence,      // eBoxType::imageSequence
+    createPaint,              // eBoxType::paint
+    createGroup,              // eBoxType::group
+    nullptr,                  // eBoxType::custom
+    nullptr,                  // eBoxType::deprecated0
+    createNullObject,         // eBoxType::nullObject
+    nullptr,                  // eBoxType::count
+}};
+
 qsptr<BoundingBox> createBoxOfNonCustomType(const eBoxType type) {
-    switch(type) {
-        case(eBoxType::vectorPath):
-            return enve::make_shared<SmartVectorPath>();
-        case(eBoxType::image):
-            return enve::make_shared<ImageBox>();
-        case(eBoxType::text):
-            return enve::make_shared<TextBox>();
-        case(eBoxType::video):
-            return enve::make_shared<VideoBox>();
-        case(eBoxType::rectangle):
-            return enve::make_shared<RectangleBox>();
-        case(eBoxType::circle):
-            return enve::make_shared<Circle>();
-        case(eBoxType::layer):
-            return enve::make_shared<ContainerBox>(eBoxType::layer);
-        case(eBoxType::group):
-            return enve::make_shared<ContainerBox>(eBoxType::group);
-        case(eBoxType::paint):
-            return enve::make_shared<PaintBox>();
-        case(eBoxType::imageSequence):
-            return enve::make_shared<ImageSequenceBox>();
-        case(eBoxType::internalLink):
-            return enve::make_shared<InternalLinkBox>(nullptr, false);
-        case(eBoxType::internalLinkGroup):
-            return enve::make_shared<InternalLinkGroupBox>(nullptr, false);
-        case(eBoxType::svgLink):
-            return enve::make_shared<SvgLinkBox>();
-        case(eBoxType::internalLinkCanvas):
-            return enve::make_shared<InternalLinkCanvas>(nullptr, false);
-        case(eBoxType::nullObject):
-            return enve::make_shared<NullObject>();
-        case(eBoxType::deprecated0): break;
-        case(eBoxType::canvas) : break;
-        case(eBoxType::count) : break;
-        case(eBoxType::custom): break;
-    }
-    return nullptr;
+    const int typeInt = static_cast<int>(type);
+    if(typeInt < 0 || typeInt >= int(eBoxType::count))
+        return nullptr;
+    const auto creator = sBoxFactory[typeInt];
+    if(!creator) return nullptr;
+    return creator();
+}
+
+qsptr<eBoxOrSound> ContainerBox::parseObjectElementXEV(const QDomElement& ele) {
+    const QString comOpStr = ele.attribute("composite-op");
+    const SkBlendMode comOp = XmlExportHelpers::stringToBlendMode(comOpStr);
+
+    const QString typeStr = ele.attribute("type", "-1");
+    const int typeInt = XmlExportHelpers::stringToInt(typeStr);
+    if(qBound(0, typeInt, int(eBoxType::count) - 1) != typeInt)
+        RuntimeThrow("Invalid object type " + typeStr);
+    const eBoxType type = static_cast<eBoxType>(typeInt);
+
+    auto obj = createBoxOfNonCustomType(type);
+
+    if(type == eBoxType::custom) {
+        const auto id = CustomIdentifier::sReadXEV(ele);
+        obj = CustomBoxCreator::sCreateForIdentifier(id);
+    } else if(!obj) RuntimeThrow("Invalid box type '" +
+                                 std::to_string(int(type)) + "'");
+
+    obj->setBlendModeSk(comOp);
+    return obj;
+}
+
+void ContainerBox::applyElementAttributesToBox(eBoxOrSound* ebs,
+                                               const QDomElement& ele) {
+    const QString name = ele.attribute("name");
+
+    const QString editLockedStr = ele.attribute("edit-locked", "false");
+    const QString selectedStr = ele.attribute("selected", "false");
+    const QString visibilityStr = ele.attribute("visibility", "visible");
+
+    const bool locked = editLockedStr == "true";
+    const bool selected = selectedStr == "true";
+    const bool visible = visibilityStr == "visible";
+
+    ebs->prp_setName(name);
+    ebs->setLocked(locked);
+    ebs->setVisible(visible);
+    ebs->setSelected(selected);
 }
 
 void ContainerBox::readAllContainedXEV(
@@ -1547,43 +1693,12 @@ void ContainerBox::readAllContainedXEV(
 
             qsptr<eBoxOrSound> ebs;
             if(tag == "Object") {
-                const QString comOpStr = ele.attribute("composite-op");
-                const SkBlendMode comOp = XmlExportHelpers::stringToBlendMode(comOpStr);
-
-                const QString typeStr = ele.attribute("type", "-1");
-                const int typeInt = XmlExportHelpers::stringToInt(typeStr);
-                if(qBound(0, typeInt, int(eBoxType::count) - 1) != typeInt)
-                    RuntimeThrow("Invalid object type " + typeStr);
-                const eBoxType type = static_cast<eBoxType>(typeInt);
-
-                auto obj = createBoxOfNonCustomType(type);
-
-                if(type == eBoxType::custom) {
-                    const auto id = CustomIdentifier::sReadXEV(ele);
-                    obj = CustomBoxCreator::sCreateForIdentifier(id);
-                } else if(!obj) RuntimeThrow("Invalid box type '" +
-                                             std::to_string(int(type)) + "'");
-
-                obj->setBlendModeSk(comOp);
-                ebs = obj;
+                ebs = parseObjectElementXEV(ele);
             } else if(tag == "Sound") {
 
             } else RuntimeThrow("Invalid tag " + tag);
 
-            const QString name = ele.attribute("name");
-
-            const QString editLockedStr = ele.attribute("edit-locked", "false");
-            const QString selectedStr = ele.attribute("selected", "false");
-            const QString visibilityStr = ele.attribute("visibility", "visible");
-
-            const bool locked = editLockedStr == "true";
-            const bool selected = selectedStr == "true";
-            const bool visible = visibilityStr == "visible";
-
-            ebs->prp_setName(name);
-            ebs->setLocked(locked);
-            ebs->setVisible(visible);
-            ebs->setSelected(selected);
+            applyElementAttributesToBox(ebs.get(), ele);
 
             insertContained(mContained.count(), ebs);
         }

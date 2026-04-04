@@ -261,6 +261,27 @@ private:
     void updateUIElementsForBlendEffects(
             int& drawId, QList<BlendEffect::UIDelayed> &delayed);
     using PathUpdater = void (PathBox::*)(const UpdateReason);
+
+    void handleContainedNameUniqueness(const qsptr<eBoxOrSound>& child);
+    void setupBlendEffectsForInsertedBox(BoundingBox* box);
+    void addUndoRedoForInsert(const int id, const qsptr<eBoxOrSound>& child);
+    void handleBlendEffectsForRemovedBox(BoundingBox* box);
+    void addUndoRedoForRemove(const int id, const qsptr<eBoxOrSound>& child);
+    qsptr<eBoxOrSound> parseObjectElementXEV(const QDomElement& ele);
+    void applyElementAttributesToBox(eBoxOrSound* ebs, const QDomElement& ele);
+    QDomElement createElementForContainedXEV(QDomDocument& doc,
+                                             eBoxOrSound* cont) const;
+    void renameGroupToLayer();
+    void renameLayerToGroup();
+    void enableLayerEffects();
+    void disableLayerEffects();
+    void transferBlendEffectsToLayer(ContainerBox* targetLayer);
+    void clearBlendEffectsAndTransferToParent();
+    void addUndoRedoForPromote();
+    void addUndoRedoForDemote();
+    void handleMoveContainedUIUpdate(eBoxOrSound* child);
+    void addUndoRedoForMoveContained(const int from, const int to,
+                                     eBoxOrSound* child);
 signals:
     void switchedGroupLayer(const eBoxType type);
     void insertedObject(const int id, eBoxOrSound* const obj);
