@@ -327,13 +327,13 @@ int cubicBezierLine(const qCubicSegment2D& seg,
                     QList<QPointF>& result) {
     const QRectF segBB = seg.ptsBoundingRect();
     if(segBB.contains(line.p1()) || segBB.contains(line.p2())) {
-    } else if(line.intersect(QLineF(segBB.topLeft(), segBB.bottomLeft()),
+    } else if(line.intersects(QLineF(segBB.topLeft(), segBB.bottomLeft()),
                              nullptr) == QLineF::BoundedIntersection) {
-    } else if(line.intersect(QLineF(segBB.topLeft(), segBB.topRight()),
+    } else if(line.intersects(QLineF(segBB.topLeft(), segBB.topRight()),
                              nullptr) == QLineF::BoundedIntersection) {
-    } else if(line.intersect(QLineF(segBB.topRight(), segBB.bottomRight()),
+    } else if(line.intersects(QLineF(segBB.topRight(), segBB.bottomRight()),
                              nullptr) == QLineF::BoundedIntersection) {
-    } else if(line.intersect(QLineF(segBB.bottomRight(), segBB.bottomLeft()),
+    } else if(line.intersects(QLineF(segBB.bottomRight(), segBB.bottomLeft()),
                              nullptr) == QLineF::BoundedIntersection) {
     } else return 0;
 
