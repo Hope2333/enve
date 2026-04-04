@@ -429,16 +429,21 @@ qsptr<ContainerBox> loadBoxesGroup(const QDomElement &groupElement,
     return boxesGroup;
 }
 
-void loadVectorPath(const QDomElement &pathElement,
-                    ContainerBox *parentGroup,
-                    VectorPathSvgAttributes& attributes) {
-    const QString pathStr = pathElement.attribute("d");
-    SkParsePath::FromSVGString(pathStr.toStdString().data(), &attributes.path());
+static void createAndAddVectorPath(ContainerBox *parentGroup,
+                                   VectorPathSvgAttributes &attributes) {
     if(attributes.isEmpty()) return;
     const auto vectorPath = enve::make_shared<SmartVectorPath>();
     vectorPath->planCenterPivotPosition();
     attributes.apply(vectorPath.get());
     parentGroup->addContained(vectorPath);
+}
+
+void loadVectorPath(const QDomElement &pathElement,
+                    ContainerBox *parentGroup,
+                    VectorPathSvgAttributes& attributes) {
+    const QString pathStr = pathElement.attribute("d");
+    SkParsePath::FromSVGString(pathStr.toStdString().data(), &attributes.path());
+    createAndAddVectorPath(parentGroup, attributes);
 }
 
 void loadPolyline(const QDomElement &pathElement,
@@ -447,11 +452,7 @@ void loadPolyline(const QDomElement &pathElement,
                   const bool isPolygon) {
     const QString pathStr = pathElement.attribute("points");
     parsePolylineData(pathStr, attributes, isPolygon);
-    if(attributes.isEmpty()) return;
-    const auto vectorPath = enve::make_shared<SmartVectorPath>();
-    vectorPath->planCenterPivotPosition();
-    attributes.apply(vectorPath.get());
-    parentGroup->addContained(vectorPath);
+    createAndAddVectorPath(parentGroup, attributes);
 }
 
 void loadCircle(const QDomElement &pathElement,
@@ -910,32 +911,121 @@ const TextSvgAttributes &BoxSvgAttributes::getTextAttributes() const {
     return mTextAttributes;
 }
 
-void BoxSvgAttributes::setFillAttribute(const QString &value) {
+static bool tryParsePaintValue(const QString &value, FillSvgAttributes *target,
+                               const char *funcName) {
     if(value.contains("none")) {
-        mFillAttributes.setPaintType(NOPAINT);
-    } else if(getFlatColorFromString(value, &mFillAttributes)) {
-    } else if(getGradientFromString(value, &mFillAttributes)) {
-    } else {
-        qDebug() << "setFillAttribute - format not recognised:" <<
-                    endl << value;
+        target->setPaintType(NOPAINT);
+        return true;
+    } else if(getFlatColorFromString(value, target)) {
+        return true;
+    } else if(getGradientFromString(value, target)) {
+        return true;
     }
+    qDebug() << funcName << "- format not recognised:" << endl << value;
+    return false;
+}
+
+void BoxSvgAttributes::setFillAttribute(const QString &value) {
+    tryParsePaintValue(value, &mFillAttributes, "setFillAttribute");
 }
 
 void BoxSvgAttributes::setStrokeAttribute(const QString &value) {
-    if(value.contains("none")) {
-        mStrokeAttributes.setPaintType(NOPAINT);
-    } else if(getFlatColorFromString(value, &mStrokeAttributes)) {
-    } else if(getGradientFromString(value, &mStrokeAttributes)) {
-    } else {
-        qDebug() << "setStrokeAttribute - format not recognised:" <<
-                    endl << value;
-    }
+    tryParsePaintValue(value, &mStrokeAttributes, "setStrokeAttribute");
 }
 
 QString stripPx(const QString& val) {
     QString result = val;
     result.remove("px");
     return result;
+}
+
+static void applyFontStyleAttribute(TextSvgAttributes &textAttrs,
+                                    const QString &name,
+                                    const QString &value) {
+    if(name == "font-family") {
+        QString stripQuotes = value;
+        stripQuotes.remove("'");
+        textAttrs.setFontFamily(stripQuotes);
+    } else if(name == "font-size") {
+        textAttrs.setFontSize(qRound(stripPx(value).toDouble()));
+    } else if(name == "font-style") {
+        if(value == "normal") {
+            textAttrs.setFontSlant(SkFontStyle::kUpright_Slant);
+        } else if(value == "italic") {
+            textAttrs.setFontSlant(SkFontStyle::kItalic_Slant);
+        } else if(value == "oblique") {
+            textAttrs.setFontSlant(SkFontStyle::kOblique_Slant);
+        }
+    } else if(name == "font-weight") {
+        if(value == "normal") {
+            textAttrs.setFontWeight(SkFontStyle::kNormal_Weight);
+        } else if(value == "bold") {
+            textAttrs.setFontWeight(SkFontStyle::kBold_Weight);
+        } else if(value == "bolder") {
+            textAttrs.bolderFontWeight();
+        } else if(value == "lighter") {
+            textAttrs.lighterFontWeight();
+        } else {
+            bool ok;
+            const int val = value.toInt(&ok);
+            if(ok) textAttrs.setFontWeight(val);
+            else qDebug() << "Unrecognized font-weight '" + value + "'";
+        }
+    } else if(name == "font-variant") {
+        //fontVariant = value;
+    }
+}
+
+static void applyStrokeStyleAttribute(StrokeSvgAttributes &strokeAttrs,
+                                      const QString &name,
+                                      const QString &value) {
+    if(name == "stroke") {
+        // Handled by BoxSvgAttributes::setStrokeAttribute
+    } else if(name == "stroke-dasharray") {
+        //strokeDashArray = value;
+    } else if(name == "stroke-dashoffset") {
+        //strokeDashOffset = value;
+    } else if(name == "stroke-linecap") {
+        if(value == "butt") {
+            strokeAttrs.setCapStyle(SkPaint::kButt_Cap);
+        } else if(value == "round") {
+            strokeAttrs.setCapStyle(SkPaint::kRound_Cap);
+        } else {
+            strokeAttrs.setCapStyle(SkPaint::kSquare_Cap);
+        }
+    } else if(name == "stroke-linejoin") {
+        if(value == "miter") {
+            strokeAttrs.setJoinStyle(SkPaint::kMiter_Join);
+        } else if(value == "round") {
+            strokeAttrs.setJoinStyle(SkPaint::kRound_Join);
+        } else {
+            strokeAttrs.setJoinStyle(SkPaint::kBevel_Join);
+        }
+    } else if(name == "stroke-miterlimit") {
+        //mStrokeAttributes.setMiterLimit(toDouble(value));
+    } else if(name == "stroke-opacity") {
+        strokeAttrs.setColorOpacity(toDouble(value));
+    } else if(name == "stroke-width") {
+        if(value.contains("%")) {
+            strokeAttrs.setLineWidth(
+                        strokeAttrs.getLineWidth()*
+                        value.toDouble()/100.);
+        } else {
+            strokeAttrs.setLineWidth(
+                        stripPx(value).toDouble());
+        }
+    }
+}
+
+static void applyTextAnchorAttribute(TextSvgAttributes &textAttrs,
+                                     const QString &value) {
+    if(value == "end") {
+        textAttrs.setFontAlignment(Qt::AlignLeft);
+    } else if(value == "middle") {
+        textAttrs.setFontAlignment(Qt::AlignHCenter);
+    } else if(value == "start") {
+        textAttrs.setFontAlignment(Qt::AlignRight);
+    }
 }
 
 void BoxSvgAttributes::loadBoundingBoxAttributes(const QDomElement &element) {
@@ -980,37 +1070,8 @@ void BoxSvgAttributes::loadBoundingBoxAttributes(const QDomElement &element) {
                 }
             } else if(name == "fill-opacity") {
                 mFillAttributes.setColorOpacity(toDouble(value));
-            } else if(name == "font-family") {
-                QString stripQuotes = value;
-                stripQuotes.remove("'");
-                mTextAttributes.setFontFamily(stripQuotes);
-            } else if(name == "font-size") {
-                mTextAttributes.setFontSize(qRound(stripPx(value).toDouble()));
-            } else if(name == "font-style") {
-                if(value == "normal") {
-                    mTextAttributes.setFontSlant(SkFontStyle::kUpright_Slant);
-                } else if(value == "italic") {
-                    mTextAttributes.setFontSlant(SkFontStyle::kItalic_Slant);
-                } else if(value == "oblique") {
-                    mTextAttributes.setFontSlant(SkFontStyle::kOblique_Slant);
-                }
-            } else if(name == "font-weight") {
-                if(value == "normal") {
-                    mTextAttributes.setFontWeight(SkFontStyle::kNormal_Weight);
-                } else if(value == "bold") {
-                    mTextAttributes.setFontWeight(SkFontStyle::kBold_Weight);
-                } else if(value == "bolder") {
-                    mTextAttributes.bolderFontWeight();
-                } else if(value == "lighter") {
-                    mTextAttributes.lighterFontWeight();
-                } else {
-                    bool ok;
-                    const int val = value.toInt(&ok);
-                    if(ok) mTextAttributes.setFontWeight(val);
-                    else qDebug() << "Unrecognized font-weight '" + value + "'";
-                }
-            } else if(name == "font-variant") {
-                //fontVariant = value;
+            } else if(name.startsWith("font-")) {
+                applyFontStyleAttribute(mTextAttributes, name, value);
             }
             break;
 
@@ -1027,42 +1088,7 @@ void BoxSvgAttributes::loadBoundingBoxAttributes(const QDomElement &element) {
 
         case 's':
             if(name.contains("stroke")) {
-                if(name == "stroke") {
-                    setStrokeAttribute(value);
-                } else if(name == "stroke-dasharray") {
-                    //strokeDashArray = value;
-                } else if(name == "stroke-dashoffset") {
-                    //strokeDashOffset = value;
-                } else if(name == "stroke-linecap") {
-                    if(value == "butt") {
-                        mStrokeAttributes.setCapStyle(SkPaint::kButt_Cap);
-                    } else if(value == "round") {
-                        mStrokeAttributes.setCapStyle(SkPaint::kRound_Cap);
-                    } else {
-                        mStrokeAttributes.setCapStyle(SkPaint::kSquare_Cap);
-                    }
-                } else if(name == "stroke-linejoin") {
-                    if(value == "miter") {
-                        mStrokeAttributes.setJoinStyle(SkPaint::kMiter_Join);
-                    } else if(value == "round") {
-                        mStrokeAttributes.setJoinStyle(SkPaint::kRound_Join);
-                    } else {
-                        mStrokeAttributes.setJoinStyle(SkPaint::kBevel_Join);
-                    }
-                } else if(name == "stroke-miterlimit") {
-                    //mStrokeAttributes.setMiterLimit(toDouble(value));
-                } else if(name == "stroke-opacity") {
-                    mStrokeAttributes.setColorOpacity(toDouble(value));
-                } else if(name == "stroke-width") {
-                    if(value.contains("%")) {
-                        mStrokeAttributes.setLineWidth(
-                                    mStrokeAttributes.getLineWidth()*
-                                    value.toDouble()/100.);
-                    } else {
-                        mStrokeAttributes.setLineWidth(
-                                    stripPx(value).toDouble());
-                    }
-                }
+                applyStrokeStyleAttribute(mStrokeAttributes, name, value);
             } else if(name == "stop-color") {
                 //stopColor = value;
             } else if(name == "stop-opacity") {
@@ -1071,13 +1097,7 @@ void BoxSvgAttributes::loadBoundingBoxAttributes(const QDomElement &element) {
             break;
         case 't':
             if(name == "text-anchor") {
-                if(value == "end") {
-                    mTextAttributes.setFontAlignment(Qt::AlignLeft);
-                } else if(value == "middle") {
-                    mTextAttributes.setFontAlignment(Qt::AlignHCenter);
-                } else if(value == "start") {
-                    mTextAttributes.setFontAlignment(Qt::AlignRight);
-                }
+                applyTextAnchorAttribute(mTextAttributes, value);
             } else if(name == "transform") {
                 mRelTransform = getMatrixFromString(value)*mRelTransform;
             }
