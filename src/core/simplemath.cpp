@@ -28,12 +28,12 @@ qreal distSign(const QPointF& distPt) {
 }
 
 qreal gRandF(const qreal fMin, const qreal fMax) {
-    qreal f = static_cast<qreal>(QRandomGenerator::global()->bounded)/RAND_MAX;
+    qreal f = QRandomGenerator::global()->generateDouble();
     return fMin + f * (fMax - fMin);
 }
 
 float gSkRandF(const float fMin, const float fMax) {
-    float f = static_cast<float>(QRandomGenerator::global()->bounded)/RAND_MAX;
+    float f = static_cast<float>(QRandomGenerator::global()->generateDouble());
     return fMin + f * (fMax - fMin);
 }
 
