@@ -59,16 +59,16 @@ jobs:
           ls -la quazip/*.so*
           cd ../..
 
-      - name: Cache Skia build
-        id: cache-skia
-        uses: actions/cache@v4
+      - name: Restore Skia build cache
+        id: cache-skia-restore
+        uses: actions/cache/restore@v4
         with:
           path: |
             third_party/skia/out/Release
           key: ${{ runner.os }}-cmake-app-skia-m100-v4
 
       - name: Build vendored Skia (if not cached)
-        if: steps.cache-skia.outputs.cache-hit != 'true'
+        if: steps.cache-skia-restore.outputs.cache-hit != 'true'
         run: |
           cd third_party
           # Remove old attempts
@@ -124,6 +124,14 @@ jobs:
       - name: Build enve app
         run: |
           cmake --build build/cmake --target enve -j"$(nproc)" 2>&1 | tee /tmp/build-enve.log || { cat /tmp/build-enve.log; exit 1; }
+
+      - name: Save Skia build cache
+        if: steps.cache-skia-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            third_party/skia/out/Release
+          key: ${{ runner.os }}-cmake-app-skia-m100-v4
 
       - name: Upload enve binary artifact
         uses: actions/upload-artifact@v4
