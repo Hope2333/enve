@@ -1604,7 +1604,7 @@ static qsptr<BoundingBox> createNullObject() {
 
 using BoxCreator = qsptr<BoundingBox>(*)();
 
-static const std::array<BoxCreator, int(eBoxType::count)> sBoxFactory = {{
+static const std::array<BoxCreator, int(eBoxType::count)> sBoxFactory = {
     createVectorPath,         // eBoxType::vectorPath
     createCircle,             // eBoxType::circle
     createImage,              // eBoxType::image
@@ -1624,7 +1624,7 @@ static const std::array<BoxCreator, int(eBoxType::count)> sBoxFactory = {{
     nullptr,                  // eBoxType::deprecated0
     createNullObject,         // eBoxType::nullObject
     nullptr,                  // eBoxType::count
-}};
+};
 
 qsptr<BoundingBox> createBoxOfNonCustomType(const eBoxType type) {
     const int typeInt = static_cast<int>(type);
