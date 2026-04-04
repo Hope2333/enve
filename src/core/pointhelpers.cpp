@@ -171,6 +171,127 @@ void gGetCtrlsSmoothPos(const QPointF& startPos,
     newEndPos = -newStartDirection*endCtrlPtLen + centerPos;
 }
 
+namespace {
+    inline void appendValidSolution(const cmplx &sol, QList<qreal> *list) {
+        const qreal r = sol.real();
+        if(r > 0 && r < 1) {
+            list->append(r);
+        }
+    }
+
+    void checkRectEdge(const QPointF &edgeStart,
+                       const QPointF &edgeEnd,
+                       const QPointF &point,
+                       qreal &minDist,
+                       QPointF &bestPos) {
+        const QPointF pt = gGetClosestPointOnLineSegment(edgeStart, edgeEnd, point);
+        const qreal dist = pointToLen(pt - point);
+        if(dist < minDist) {
+            minDist = dist;
+            bestPos = pt;
+        }
+    }
+
+    void applyClosedPathWrapAround(QVector<SkPoint> &pts,
+                                   QVector<SkPoint> &cPts,
+                                   const float smoothness) {
+        const auto& prevPrevPt = pts[pts.size() - 2];
+        const int lastId = static_cast<int>(pts.size()) - 1;
+        const auto& lastPt = pts[lastId];
+        const auto& secondPt = pts[1];
+        cPts[lastId*2 + 1] = lastPt;
+        cPts[0] = lastPt;
+        gGetSmoothAbsCtrlsForPtBetween(prevPrevPt, lastPt, secondPt,
+                                       cPts[lastId*2], cPts[1], smoothness);
+    }
+
+    void applyClosedPathFragmentDivision(QVector<SkPoint> &pts,
+                                         QVector<SkPoint> &cPts,
+                                         const float endPtFrac,
+                                         const float smoothness,
+                                         const bool zeroSmooth) {
+        const int nTot = static_cast<int>(pts.size());
+        const int beforeCurrLastId = nTot - 4 < 0 ? 2*nTot - 4 : nTot - 4;
+        const int currLastId = nTot - 3 < 0 ? 2*nTot - 3 : nTot - 3;
+        const int fragId = nTot - 2;
+        const int lastId = nTot - 1;
+
+        const SkPoint& currLast = pts[currLastId];
+        const SkPoint& last = pts[lastId];
+
+        SkPoint currLastCtrlAfter;
+        SkPoint currLastCtrlBefore;
+        if(zeroSmooth) {
+            currLastCtrlAfter = currLast;
+            currLastCtrlBefore = currLast;
+        } else {
+            gGetSmoothAbsCtrlsForPtBetween(
+                        pts[beforeCurrLastId], currLast, last,
+                        currLastCtrlBefore, currLastCtrlAfter, smoothness);
+        }
+
+        SkPoint lastCtrlBefore;
+        SkPoint lastCtrlAfter;
+        if(zeroSmooth) {
+            lastCtrlBefore = last;
+        } else {
+            gGetSmoothAbsCtrlsForPtBetween(
+                        currLast, last, pts[1],
+                        lastCtrlBefore, lastCtrlAfter, smoothness);
+        }
+
+        const qCubicSegment2D seg(toQPointF(currLast),
+                                  toQPointF(currLastCtrlAfter),
+                                  toQPointF(lastCtrlBefore),
+                                  toQPointF(last));
+        const auto div = seg.dividedAtT(0.5 + 0.5*static_cast<double>(1 - endPtFrac));
+
+        pts[fragId] = pts[fragId]*endPtFrac +
+                toSkPoint(div.first.p3())*(1 - endPtFrac);
+        if(!zeroSmooth) {
+            cPts[currLastId*2] = (cPts[currLastId*2]*endPtFrac +
+                    currLastCtrlBefore*(1 - endPtFrac))*smoothness +
+                    pts[currLastId]*(1 - smoothness);
+            cPts[currLastId*2 + 1] = (cPts[currLastId*2 + 1]*endPtFrac +
+                    toSkPoint(div.first.c1())*(1 - endPtFrac))*smoothness +
+                    pts[currLastId]*(1 - smoothness);
+
+            cPts[fragId*2] = (cPts[fragId*2]*endPtFrac +
+                    toSkPoint(div.first.c2())*(1 - endPtFrac))*smoothness +
+                    pts[fragId]*(1 - smoothness);
+            cPts[fragId*2 + 1] = (cPts[fragId*2 + 1]*endPtFrac +
+                    toSkPoint(div.second.c1())*(1 - endPtFrac))*smoothness +
+                    pts[fragId]*(1 - smoothness);
+
+            cPts[lastId*2] = (cPts[lastId*2]*endPtFrac +
+                    toSkPoint(div.second.c2())*(1 - endPtFrac))*smoothness +
+                    pts[lastId]*(1 - smoothness);
+            cPts[1] = (cPts[1]*endPtFrac +
+                    lastCtrlAfter*(1 - endPtFrac))*smoothness +
+                    pts[lastId]*(1 - smoothness);
+        }
+    }
+
+    void buildClosedPathOutput(SkPath *dst,
+                               const QVector<SkPoint> &pts,
+                               const QVector<SkPoint> &cPts,
+                               const bool zeroSmooth) {
+        const int nTot = static_cast<int>(pts.size());
+        if(zeroSmooth) {
+            for(int i = 0; i < nTot; i++) {
+                if(i == 0) dst->moveTo(pts[i]);
+                else dst->lineTo(pts[i]);
+            }
+        } else {
+            for(int i = 0; i < nTot; i++) {
+                if(i == 0) dst->moveTo(pts[i]);
+                else dst->cubicTo(cPts[i*2 - 1], cPts[i*2], pts[i]);
+            }
+        }
+        dst->close();
+    }
+}
+
 void solveClosestToSegment(const qCubicSegment1D &seg,
                            const qreal vn,
                            QList<qreal> *list) {
@@ -220,21 +341,11 @@ void solveClosestToSegment(const qCubicSegment1D &seg,
          var4 - 9.*v2to2div3*
          (1. + cmplx(0.,1.)*sqrt(3.))*var4)/
             (36.*(-v0 + 3.*v1 - 3.*v2 + v3));
-    if(sol1.real() > 0 && sol1.real() < 1) {
-        list->append(sol1.real());
-    }
-    if(sol2.real() > 0 && sol2.real() < 1) {
-        list->append(sol2.real());
-    }
-    if(sol3.real() > 0 && sol3.real() < 1) {
-        list->append(sol3.real());
-    }
-    if(sol4.real() > 0 && sol4.real() < 1) {
-        list->append(sol4.real());
-    }
-    if(sol5.real() > 0 && sol5.real() < 1) {
-        list->append(sol5.real());
-    }
+    appendValidSolution(sol1, list);
+    appendValidSolution(sol2, list);
+    appendValidSolution(sol3, list);
+    appendValidSolution(sol4, list);
+    appendValidSolution(sol5, list);
     list->append(0);
     list->append(1);
 }
@@ -432,47 +543,15 @@ QPointF gClosestPointOnRect(const QRectF &rect,
     qreal minDist = DBL_MAX;
     QPointF bestPos;
     if(point.y() > rect.bottom()) {
-        // check bottom
-        QPointF pt = gGetClosestPointOnLineSegment(rect.bottomLeft(),
-                                                  rect.bottomRight(),
-                                                  point);
-        const qreal dist = pointToLen(pt - point);
-        if(dist < minDist) {
-            minDist = dist;
-            bestPos = pt;
-        }
+        checkRectEdge(rect.bottomLeft(), rect.bottomRight(), point, minDist, bestPos);
     } else if(point.y() < rect.top()) {
-        // check top
-        QPointF pt = gGetClosestPointOnLineSegment(rect.topLeft(),
-                                                   rect.topRight(),
-                                                   point);
-        const qreal dist = pointToLen(pt - point);
-        if(dist < minDist) {
-            minDist = dist;
-            bestPos = pt;
-        }
+        checkRectEdge(rect.topLeft(), rect.topRight(), point, minDist, bestPos);
     }
 
     if(point.x() > rect.right()) {
-        // check right
-        QPointF pt = gGetClosestPointOnLineSegment(rect.topRight(),
-                                                   rect.bottomRight(),
-                                                   point);
-        const qreal dist = pointToLen(pt - point);
-        if(dist < minDist) {
-            minDist = dist;
-            bestPos = pt;
-        }
-    } else if(point.y() < rect.left()) {
-        // check left
-        QPointF pt = gGetClosestPointOnLineSegment(rect.bottomLeft(),
-                                                  rect.topLeft(),
-                                                  point);
-        const qreal dist = pointToLen(pt - point);
-        if(dist < minDist) {
-            minDist = dist;
-            bestPos = pt;
-        }
+        checkRectEdge(rect.topRight(), rect.bottomRight(), point, minDist, bestPos);
+    } else if(point.x() < rect.left()) {
+        checkRectEdge(rect.bottomLeft(), rect.topLeft(), point, minDist, bestPos);
     }
     if(dist) *dist = minDist;
     return bestPos;
@@ -979,92 +1058,12 @@ void displaceClosedPath(const qreal baseSeed,
                   segLen, maxDev, smoothness);
 
     if(!zeroSmooth) {
-        const auto& prevPrevPt = pts[nTot - 2];
-        const int lastId = nTot - 1;
-        const auto& lastPt = pts[lastId];
-        const auto& secondPt = pts[1];
-        cPts[lastId*2 + 1] = lastPt;
-        cPts[0] = lastPt;
-        gGetSmoothAbsCtrlsForPtBetween(prevPrevPt, lastPt, secondPt,
-                                       cPts[lastId*2], cPts[1], smoothness);
+        applyClosedPathWrapAround(pts, cPts, smoothness);
     }
 
-    {
-        const int beforeCurrLastId = nTot - 4 < 0 ? 2*nTot - 4 : nTot - 4;
-        const int currLastId = nTot - 3 < 0 ? 2*nTot - 3 : nTot - 3;
-        const int fragId = nTot - 2; // nTot !< 2
-        const int lastId = nTot - 1;
+    applyClosedPathFragmentDivision(pts, cPts, endPtFrac, smoothness, zeroSmooth);
 
-        const SkPoint& currLast = pts[currLastId];
-        const SkPoint& last = pts[lastId];
-
-        SkPoint currLastCtrlAfter;
-        SkPoint currLastCtrlBefore;
-        if(zeroSmooth) {
-            currLastCtrlAfter = currLast;
-            currLastCtrlBefore = currLast;
-        } else {
-            gGetSmoothAbsCtrlsForPtBetween(
-                        pts[beforeCurrLastId], currLast, last,
-                        currLastCtrlBefore, currLastCtrlAfter, smoothness);
-        }
-
-        SkPoint lastCtrlBefore;
-        SkPoint lastCtrlAfter;
-        if(zeroSmooth) {
-            lastCtrlBefore = last;
-        } else {
-            gGetSmoothAbsCtrlsForPtBetween(
-                        currLast, last, pts[1],
-                        lastCtrlBefore, lastCtrlAfter, smoothness);
-        }
-
-        const qCubicSegment2D seg(toQPointF(currLast),
-                                  toQPointF(currLastCtrlAfter),
-                                  toQPointF(lastCtrlBefore),
-                                  toQPointF(last));
-        const auto div = seg.dividedAtT(0.5 + 0.5*static_cast<double>(1 - endPtFrac));
-
-        pts[fragId] = pts[fragId]*endPtFrac +
-                toSkPoint(div.first.p3())*(1 - endPtFrac);
-        if(!zeroSmooth) {
-            cPts[currLastId*2] = (cPts[currLastId*2]*endPtFrac +
-                    currLastCtrlBefore*(1 - endPtFrac))*smoothness +
-                    pts[currLastId]*(1 - smoothness);
-            cPts[currLastId*2 + 1] = (cPts[currLastId*2 + 1]*endPtFrac +
-                    toSkPoint(div.first.c1())*(1 - endPtFrac))*smoothness +
-                    pts[currLastId]*(1 - smoothness);
-
-            cPts[fragId*2] = (cPts[fragId*2]*endPtFrac +
-                    toSkPoint(div.first.c2())*(1 - endPtFrac))*smoothness +
-                    pts[fragId]*(1 - smoothness);
-            cPts[fragId*2 + 1] = (cPts[fragId*2 + 1]*endPtFrac +
-                    toSkPoint(div.second.c1())*(1 - endPtFrac))*smoothness +
-                    pts[fragId]*(1 - smoothness);
-
-            cPts[lastId*2] = (cPts[lastId*2]*endPtFrac +
-                    toSkPoint(div.second.c2())*(1 - endPtFrac))*smoothness +
-                    pts[lastId]*(1 - smoothness);
-            cPts[1] = (cPts[1]*endPtFrac +
-                    lastCtrlAfter*(1 - endPtFrac))*smoothness +
-                    pts[lastId]*(1 - smoothness);
-        }
-    }
-
-    auto currIt = pts.begin();
-    if(zeroSmooth) {
-        for(int i = 0; i < nTot; i++, currIt++) {
-            if(i == 0) dst->moveTo(pts[i]);
-            else dst->lineTo(pts[i]);
-        }
-    } else {
-        for(int i = 0; i < nTot; i++, currIt++) {
-            if(i == 0) dst->moveTo(pts[i]);
-            else dst->cubicTo(cPts[i*2 - 1], cPts[i*2], pts[i]);
-        }
-    }
-
-    dst->close();
+    buildClosedPathOutput(dst, pts, cPts, zeroSmooth);
 }
 
 void genSpatialClosedDisplData(const qreal baseSeed,
