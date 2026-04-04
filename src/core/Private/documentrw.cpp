@@ -213,7 +213,7 @@ void Document::readDocumentXEV(const QDomDocument& doc,
         const qreal fps = XmlExportHelpers::stringToDouble(sceneEle.attribute("fps"));
         const bool clip = sceneEle.attribute("clip") == "true";
         const auto rangeStr = sceneEle.attribute("frameRange", "0 200");
-        const auto rangeStrs = rangeStr.split(' ', QString::SkipEmptyParts);
+        const auto rangeStrs = rangeStr.split(' ', Qt::SkipEmptyParts);
         if(rangeStrs.count() != 2) RuntimeThrow("Invalid frame range " + rangeStr);
         const int rangeMin = XmlExportHelpers::stringToInt(rangeStrs[0]);
         const int rangeMax = XmlExportHelpers::stringToInt(rangeStrs[1]);

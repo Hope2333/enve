@@ -138,7 +138,7 @@ PropertyBindingMap PropertyBindingParser::parseBindings(
         const PropertyBinding::Validator& validator,
         const Property* const context) {
     const auto lines = exp.split(QRegExp("\n|\r\n|\r|;"),
-                                 QString::SkipEmptyParts);
+                                 Qt::SkipEmptyParts);
     PropertyBindingMap result;
     for(const auto& line : lines) {
         QString name;

@@ -128,8 +128,8 @@ void AnimatedSurface::prp_readPropertyXEV_impl(const QDomElement& ele, const Xev
         const auto framesStr = ele.attribute("frames");
         const auto pivotsStr = ele.attribute("pivots");
 
-        const auto frameStrs = framesStr.splitRef(' ', QString::SkipEmptyParts);
-        const auto pivotStrs = pivotsStr.splitRef(',', QString::SkipEmptyParts);
+        const auto frameStrs = framesStr.splitRef(' ', Qt::SkipEmptyParts);
+        const auto pivotStrs = pivotsStr.splitRef(',', Qt::SkipEmptyParts);
 
         if(frameStrs.count() != pivotStrs.count())
             RuntimeThrow("Frames and pivot count does not match");
@@ -159,7 +159,7 @@ void AnimatedSurface::prp_readPropertyXEV_impl(const QDomElement& ele, const Xev
         }
     } else {
         const auto pivotStr = ele.attribute("pivot");
-        const auto pivotValStrs = pivotStr.splitRef(' ', QString::SkipEmptyParts);
+        const auto pivotValStrs = pivotStr.splitRef(' ', Qt::SkipEmptyParts);
         if(pivotValStrs.size() != 2)
             RuntimeThrow("Invalid pivot '" + pivotStr + "'");
         const int pivotX = XmlExportHelpers::stringToInt(pivotValStrs[0]);
