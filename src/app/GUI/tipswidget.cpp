@@ -127,7 +127,7 @@ void TipsWidget::showNextTip() {
 
 void TipsWidget::showRandomTip() {
     if(mTips.isEmpty()) return;
-    setTip(QRandomGenerator::global()->bounded % mTips.count());
+    setTip(QRandomGenerator::global()->bounded(mTips.count()));
 }
 
 void TipsWidget::showEvent(QShowEvent* const e) {
