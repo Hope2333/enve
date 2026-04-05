@@ -33,6 +33,24 @@ jobs:
                 libjpeg-turbo libwebp libglvnd libxi libxkbcommon zlib expat \
                 json-c glib2
             qmake: "qmake"
+          - name: "Debian 12 (bookworm LTS)"
+            runner: ubuntu-latest
+            container: debian:bookworm
+            install: |
+              apt-get update
+              apt-get install -y \
+                build-essential cmake ninja-build \
+                qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
+                libqt5svg5-dev qtquickcontrols2-5-dev \
+                libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev \
+                libfreetype6-dev libfontconfig1-dev libpng-dev libharfbuzz-dev \
+                libglib2.0-dev libzstd-dev libjson-c-dev \
+                zlib1g-dev \
+                libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
+                libexpat1-dev libwebp-dev \
+                libjpeg62-turbo-dev libxi-dev libxkbcommon-dev \
+                libmypaint-dev
+            qmake: "qmake"
           - name: "Ubuntu 26.04"
             runner: ubuntu-latest
             install: |
@@ -98,15 +116,15 @@ jobs:
           ${{ matrix.distro.install }}
 
       - name: Build vendored quazip
-        if: matrix.distro.name != 'Arch Linux'
+        if: matrix.distro.name != 'Arch Linux' && matrix.distro.name != 'Debian 12 (bookworm LTS)'
         run: |
           cd third_party/quazip
           qmake quazip.pro CONFIG+=release
           make -j"$(nproc)"
           cd ../..
 
-      - name: Build vendored quazip (Arch)
-        if: matrix.distro.name == 'Arch Linux'
+      - name: Build vendored quazip (Arch/Debian container)
+        if: matrix.distro.name == 'Arch Linux' || matrix.distro.name == 'Debian 12 (bookworm LTS)'
         run: |
           cd third_party/quazip
           ${{ matrix.distro.qmake }} quazip.pro CONFIG+=release
