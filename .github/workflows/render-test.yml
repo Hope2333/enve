@@ -45,7 +45,7 @@ jobs:
       - name: Build vendored quazip
         run: |
           cd third_party/quazip
-          qmake quakezip.pro CONFIG+=release
+          qmake quazip.pro CONFIG+=release
           make -j"$(nproc)"
           cd ../..
 
