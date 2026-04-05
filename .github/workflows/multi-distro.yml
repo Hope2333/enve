@@ -313,7 +313,10 @@ jobs:
             libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
             libexpat1-dev libwebp-dev \
             libjpeg62-turbo-dev libxi-dev libxkbcommon-dev \
-            libmypaint-dev
+            libmypaint-dev \
+            gcc-11 g++-11
+          update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100
+          update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100
 
       - name: Build vendored quazip
         run: |
