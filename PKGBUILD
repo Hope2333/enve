@@ -2,10 +2,10 @@
 # Contributor: enve team
 
 pkgname=enve
-pkgver=0.0.0
+pkgver=0.1.3
 pkgrel=1
 pkgdesc="2D animation software with vector and raster graphics support"
-arch=('x86_64' 'aarch64')
+arch=('x86_64')
 url="https://maurycyliebner.github.io/"
 license=('GPL-3.0-or-later')
 depends=(
@@ -27,41 +27,31 @@ depends=(
   'libjpeg-turbo'
   'libxi'
   'libxkbcommon'
+  'expat'
+  'json-c'
 )
 makedepends=(
   'cmake'
   'ninja'
   'git'
-  'autoconf'
-  'automake'
-  'libtool'
-  'intltool'
 )
 optdepends=(
   'qt5-webengine: for SVG preview'
   'qscintilla: for expression editor'
 )
 source=(
-  "${pkgname}-${pkgver}.tar.gz::${url}/archive/${pkgver}.tar.gz"
+  "git+https://github.com/Hope2333/enve.git#tag=v${pkgver}"
 )
 sha256sums=('SKIP')
 
 prepare() {
-  cd "${srcdir}/${pkgname}-${pkgver}"
+  cd "${srcdir}/${pkgname}"
   git submodule update --init --recursive
 }
 
 build() {
-  cd "${srcdir}/${pkgname}-${pkgver}"
+  cd "${srcdir}/${pkgname}"
   
-  # Build vendored libmypaint
-  cd third_party/libmypaint
-  ./autogen.sh
-  ./configure --prefix=/usr --disable-static --enable-shared
-  make -j"$(nproc)"
-  cd ../..
-  
-  # Build enve with CMake
   cmake -S . -B build \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr \
@@ -75,8 +65,8 @@ build() {
 }
 
 package() {
-  cd "${srcdir}/${pkgname}-${pkgver}"
-  cmake --install build --destdir "${pkgdir}"
+  cd "${srcdir}/${pkgname}"
+  DESTDIR="${pkgdir}" cmake --install build
   
   # Install desktop file and icon
   install -Dm644 org.maurycy.enve.desktop "${pkgdir}/usr/share/applications/org.maurycy.enve.desktop"

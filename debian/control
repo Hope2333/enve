@@ -10,11 +10,11 @@ Build-Depends:
  qtmultimedia5-dev,
  libqt5svg5-dev,
  qtquickcontrols2-5-dev,
- libavcodec-dev (>= 60),
- libavformat-dev (>= 60),
- libavutil-dev (>= 60),
- libswscale-dev (>= 9),
- libswresample-dev (>= 6),
+ libavcodec-dev,
+ libavformat-dev,
+ libavutil-dev,
+ libswscale-dev,
+ libswresample-dev,
  libfreetype6-dev,
  libfontconfig1-dev,
  libpng-dev,
@@ -28,18 +28,15 @@ Build-Depends:
  libglvnd-dev,
  libexpat1-dev,
  libwebp-dev,
- libjpeg-turbo8-dev,
+ libjpeg62-turbo-dev,
  libxi-dev,
  libxkbcommon-dev,
- ninja-build,
- autoconf,
- automake,
- libtool,
- intltool
+ ninja-build
 Standards-Version: 4.6.2
 Homepage: https://maurycyliebner.github.io/
 Vcs-Git: https://github.com/Hope2333/enve.git
 Vcs-Browser: https://github.com/Hope2333/enve
+Rules-Requires-Root: no
 
 Package: enve
 Architecture: any
@@ -49,11 +46,6 @@ Depends:
  qtbase5-abi (>= 5.15),
  qtmultimedia5-plugins,
  libqt5svg5,
- libavcodec60,
- libavformat60,
- libavutil58,
- libswscale7,
- libswresample4,
  libfreetype6,
  libfontconfig1,
  libpng16-16,
@@ -68,7 +60,7 @@ Depends:
  libwebp7,
  libwebpmux3,
  libwebpdemux2,
- libjpeg-turbo8,
+ libjpeg62,
  libxi6,
  libxkbcommon0
 Description: 2D animation software
