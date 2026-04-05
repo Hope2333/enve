@@ -177,6 +177,9 @@ jobs:
     timeout-minutes: 180
 
     steps:
+      - name: Install git (container requirement)
+        run: pacman -Sy --noconfirm git
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -288,6 +291,9 @@ jobs:
     timeout-minutes: 180
 
     steps:
+      - name: Install git (container requirement)
+        run: apt-get update && apt-get install -y git
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
