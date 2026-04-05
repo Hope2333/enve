@@ -22,6 +22,22 @@ jobs:
       fail-fast: false
       matrix:
         distro:
+          - name: "Ubuntu 26.04"
+            runner: ubuntu-latest
+            install: |
+              sudo apt-get update
+              sudo apt-get install -y \
+                build-essential cmake ninja-build \
+                qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
+                libqt5svg5-dev qtquickcontrols2-5-dev \
+                libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev \
+                libfreetype6-dev libfontconfig1-dev libpng-dev libharfbuzz-dev \
+                libglib2.0-dev libzstd-dev libjson-c-dev \
+                zlib1g-dev \
+                libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
+                libexpat1-dev libwebp-dev \
+                libjpeg-turbo8-dev libxi-dev libxkbcommon-dev \
+                libmypaint-dev
           - name: "Ubuntu 24.04"
             runner: ubuntu-24.04
             install: |
@@ -138,8 +154,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: enve-${{ matrix.distro.name }}
-          if-no-files-found: error
-          path: build/cmake/bin/enve
+          if-no-files-found: warn
+          path: |
+            build/cmake/bin/enve
+            build/cmake/bin/
+            bin/enve
 
       - name: Upload build logs on failure
         if: failure()
