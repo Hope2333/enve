@@ -1,7 +1,7 @@
-enve (0.0.0-1) unstable; urgency=medium
+enve (0.1.3-1) unstable; urgency=medium
 
-  * Initial CMake-based build
-  * FFmpeg 6.x compatibility
-  * Skia graphics library integration
+  * Automated release build
+  * FFmpeg 7.x/8.x compatibility
+  * Multi-distro packaging (deb, pacman, AppImage)
 
- -- Hope2333 (幽零小喵) <u0catmiao@proton.me>  Sun, 30 Mar 2026 00:00:00 +0000
+ -- Hope2333 (幽零小喵) <u0catmiao@proton.me>  Sun, 05 Apr 2026 22:00:00 +0000

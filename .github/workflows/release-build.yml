@@ -397,7 +397,7 @@ jobs:
     needs: [build-deb, build-pacman, build-appimage]
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Download all artifacts
@@ -405,9 +405,14 @@ jobs:
         with:
           path: artifacts
 
-      - name: Get version from tag
+      - name: Get version
         id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
