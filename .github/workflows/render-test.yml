@@ -114,37 +114,31 @@ jobs:
           #include <stdio.h>
           #include "include/core/SkBitmap.h"
           #include "include/core/SkCanvas.h"
-          #include "include/core/SkImage.h"
           #include "include/core/SkData.h"
           #include "include/core/SkStream.h"
           #include "include/encode/SkPngEncoder.h"
 
           int main() {
-              // Test 1: Create bitmap and draw
               SkBitmap bitmap;
               bitmap.allocN32Pixels(256, 256);
               SkCanvas canvas(bitmap);
               canvas.clear(SK_ColorWHITE);
 
-              // Draw a red rectangle
               SkPaint paint;
               paint.setColor(SK_ColorRED);
               canvas.drawRect(SkRect::MakeXYWH(10, 10, 100, 100), paint);
 
-              // Draw a blue circle
               paint.setColor(SK_ColorBLUE);
               canvas.drawCircle(180, 180, 50, paint);
 
-              // Encode to PNG
               SkDynamicMemoryWStream stream;
               SkPngEncoder::Options opts;
-              auto data = SkPngEncoder::Encode(&stream, bitmap.pixmap(), opts);
+              sk_sp<SkData> data = SkPngEncoder::Encode(&stream, bitmap.pixmap(), opts);
               if (!data) {
                   fprintf(stderr, "FAILED: PNG encoding failed\n");
                   return 1;
               }
 
-              // Write to file
               SkFILEWStream out("/tmp/render_test_output.png");
               out.write(data->data(), data->size());
               out.flush();
