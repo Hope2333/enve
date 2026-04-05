@@ -15,6 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "outputsettings.h"
+#include "../core/ffmpeg_compat.h"
 
 QList<qsptr<OutputSettingsProfile>> OutputSettingsProfile::sOutputProfiles;
 bool OutputSettingsProfile::sOutputProfilesLoaded = false;
