@@ -4,6 +4,7 @@
 extern "C" {
     #include <libavutil/version.h>
     #include <libavutil/channel_layout.h>
+    #include <libavutil/samplefmt.h>
 }
 
 // FFmpeg 7.0+ removed AV_CH_LAYOUT_* macros (FF_API_OLD_CHANNEL_LAYOUT)
