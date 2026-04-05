@@ -19,24 +19,7 @@
 #include "smartPointers/stdselfref.h"
 #include "smartPointers/ememory.h"
 #include "framerange.h"
-extern "C" {
-    #include <libavutil/samplefmt.h>
-    #include <libavutil/channel_layout.h>
-    #include <libavutil/version.h>
-}
-
-// FFmpeg 6.x compatibility: AVChannelLayout has nb_channels field
-// FFmpeg 4.x/5.x: use av_get_channel_layout_nb_channels(uint64_t)
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
-// FFmpeg 6.x: AVChannelLayout has nb_channels field directly
-// For backward compatibility with code using uint64_t, cast and use macro
-#define ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS(layout) \
-    ((layout).nb_channels)
-#else
-// FFmpeg 4.x/5.x uses uint64_t directly
-#define ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS(layout) \
-    av_get_channel_layout_nb_channels(layout)
-#endif
+#include "../ffmpeg_compat.h"
 
 class eWriteStream;
 class eReadStream;

@@ -18,22 +18,9 @@
 #define ESOUNDSETTINGS_H
 
 #include <QObject>
-extern "C" {
-    #include <libavutil/samplefmt.h>
-    #include <libavutil/channel_layout.h>
-    #include <libavutil/version.h>
-}
+#include "../ffmpeg_compat.h"
 
 #include "../core_global.h"
-
-// FFmpeg 6.x compatibility: AVChannelLayout has nb_channels field
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
-#define ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS(layout) \
-    ((layout).nb_channels)
-#else
-#define ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS(layout) \
-    av_get_channel_layout_nb_channels(layout)
-#endif
 
 struct CORE_EXPORT eSoundSettingsData {
     int fSampleRate = 44100;

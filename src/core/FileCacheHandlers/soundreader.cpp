@@ -19,6 +19,7 @@
 #include "CacheHandlers/soundcachehandler.h"
 #include "CacheHandlers/soundcachecontainer.h"
 #include "Sound/soundcomposition.h"
+#include "../ffmpeg_compat.h"
 
 void SoundReader::beforeProcessing(const Hardware) {
     mOpenedAudio->lock();

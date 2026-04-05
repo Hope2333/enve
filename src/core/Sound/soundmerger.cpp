@@ -15,6 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "soundmerger.h"
+#include "../ffmpeg_compat.h"
 
 template <typename T>
 void mergePlanarDataUnsigned(T const * const * const src,

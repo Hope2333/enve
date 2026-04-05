@@ -195,4 +195,27 @@ extern "C" {
 
 #endif // LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(59, 0, 0)
 
+// Unified ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS macro for all FFmpeg versions
+// FFmpeg 6.x+: AVChannelLayout struct with .nb_channels field
+// FFmpeg 4.x/5.x: uint64_t mask, use av_get_channel_layout_nb_channels()
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 49, 100)
+#define ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS(layout) \
+    ((layout).nb_channels)
+#else
+#define ENVE_AV_GET_CHANNEL_LAYOUT_NB_CHANNELS(layout) \
+    av_get_channel_layout_nb_channels(layout)
+#endif
+
+// FFmpeg 7.0+ removed av_get_channel_layout_nb_channels(uint64_t)
+// Provide inline compat shim for code that still uses uint64_t layout masks
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(59, 0, 0)
+static inline int enve_av_channel_layout_nb_channels_from_mask(uint64_t layout) {
+    AVChannelLayout ch;
+    av_channel_layout_from_mask(&ch, layout);
+    return ch.nb_channels;
+}
+#define av_get_channel_layout_nb_channels(layout) \
+    enve_av_channel_layout_nb_channels_from_mask(layout)
+#endif
+
 #endif // ENVE_FFMPEG_COMPAT_H
