@@ -131,20 +131,15 @@ jobs:
               paint.setColor(SK_ColorBLUE);
               canvas.drawCircle(180, 180, 50, paint);
 
-              SkDynamicMemoryWStream stream;
+              SkFILEWStream out("/tmp/render_test_output.png");
               SkPngEncoder::Options opts;
-              sk_sp<SkData> data = SkPngEncoder::Encode(&stream, bitmap.pixmap(), opts);
-              if (!data) {
+              if (!SkPngEncoder::Encode(&out, bitmap.pixmap(), opts)) {
                   fprintf(stderr, "FAILED: PNG encoding failed\n");
                   return 1;
               }
-
-              SkFILEWStream out("/tmp/render_test_output.png");
-              out.write(data->data(), data->size());
               out.flush();
 
               printf("Test 2 PASSED: Skia rendering and PNG encoding OK\n");
-              printf("Output: /tmp/render_test_output.png (%zu bytes)\n", data->size());
               return 0;
           }
           EOF
