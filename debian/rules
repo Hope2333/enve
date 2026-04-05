@@ -15,10 +15,10 @@ override_dh_auto_configure:
 		-DENVE_USE_GPERFTOOLS=OFF
 
 override_dh_auto_build:
-	dh_auto_build --buildsystem cmake -- -C build
+	dh_auto_build --buildsystem cmake
 
 override_dh_auto_install:
-	dh_auto_install --buildsystem cmake --destdir=debian/enve
+	dh_auto_install --buildsystem cmake
 
 override_dh_strip:
 	dh_strip --dbgsym-migration='${package}-dbgsym (<< 0.0.0-1~)'

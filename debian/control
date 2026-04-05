@@ -3,8 +3,8 @@ Section: graphics
 Priority: optional
 Maintainer: Hope2333 (幽零小喵) <u0catmiao@proton.me>
 Build-Depends: 
+ debhelper-compat (= 13),
  cmake (>= 3.16),
- debhelper (>= 12),
  qtbase5-dev (>= 5.12),
  qtdeclarative5-dev,
  qtmultimedia5-dev,
