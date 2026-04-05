@@ -303,7 +303,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y \
-            build-essential cmake ninja-build clang \
+            build-essential cmake ninja-build clang python-is-python3 \
             qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
             libqt5svg5-dev qtquickcontrols2-5-dev \
             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev \
