@@ -22,6 +22,17 @@ jobs:
       fail-fast: false
       matrix:
         distro:
+          - name: "Arch Linux"
+            runner: ubuntu-latest
+            container: archlinux:latest
+            install: |
+              pacman -Syu --noconfirm \
+                base-devel cmake ninja qt5-base qt5-declarative qt5-multimedia \
+                qt5-svg qt5-quickcontrols2 \
+                ffmpeg libmypaint freetype2 fontconfig libpng harfbuzz \
+                libjpeg-turbo libwebp libglvnd libxi libxkbcommon zlib expat \
+                json-c glib2
+            qmake: "qmake"
           - name: "Ubuntu 26.04"
             runner: ubuntu-latest
             install: |
@@ -78,12 +89,27 @@ jobs:
           submodules: recursive
 
       - name: Install dependencies
+        if: matrix.distro.install != '' && matrix.distro.container == ''
         run: ${{ matrix.distro.install }}
 
+      - name: Install dependencies (Arch container)
+        if: matrix.distro.container != ''
+        run: |
+          ${{ matrix.distro.install }}
+
       - name: Build vendored quazip
+        if: matrix.distro.name != 'Arch Linux'
         run: |
           cd third_party/quazip
           qmake quazip.pro CONFIG+=release
+          make -j"$(nproc)"
+          cd ../..
+
+      - name: Build vendored quazip (Arch)
+        if: matrix.distro.name == 'Arch Linux'
+        run: |
+          cd third_party/quazip
+          ${{ matrix.distro.qmake }} quazip.pro CONFIG+=release
           make -j"$(nproc)"
           cd ../..
 
