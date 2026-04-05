@@ -303,7 +303,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y \
-            build-essential cmake ninja-build \
+            build-essential cmake ninja-build clang \
             qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
             libqt5svg5-dev qtquickcontrols2-5-dev \
             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev \
@@ -313,10 +313,8 @@ jobs:
             libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
             libexpat1-dev libwebp-dev \
             libjpeg62-turbo-dev libxi-dev libxkbcommon-dev \
-            libmypaint-dev \
-            gcc-11 g++-11
-          update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100
-          update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100
+            libmypaint-dev
+          export CC=clang CXX=clang++
 
       - name: Build vendored quazip
         run: |
