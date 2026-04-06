@@ -1,36 +1,188 @@
-name: Release Build & Tag
+name: Release Build & Package
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
-      tag:
-        description: 'Release tag (e.g., v0.1.0-rc1)'
-        required: true
+      version:
+        description: 'Version to build (e.g., v0.1.3)'
+        required: false
         type: string
-      prerelease:
-        description: 'Mark as prerelease'
+      build_deb:
+        description: 'Build .deb package'
+        required: false
+        default: true
+        type: boolean
+      build_pacman:
+        description: 'Build pacman package'
+        required: false
+        default: true
+        type: boolean
+      build_appimage:
+        description: 'Build AppImage'
         required: false
         default: true
         type: boolean
 
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  release-build:
-    name: Release Build (Ubuntu 24.04)
-    runs-on: ubuntu-24.04
+  # ============================================================
+  # Prepare release metadata
+  # ============================================================
+  prepare-release:
+    name: Prepare Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+      version_no_v: ${{ steps.version.outputs.VERSION_NO_V }}
+      tag_name: ${{ steps.version.outputs.TAG_NAME }}
+      build_time: ${{ steps.version.outputs.BUILD_TIME }}
+      platforms: ${{ steps.platforms.outputs.platforms }}
+      build_matrix: ${{ steps.platforms.outputs.build_matrix }}
+      build_count: ${{ steps.platforms.outputs.build_count }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set version info
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            TAG_NAME="${{ github.event.inputs.version }}"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG_NAME="v$(date -u +'%Y.%m.%d.%H%M')-dev"
+          else
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+          fi
+          VERSION_NO_V="${TAG_NAME#v}"
+          BUILD_TIME="$(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          
+          echo "VERSION=${TAG_NAME}" >> "$GITHUB_OUTPUT"
+          echo "VERSION_NO_V=${VERSION_NO_V}" >> "$GITHUB_OUTPUT"
+          echo "TAG_NAME=${TAG_NAME}" >> "$GITHUB_OUTPUT"
+          echo "BUILD_TIME=${BUILD_TIME}" >> "$GITHUB_OUTPUT"
+          
+          echo "Version: ${TAG_NAME}"
+          echo "Version (no v): ${VERSION_NO_V}"
+          echo "Build time: ${BUILD_TIME}"
+
+      - name: Set build platforms
+        id: platforms
+        env:
+          P_DEB: ${{ github.event.inputs.build_deb || 'true' }}
+          P_PACMAN: ${{ github.event.inputs.build_pacman || 'true' }}
+          P_APPIMAGE: ${{ github.event.inputs.build_appimage || 'true' }}
+        run: |
+          python3 << 'PY'
+          import json
+          import os
+
+          def _to_bool(name: str) -> bool:
+              value = str(os.environ.get(name, "")).strip().lower()
+              return value in {"1", "true", "yes", "on"}
+
+          selected = []
+          if _to_bool("P_DEB"):
+              selected.append({
+                  "id": "deb",
+                  "name": "Build .deb (Ubuntu 24.04)",
+                  "os": "ubuntu-24.04",
+                  "container": None,
+                  "artifact_name": "enve-deb",
+                  "artifact_pattern": "*.deb",
+                  "artifact_path": "../enve_*.deb",
+              })
+          if _to_bool("P_PACMAN"):
+              selected.append({
+                  "id": "pacman",
+                  "name": "Build pacman (Arch Linux)",
+                  "os": "ubuntu-latest",
+                  "container": "archlinux:latest",
+                  "artifact_name": "enve-pacman",
+                  "artifact_pattern": "*.pkg.tar.zst",
+                  "artifact_path": "enve-*.pkg.tar.zst",
+              })
+          if _to_bool("P_APPIMAGE"):
+              selected.append({
+                  "id": "appimage",
+                  "name": "Build AppImage (Arch Linux)",
+                  "os": "ubuntu-latest",
+                  "container": "archlinux:latest",
+                  "artifact_name": "enve-appimage",
+                  "artifact_pattern": "*.AppImage",
+                  "artifact_path": "*.AppImage",
+              })
+
+          if not selected:
+              print("ERROR: Please select at least one package format")
+              raise SystemExit(1)
+
+          output = {
+              "platforms": json.dumps([p["id"] for p in selected], separators=(",", ":")),
+              "build_matrix": json.dumps({"include": selected}, separators=(",", ":")),
+              "build_count": str(len(selected)),
+          }
+
+          output_file = os.environ["GITHUB_OUTPUT"]
+          with open(output_file, "a", encoding="utf-8") as f:
+              for key, value in output.items():
+                  f.write(f"{key}={value}\n")
+
+          print(f"Selected packages: {output['platforms']}")
+          print(f"Build count: {output['build_count']}")
+          PY
+
+  # ============================================================
+  # Build packages using matrix strategy
+  # ============================================================
+  build-packages:
+    name: ${{ matrix.name }}
+    needs: [prepare-release]
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare-release.outputs.build_matrix) }}
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
     timeout-minutes: 180
 
     steps:
+      # ----------------------------------------------------------
+      # Container setup (for Arch Linux container)
+      # ----------------------------------------------------------
+      - name: Install git (container requirement)
+        if: matrix.container != null
+        run: |
+          pacman -Sy --noconfirm git base-devel
+
+      # ----------------------------------------------------------
+      # Checkout
+      # ----------------------------------------------------------
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Install build dependencies
+      # ----------------------------------------------------------
+      # Install dependencies - Debian/Ubuntu
+      # ----------------------------------------------------------
+      - name: Install build dependencies (Debian/Ubuntu)
+        if: matrix.id == 'deb'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential cmake ninja-build \
+            build-essential cmake ninja-build debhelper \
             qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
             libqt5svg5-dev qtquickcontrols2-5-dev \
             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev \
@@ -39,25 +191,39 @@ jobs:
             zlib1g-dev \
             libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
             libexpat1-dev libwebp-dev \
-            libjpeg-turbo8-dev libxi-dev libxkbcommon-dev \
+            libjpeg62-turbo-dev libxi-dev libxkbcommon-dev \
             libmypaint-dev
 
-      - name: Build vendored quazip
+      # ----------------------------------------------------------
+      # Install dependencies - Arch Linux
+      # ----------------------------------------------------------
+      - name: Install build dependencies (Arch Linux)
+        if: matrix.id == 'pacman' || matrix.id == 'appimage'
         run: |
-          cd third_party/quazip
-          qmake quazip.pro CONFIG+=release
-          make -j"$(nproc)"
-          cd ../..
+          pacman -Syu --noconfirm \
+            base-devel cmake ninja \
+            qt5-base qt5-declarative qt5-multimedia \
+            qt5-svg qt5-quickcontrols2 \
+            ffmpeg freetype2 fontconfig libpng harfbuzz \
+            glib2 libmypaint zstd libglvnd libwebp libjpeg-turbo \
+            libxi libxkbcommon expat json-c \
+            libfuse2 desktop-file-utils appimagekit
 
+      # ----------------------------------------------------------
+      # Restore Skia cache
+      # ----------------------------------------------------------
       - name: Restore Skia build cache
         id: cache-skia-restore
         uses: actions/cache/restore@v4
         with:
           path: third_party/skia/out/Release
-          key: ${{ runner.os }}-release-skia-m100-v4
+          key: ${{ runner.os }}-${{ matrix.id }}-skia-m100-v6
 
-      - name: Build vendored Skia (if not cached)
-        if: steps.cache-skia-restore.outputs.cache-hit != 'true'
+      # ----------------------------------------------------------
+      # Build Skia (if not cached) - Debian/Ubuntu
+      # ----------------------------------------------------------
+      - name: Build vendored Skia (Debian/Ubuntu)
+        if: matrix.id == 'deb' && steps.cache-skia-restore.outputs.cache-hit != 'true'
         run: |
           cd third_party
           rm -rf skia
@@ -84,58 +250,269 @@ jobs:
           ninja -C out/Release skia
           cd ..
 
+      # ----------------------------------------------------------
+      # Build Skia (if not cached) - Arch Linux
+      # ----------------------------------------------------------
+      - name: Build vendored Skia (Arch Linux)
+        if: (matrix.id == 'pacman' || matrix.id == 'appimage') && steps.cache-skia-restore.outputs.cache-hit != 'true'
+        run: |
+          cd third_party
+          rm -rf skia
+          git clone https://chromium.googlesource.com/skia skia
+          cd skia
+          git checkout 9ea0f5911f804a73806ad3ae935769ba9f42f30d
+          sed -i 's/subprocess.check_output(\([^)]*\))/subprocess.check_output(\1, text=True)/g' gn/is_clang.py
+          sed -i "s/b'clang'/'clang'/g" gn/is_clang.py
+          sed -i 's|#!/usr/bin/env python|#!/usr/bin/env python3|' gn/is_clang.py
+          sed -i 's/itervalues()/values()/g' tools/git-sync-deps
+          sed -i 's|#!/usr/bin/env python|#!/usr/bin/env python3|' tools/git-sync-deps
+          export PATH="/usr/bin:$PATH"
+          python3 tools/git-sync-deps || true
+          find third_party/externals/icu/scripts -name '*.py' -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} \;
+          find third_party/externals -name '*.py' -path '*/scripts/*' -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} \;
+          python3 -c "
+          import pathlib
+          p = pathlib.Path('third_party/externals/icu/scripts/make_data_assembly.py')
+          t = p.read_text()
+          t = t.replace('.hexlify(input_data[i:i + 4][::step]).upper()', '.hexlify(input_data[i:i + 4][::step]).decode(\"ascii\").upper()')
+          p.write_text(t)
+          "
+          bin/gn gen out/Release --args='is_official_build=true is_debug=false skia_use_vulkan=false skia_use_gl=true skia_use_system_expat=false skia_use_system_icu=true skia_use_system_libjpeg_turbo=false skia_use_system_libpng=false skia_use_system_libwebp=false skia_use_system_zlib=false'
+          ninja -C out/Release skia
+          cd ..
+
+      # ----------------------------------------------------------
+      # Save Skia cache
+      # ----------------------------------------------------------
       - name: Save Skia build cache
         if: steps.cache-skia-restore.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: third_party/skia/out/Release
-          key: ${{ runner.os }}-release-skia-m100-v4
+          key: ${{ runner.os }}-${{ matrix.id }}-skia-m100-v6
 
-      - name: Configure CMake (Release)
+      # ----------------------------------------------------------
+      # Build .deb package
+      # ----------------------------------------------------------
+      - name: Build .deb package
+        if: matrix.id == 'deb'
         run: |
-          cmake -S . -B build/release \
+          VERSION="${{ needs.prepare-release.outputs.version_no_v }}"
+          # Update debian changelog with current version (native format)
+          dch --distribution unstable --newversion "${VERSION}" "Automated build"
+          dpkg-buildpackage -us -uc -b
+          ls -la ../enve_*.deb
+
+      # ----------------------------------------------------------
+      # Build pacman package
+      # ----------------------------------------------------------
+      - name: Build pacman package
+        if: matrix.id == 'pacman'
+        run: |
+          VERSION="${{ needs.prepare-release.outputs.version_no_v }}"
+          sed -i "s/^pkgver=.*/pkgver=${VERSION}/" PKGBUILD
+          makepkg -s --noconfirm
+          ls -la enve-*.pkg.tar.zst
+
+      # ----------------------------------------------------------
+      # Build AppImage (Arch Linux base)
+      # ----------------------------------------------------------
+      - name: Build enve for AppImage
+        if: matrix.id == 'appimage'
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/usr \
             -DENVE_USE_SYSTEM_LIBMYPAINT=ON \
             -DENVE_USE_WEBENGINE=OFF \
             -DENVE_USE_QSCINTILLA=OFF \
             -DENVE_USE_GPERFTOOLS=OFF \
-            -DCMAKE_BUILD_TYPE=Release
+            -GNinja
+          cmake --build build
 
-      - name: Build envecore
-        run: cmake --build build/release --target envecore -j"$(nproc)"
-
-      - name: Build enve app
-        run: cmake --build build/release --target enve -j"$(nproc)"
-
-      - name: Package release artifacts
+      - name: Create AppDir
+        if: matrix.id == 'appimage'
         run: |
-          mkdir -p release-artifacts
-          cp build/release/bin/enve release-artifacts/enve-${{ inputs.tag }}-linux-x86_64
-          cp build/release/lib/libenvecore.a release-artifacts/libenvecore-${{ inputs.tag }}-linux-x86_64.a
-          tar czf release-artifacts/third-party-skia-${{ inputs.tag }}.tar.gz -C third_party skia/out/Release 2>/dev/null || true
-          tar czf release-artifacts/third-party-quazip-${{ inputs.tag }}.tar.gz -C third_party quazip/*.so* 2>/dev/null || true
+          VERSION="${{ needs.prepare-release.outputs.version_no_v }}"
+          APPDIR=AppDir
+          mkdir -p "${APPDIR}/usr/bin"
+          mkdir -p "${APPDIR}/usr/share/applications"
+          mkdir -p "${APPDIR}/usr/share/icons/hicolor/scalable/apps"
+          mkdir -p "${APPDIR}/usr/lib"
+          mkdir -p "${APPDIR}/usr/plugins"
 
-      - name: Upload release artifacts
+          # Copy binary
+          cp build/bin/enve "${APPDIR}/usr/bin/enve"
+
+          # Copy desktop file
+          cp org.maurycy.enve.desktop "${APPDIR}/usr/share/applications/org.maurycy.enve.desktop"
+
+          # Copy icon
+          cp pixmaps/enve.svg "${APPDIR}/usr/share/icons/hicolor/scalable/apps/enve.svg"
+
+          # Copy Qt plugins (platforms, etc.)
+          cp -r /usr/lib/qt/plugins/platforms "${APPDIR}/usr/plugins/" 2>/dev/null || true
+          cp -r /usr/lib/qt/plugins/platformthemes "${APPDIR}/usr/plugins/" 2>/dev/null || true
+          cp -r /usr/lib/qt/plugins/platforminputcontexts "${APPDIR}/usr/plugins/" 2>/dev/null || true
+          cp -r /usr/lib/qt/plugins/xcbglintegrations "${APPDIR}/usr/plugins/" 2>/dev/null || true
+
+          # Copy shared libraries
+          # Qt5 libs
+          cp /usr/lib/libQt5Core.so.5* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libQt5Gui.so.5* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libQt5Widgets.so.5* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libQt5Svg.so.5* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libQt5Multimedia.so.5* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libQt5Network.so.5* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libQt5OpenGL.so.5* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libQt5Sql.so.5* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libQt5Qml.so.5* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libQt5QmlModels.so.5* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libQt5Quick.so.5* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libQt5Xml.so.5* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libQt5Concurrent.so.5* "${APPDIR}/usr/lib/" 2>/dev/null || true
+
+          # FFmpeg libs
+          cp /usr/lib/libavcodec.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libavformat.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libavutil.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libswscale.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libswresample.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+
+          # Other runtime deps
+          cp /usr/lib/libmypaint-*.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libjson-c.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libglib-2.0.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libfreetype.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libfontconfig.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libharfbuzz.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libpng16.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libwebp.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libwebpmux.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libwebpdemux.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libjpeg.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libzstd.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libexpat.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libicui18n.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libicuuc.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+          cp /usr/lib/libicudata.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+
+          # Create AppRun
+          cat > "${APPDIR}/AppRun" << 'APPRUN'
+          #!/bin/bash
+          SELF=$(readlink -f "$0")
+          HERE=${SELF%/*}
+          export LD_LIBRARY_PATH="${HERE}/usr/lib:${LD_LIBRARY_PATH}"
+          export QT_QPA_PLATFORM_PLUGIN_PATH="${HERE}/usr/plugins/platforms"
+          export QML2_IMPORT_PATH="${HERE}/usr/qml"
+          export QT_PLUGIN_PATH="${HERE}/usr/plugins"
+          exec "${HERE}/usr/bin/enve" "$@"
+          APPRUN
+          chmod +x "${APPDIR}/AppRun"
+
+          # Create .DirIcon
+          cp "${APPDIR}/usr/share/icons/hicolor/scalable/apps/enve.svg" "${APPDIR}/.DirIcon"
+
+          echo "AppDir created at ${APPDIR}"
+          find "${APPDIR}" -type f | head -50
+
+      - name: Build AppImage with appimagetool
+        if: matrix.id == 'appimage'
+        run: |
+          VERSION="${{ needs.prepare-release.outputs.version_no_v }}"
+          OUTPUT="enve-${VERSION}-x86_64.AppImage"
+          
+          # Use appimagetool from Arch package
+          appimagetool AppDir "${OUTPUT}"
+          
+          chmod +x "${OUTPUT}"
+          ls -la "${OUTPUT}"
+
+      # ----------------------------------------------------------
+      # Upload artifact
+      # ----------------------------------------------------------
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: enve-${{ inputs.tag }}-release
-          path: release-artifacts/
+          name: ${{ matrix.artifact_name }}
+          if-no-files-found: error
+          path: ${{ matrix.artifact_path }}
 
-      - name: Create Git tag
+  # ============================================================
+  # Finalize release and upload to GitHub
+  # ============================================================
+  finalize-release:
+    name: Finalize Release
+    if: always() && needs.prepare-release.result == 'success' && needs.build-packages.result == 'success'
+    needs: [prepare-release, build-packages]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: enve-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: List release assets
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a ${{ inputs.tag }} -m "Release ${{ inputs.tag }}"
-          git push origin ${{ inputs.tag }}
+          echo "=== Release Assets ==="
+          find release-assets -type f -exec ls -lh {} \;
+          echo "======================"
 
-      - name: Create GitHub Release
+      - name: Generate changelog
+        id: changelog
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [ -n "$LATEST_TAG" ]; then
+            RANGE="${LATEST_TAG}..HEAD"
+          else
+            RANGE="HEAD~50..HEAD"
+          fi
+
+          CHANGELOG=$(git log "$RANGE" --pretty=format:'- `%h` %s' 2>/dev/null || echo "- No commit log available")
+
+          {
+            echo "content<<EOF"
+            echo "$CHANGELOG"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.tag }}
-          name: enve ${{ inputs.tag }}
-          prerelease: ${{ inputs.prerelease }}
+          tag_name: ${{ needs.prepare-release.outputs.tag_name }}
+          name: enve ${{ needs.prepare-release.outputs.version }}
+          body: |
+            ## enve ${{ needs.prepare-release.outputs.version }}
+
+            ### Build Info
+            - **Build Time**: ${{ needs.prepare-release.outputs.build_time }}
+            - **Commit**: `${{ github.sha }}`
+            - **Trigger**: ${{ github.event_name == 'workflow_dispatch' && 'Manual' || 'Tag Push' }}
+
+            ### Package Formats
+            | Format | Target | Description |
+            |--------|--------|-------------|
+            | `.deb` | Debian/Ubuntu | Install with `sudo dpkg -i` or `sudo apt install ./` |
+            | `.pkg.tar.zst` | Arch Linux | Install with `sudo pacman -U` |
+            | `.AppImage` | All Linux | Make executable and run: `chmod +x && ./enve-*.AppImage` |
+
+            ### Changes
+            ${{ steps.changelog.outputs.content }}
+          prerelease: ${{ contains(needs.prepare-release.outputs.version, 'rc') || contains(needs.prepare-release.outputs.version, 'alpha') || contains(needs.prepare-release.outputs.version, 'beta') || contains(needs.prepare-release.outputs.version, 'dev') }}
           generate_release_notes: true
           files: |
-            release-artifacts/enve-${{ inputs.tag }}-linux-x86_64
-            release-artifacts/libenvecore-${{ inputs.tag }}-linux-x86_64.a
-            release-artifacts/third-party-skia-${{ inputs.tag }}.tar.gz
-            release-artifacts/third-party-quazip-${{ inputs.tag }}.tar.gz
+            release-assets/*.deb
+            release-assets/*.pkg.tar.zst
+            release-assets/*.AppImage
+          draft: false
+          make_latest: ${{ !contains(needs.prepare-release.outputs.version, 'rc') && !contains(needs.prepare-release.outputs.version, 'alpha') && !contains(needs.prepare-release.outputs.version, 'beta') && !contains(needs.prepare-release.outputs.version, 'dev') }}
