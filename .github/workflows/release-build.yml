@@ -95,8 +95,8 @@ jobs:
       - name: Build .deb package
         run: |
           VERSION=$(git describe --tags --always | sed 's/^v//')
-          # Update debian changelog with current version
-          dch --distribution unstable --newversion "${VERSION}-1" "Automated build"
+          # Update debian changelog with current version (native format, no -1 suffix)
+          dch --distribution unstable --newversion "${VERSION}" "Automated build"
           dpkg-buildpackage -us -uc -b
           ls -la ../enve_*.deb
 
