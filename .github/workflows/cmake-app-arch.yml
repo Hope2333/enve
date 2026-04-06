@@ -36,7 +36,7 @@ jobs:
             libqt5svg5-dev qtquickcontrols2-5-dev \
             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev \
             libfreetype6-dev libfontconfig1-dev libpng-dev libharfbuzz-dev \
-            libglib2.0-dev libzstd-dev \
+            libglib2.0-dev libzstd-dev libjson-c-dev \
             zlib1g-dev \
             libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
             libexpat1-dev libwebp-dev \
