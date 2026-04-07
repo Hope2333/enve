@@ -191,14 +191,25 @@ jobs:
             zlib1g-dev \
             libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev \
             libexpat1-dev libwebp-dev \
-            libjpeg62-turbo-dev libxi-dev libxkbcommon-dev \
+            libjpeg-turbo8-dev libxi-dev libxkbcommon-dev \
             libmypaint-dev
 
       # ----------------------------------------------------------
       # Install dependencies - Arch Linux
       # ----------------------------------------------------------
-      - name: Install build dependencies (Arch Linux)
-        if: matrix.id == 'pacman' || matrix.id == 'appimage'
+      - name: Install build dependencies (Arch Linux — pacman)
+        if: matrix.id == 'pacman'
+        run: |
+          pacman -Syu --noconfirm \
+            base-devel cmake ninja \
+            qt5-base qt5-declarative qt5-multimedia \
+            qt5-svg qt5-quickcontrols2 \
+            ffmpeg freetype2 fontconfig libpng harfbuzz \
+            glib2 libmypaint zstd libglvnd libwebp libjpeg-turbo \
+            libxi libxkbcommon expat json-c
+
+      - name: Install build dependencies (Arch Linux — AppImage)
+        if: matrix.id == 'appimage'
         run: |
           pacman -Syu --noconfirm \
             base-devel cmake ninja \
@@ -207,7 +218,12 @@ jobs:
             ffmpeg freetype2 fontconfig libpng harfbuzz \
             glib2 libmypaint zstd libglvnd libwebp libjpeg-turbo \
             libxi libxkbcommon expat json-c \
-            libfuse2 desktop-file-utils appimagekit
+            desktop-file-utils
+
+          # Download appimagetool binary (Arch no longer ships appimagekit)
+          wget -q "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" \
+            -O /usr/local/bin/appimagetool
+          chmod +x /usr/local/bin/appimagetool
 
       # ----------------------------------------------------------
       # Restore Skia cache
