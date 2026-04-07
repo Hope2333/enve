@@ -221,8 +221,8 @@ jobs:
             desktop-file-utils
 
           # Download appimagetool binary (Arch no longer ships appimagekit)
-          wget -q "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" \
-            -O /usr/local/bin/appimagetool
+          curl -fSL "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" \
+            -o /usr/local/bin/appimagetool
           chmod +x /usr/local/bin/appimagetool
 
       # ----------------------------------------------------------
@@ -234,6 +234,8 @@ jobs:
         with:
           path: third_party/skia/out/Release
           key: ${{ runner.os }}-${{ matrix.id }}-skia-m100-v6
+          restore-keys: |
+            ${{ runner.os }}-
 
       # ----------------------------------------------------------
       # Build Skia (if not cached) - Debian/Ubuntu
