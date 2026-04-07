@@ -70,14 +70,14 @@ void generateButtons(const int minWidgetDim, const int buttonDim) {
 
     QImage uncheckedBase(buttonSize, QImage::Format_ARGB32);
     uncheckedBase.fill(Qt::transparent);
-    renderSvg(":/icons/toolbarButtons/uncheckedBg.svg", uncheckedBase);
+    renderSvg(":/toolbarButtonsBg/uncheckedBg.svg", uncheckedBase);
 
     QImage checkedBase(buttonSize, QImage::Format_ARGB32);
     checkedBase.fill(Qt::transparent);
-    renderSvg(":/icons/toolbarButtons/checkedBg.svg", checkedBase);
+    renderSvg(":/toolbarButtonsBg/checkedBg.svg", checkedBase);
 
     const QString dir = eSettings::sSettingsDir() + "/" + mkPath;
-    QDirIterator checkableIt(":/icons/toolbarButtons/checkable");
+    QDirIterator checkableIt(":/toolbarButtonsCheckable");
     while(checkableIt.hasNext()) {
         const auto path = checkableIt.next();
         const auto fileName = checkableIt.fileName().chopped(4);
@@ -95,7 +95,7 @@ void generateButtons(const int minWidgetDim, const int buttonDim) {
         }
     }
 
-    QDirIterator plainIt(":/icons/toolbarButtons/plain");
+    QDirIterator plainIt(":/toolbarButtonsPlain");
     while(plainIt.hasNext()) {
         const auto path = plainIt.next();
         const auto fileName = plainIt.fileName().chopped(4);;
@@ -138,7 +138,7 @@ void IconLoader::generateAll(const int minWidgetDim, const int buttonDim) {
         verFile.close();
     }
 
-    QDirIterator noInterIt(":/icons/noInterpolation");
+    QDirIterator noInterIt(":/noInterpolation");
     while(noInterIt.hasNext()) {
         const auto path = noInterIt.next();
         const auto fileName = noInterIt.fileName();
@@ -149,7 +149,7 @@ void IconLoader::generateAll(const int minWidgetDim, const int buttonDim) {
         scaled.save(iconsSizeDir.filePath(fileName));
     }
 
-    QDirIterator baseIt(":/icons");
+    QDirIterator baseIt(":/pixmaps");
     while(baseIt.hasNext()) {
         const auto path = baseIt.next();
         if(baseIt.fileInfo().isDir()) continue;

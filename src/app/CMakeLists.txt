@@ -57,10 +57,23 @@ qt5_add_resources(enve_RESOURCES
 )
 target_sources(enve PRIVATE ${enve_RESOURCES})
 
-# Define ENVE_VERSION macro
-# For CMake builds, use a simple version string
+# Define ENVE_VERSION macro from git tag or fallback
+execute_process(
+    COMMAND git describe --tags --abbrev=0
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_TAG
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+    RESULT_VARIABLE GIT_RESULT
+)
+if(GIT_RESULT EQUAL 0)
+    string(SUBSTRING "${GIT_TAG}" 1 -1 ENVE_VERSION) # Strip 'v' prefix
+else()
+    set(ENVE_VERSION "0.0.0-CMake")
+endif()
+
 target_compile_definitions(enve PRIVATE
-    ENVE_VERSION="0.0.0-CMake"
+    ENVE_VERSION="${ENVE_VERSION}"
 )
 
 # Set include directories

@@ -98,7 +98,14 @@ qsptr<BrushesContext> BrushSelectionWidget::sCreateNewContext() {
     if(!sLoaded) {
         const QString brushesDir = eSettings::sSettingsDir() + "/brushes";
         sLoadCollectionsFromDir(brushesDir);
-        sLoadCollectionsFromDir(":/brushes");
+        // Load each brush collection from its QRC resource prefix
+        sLoadCollectionsFromDir(":/brushesClassic");
+        sLoadCollectionsFromDir(":/brushesDeevad");
+        sLoadCollectionsFromDir(":/brushesDieterle");
+        sLoadCollectionsFromDir(":/brushesExperimental");
+        sLoadCollectionsFromDir(":/brushesKaerhon");
+        sLoadCollectionsFromDir(":/brushesRamon");
+        sLoadCollectionsFromDir(":/brushesTanda");
         sLoaded = true;
     }
     return enve::make_shared<BrushesContext>(BrushCollectionData::sData);
