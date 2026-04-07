@@ -369,7 +369,7 @@ jobs:
           mkdir -p pkg/usr/bin pkg/usr/share/applications pkg/usr/share/icons/hicolor/scalable/apps
           cp build/bin/enve pkg/usr/bin/
           cp org.maurycy.enve.desktop pkg/usr/share/applications/
-          cp pixmaps/enve.svg pkg/usr/share/icons/hicolor/scalable/apps/
+          cp src/app/icons/enve.svg pkg/usr/share/icons/hicolor/scalable/apps/
 
           # Copy Skia and other libs
           cp third_party/skia/out/Release/libskia.a pkg/usr/lib/ 2>/dev/null || true
@@ -424,7 +424,7 @@ jobs:
           cp org.maurycy.enve.desktop "${APPDIR}/usr/share/applications/org.maurycy.enve.desktop"
 
           # Copy icon
-          cp pixmaps/enve.svg "${APPDIR}/usr/share/icons/hicolor/scalable/apps/enve.svg"
+          cp src/app/icons/enve.svg "${APPDIR}/usr/share/icons/hicolor/scalable/apps/enve.svg"
 
           # Copy Qt plugins (platforms, etc.)
           cp -r /usr/lib/qt/plugins/platforms "${APPDIR}/usr/plugins/" 2>/dev/null || true
