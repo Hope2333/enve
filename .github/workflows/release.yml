@@ -337,18 +337,49 @@ jobs:
           ls -la ../enve_*.deb
 
       # ----------------------------------------------------------
-      # Build pacman package
+      # Build pacman package (direct cmake build to reuse Skia cache)
       # ----------------------------------------------------------
       - name: Build pacman package
         if: matrix.id == 'pacman'
         run: |
           VERSION="${{ needs.prepare-release.outputs.version_no_v }}"
-          sed -i "s/^pkgver=.*/pkgver=${VERSION}/" PKGBUILD
-          # makepkg refuses to run as root, so use a non-root user
-          useradd -m -s /bin/bash builder
-          chown -R builder:builder .
-          su - builder -c "cd /__w/enve/enve && makepkg -s --noconfirm"
-          ls -la /__w/enve/enve/enve-*.pkg.tar.zst
+
+          # Fix git dubious ownership
+          git config --global --add safe.directory '*'
+
+          # Build vendored quazip
+          cd third_party/quazip
+          qmake quazip.pro CONFIG+=release
+          make -j"$(nproc)"
+          cd ../..
+
+          # Build enve with cmake (reuses cached Skia)
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/usr \
+            -DENVE_USE_SYSTEM_LIBMYPAINT=ON \
+            -DENVE_USE_WEBENGINE=OFF \
+            -DENVE_USE_QSCINTILLA=OFF \
+            -DENVE_USE_GPERFTOOLS=OFF \
+            -DCMAKE_PROJECT_VERSION=${VERSION} \
+            -GNinja
+          cmake --build build
+
+          # Create package manually (no PKGBUILD needed)
+          mkdir -p pkg/usr/bin pkg/usr/share/applications pkg/usr/share/icons/hicolor/scalable/apps
+          cp build/bin/enve pkg/usr/bin/
+          cp org.maurycy.enve.desktop pkg/usr/share/applications/
+          cp pixmaps/enve.svg pkg/usr/share/icons/hicolor/scalable/apps/
+
+          # Copy Skia and other libs
+          cp third_party/skia/out/Release/libskia.a pkg/usr/lib/ 2>/dev/null || true
+          cp third_party/quazip/quazip/libquazip.so pkg/usr/lib/ 2>/dev/null || true
+
+          # Build pacman package with bsdtar
+          cd pkg
+          find usr -print0 | bsdtar -cvzf "../enve-${VERSION}-1-x86_64.pkg.tar.zst" --null -T -
+          cd ..
+          ls -la enve-*.pkg.tar.zst
 
       # ----------------------------------------------------------
       # Build AppImage (Arch Linux base)
