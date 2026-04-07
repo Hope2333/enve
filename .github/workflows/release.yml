@@ -218,9 +218,9 @@ jobs:
             ffmpeg freetype2 fontconfig libpng harfbuzz \
             glib2 libmypaint zstd libglvnd libwebp libjpeg-turbo \
             libxi libxkbcommon expat json-c \
-            desktop-file-utils
+            desktop-file-utils fuse2
 
-          # Download appimagetool binary (Arch no longer ships appimagekit)
+          # Download appimagetool and use --appimage-extract-and-run to avoid FUSE mount issues
           curl -fSL "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" \
             -o /usr/local/bin/appimagetool
           chmod +x /usr/local/bin/appimagetool
@@ -498,8 +498,8 @@ jobs:
           VERSION="${{ needs.prepare-release.outputs.version_no_v }}"
           OUTPUT="enve-${VERSION}-x86_64.AppImage"
           
-          # Use appimagetool from Arch package
-          appimagetool AppDir "${OUTPUT}"
+          # Use appimagetool from Arch package (with --appimage-extract-and-run to avoid FUSE mount)
+          /usr/local/bin/appimagetool --appimage-extract-and-run AppDir "${OUTPUT}"
           
           chmod +x "${OUTPUT}"
           ls -la "${OUTPUT}"

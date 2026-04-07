@@ -6,6 +6,8 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 	dh $@ --buildsystem=cmake
 
 override_dh_auto_configure:
+	# Build vendored quazip (needed before CMake configure)
+	cd third_party/quazip && qmake quazip.pro CONFIG+=release && make -j4 && cd ../..
 	dh_auto_configure --builddir=build -- \
 		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_INSTALL_PREFIX=/usr \
