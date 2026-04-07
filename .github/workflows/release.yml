@@ -182,7 +182,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential cmake ninja-build debhelper \
+            build-essential cmake ninja-build debhelper devscripts \
             qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
             libqt5svg5-dev qtquickcontrols2-5-dev \
             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev \
@@ -344,8 +344,11 @@ jobs:
         run: |
           VERSION="${{ needs.prepare-release.outputs.version_no_v }}"
           sed -i "s/^pkgver=.*/pkgver=${VERSION}/" PKGBUILD
-          makepkg -s --noconfirm
-          ls -la enve-*.pkg.tar.zst
+          # makepkg refuses to run as root, so use a non-root user
+          useradd -m -s /bin/bash builder
+          chown -R builder:builder .
+          su - builder -c "cd /__w/enve/enve && makepkg -s --noconfirm"
+          ls -la /__w/enve/enve/enve-*.pkg.tar.zst
 
       # ----------------------------------------------------------
       # Build AppImage (Arch Linux base)
@@ -353,6 +356,15 @@ jobs:
       - name: Build enve for AppImage
         if: matrix.id == 'appimage'
         run: |
+          # Fix git dubious ownership (container runs as root with different uid)
+          git config --global --add safe.directory '*'
+
+          # Build vendored quazip
+          cd third_party/quazip
+          qmake quazip.pro CONFIG+=release
+          make -j"$(nproc)"
+          cd ../..
+
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=/usr \
