@@ -70,7 +70,7 @@ package() {
   
   # Install desktop file and icon
   install -Dm644 org.maurycy.enve.desktop "${pkgdir}/usr/share/applications/org.maurycy.enve.desktop"
-  install -Dm644 pixmaps/enve.svg "${pkgdir}/usr/share/icons/hicolor/scalable/apps/enve.svg"
+  install -Dm644 src/app/icons/enve.svg "${pkgdir}/usr/share/icons/hicolor/scalable/apps/enve.svg"
 }
 
 # vim:set ts=2 sw=2 et:
