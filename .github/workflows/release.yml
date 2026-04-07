@@ -343,94 +343,64 @@ jobs:
         if: matrix.id == 'pacman'
         run: |
           VERSION="${{ needs.prepare-release.outputs.version_no_v }}"
-
-          # Fix git dubious ownership
           git config --global --add safe.directory '*'
-
-          # Use local source instead of git clone (already checked out)
           mkdir -p pkgbuild-work
           cd pkgbuild-work
 
-          # Write PKGBUILD with local source path
-          # Unquoted heredoc allows ${GITHUB_WORKSPACE} to expand
-          # Escaped \${srcdir} and \${pkgdir} remain literal for makepkg
-          cat > PKGBUILD << PKGBUILD_EOF
-          # Maintainer: Hope2333 (幽零小喵) <u0catmiao@proton.me>
-          # Contributor: enve team
-
+          python3 -c "
+          import os
+          ws = os.environ['GITHUB_WORKSPACE']
+          ver = os.environ['VERSION']
+          content = f'''# Maintainer: Hope2333 (幽零小喵) <u0catmiao@proton.me>
           pkgname=enve
-          pkgver=${VERSION}
+          pkgver={ver}
           pkgrel=1
-          pkgdesc="2D animation software with vector and raster graphics support"
+          pkgdesc=\"2D animation software with vector and raster graphics support\"
           arch=('x86_64')
-          url="https://maurycyliebner.github.io/"
+          url=\"https://maurycyliebner.github.io/\"
           license=('GPL-3.0-or-later')
           depends=(
-            'qt5-base'
-            'qt5-declarative'
-            'qt5-multimedia'
-            'qt5-svg'
-            'qt5-quickcontrols2'
-            'ffmpeg'
-            'freetype2'
-            'fontconfig'
-            'libpng'
-            'harfbuzz'
-            'glib2'
-            'libmypaint'
-            'zstd'
-            'libglvnd'
-            'libwebp'
-            'libjpeg-turbo'
-            'libxi'
-            'libxkbcommon'
-            'expat'
-            'json-c'
+            'qt5-base' 'qt5-declarative' 'qt5-multimedia'
+            'qt5-svg' 'qt5-quickcontrols2'
+            'ffmpeg' 'freetype2' 'fontconfig' 'libpng' 'harfbuzz'
+            'glib2' 'libmypaint' 'zstd' 'libglvnd'
+            'libwebp' 'libjpeg-turbo' 'libxi' 'libxkbcommon' 'expat' 'json-c'
           )
-          makedepends=(
-            'cmake'
-            'ninja'
-            'git'
-          )
-          optdepends=(
-            'qt5-webengine: for SVG preview'
-            'qscintilla: for expression editor'
-          )
-          source=("enve::file://${GITHUB_WORKSPACE}")
+          makedepends=('cmake' 'ninja' 'git')
+          optdepends=('qt5-webengine: for SVG preview' 'qscintilla: for expression editor')
+          source=(\"enve::file://{ws}\")
           sha256sums=('SKIP')
 
-          prepare() {
-            cd "\${srcdir}/enve"
+          prepare() {{
+            cd \"\${{srcdir}}/enve\"
             git submodule update --init --recursive
-          }
+          }}
 
-          build() {
-            cd "\${srcdir}/enve"
-
-            cmake -S . -B build \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DCMAKE_INSTALL_PREFIX=/usr \
-              -DENVE_USE_SYSTEM_LIBMYPAINT=ON \
-              -DENVE_USE_WEBENGINE=OFF \
-              -DENVE_USE_QSCINTILLA=OFF \
-              -DENVE_USE_GPERFTOOLS=OFF \
+          build() {{
+            cd \"\${{srcdir}}/enve\"
+            cmake -S . -B build \\
+              -DCMAKE_BUILD_TYPE=Release \\
+              -DCMAKE_INSTALL_PREFIX=/usr \\
+              -DENVE_USE_SYSTEM_LIBMYPAINT=ON \\
+              -DENVE_USE_WEBENGINE=OFF \\
+              -DENVE_USE_QSCINTILLA=OFF \\
+              -DENVE_USE_GPERFTOOLS=OFF \\
               -GNinja
-
             cmake --build build
-          }
+          }}
 
-          package() {
-            cd "\${srcdir}/enve"
-            DESTDIR="\${pkgdir}" cmake --install build
+          package() {{
+            cd \"\${{srcdir}}/enve\"
+            DESTDIR=\"\${{pkgdir}}\" cmake --install build
+            install -Dm644 org.maurycy.enve.desktop \"\${{pkgdir}}/usr/share/applications/org.maurycy.enve.desktop\"
+            install -Dm644 src/app/icons/enve.svg \"\${{pkgdir}}/usr/share/icons/hicolor/scalable/apps/enve.svg\"
+          }}
+          '''
+          with open('PKGBUILD', 'w') as f:
+              f.write(content)
+          "
 
-            install -Dm644 org.maurycy.enve.desktop "\${pkgdir}/usr/share/applications/org.maurycy.enve.desktop"
-            install -Dm644 src/app/icons/enve.svg "\${pkgdir}/usr/share/icons/hicolor/scalable/apps/enve.svg"
-          }
-PKGBUILD_EOF
-
-          # Build with makepkg (generates proper .PKGINFO metadata)
           makepkg -s --noconfirm
-
           ls -la enve-*.pkg.tar.zst
 
       # ----------------------------------------------------------
