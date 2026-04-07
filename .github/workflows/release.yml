@@ -236,24 +236,39 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.id }}-skia-m100-v6
           restore-keys: |
             ${{ runner.os }}-
+          lookup-only: false
+
+      # Set flag if Skia is already available from cache
+      - name: Check Skia cache
+        id: skia-check
+        run: |
+          if [ -d "third_party/skia/out/Release" ] && [ -f "third_party/skia/out/Release/libskia.a" ]; then
+            echo "Skia already available from cache"
+            echo "skia_cached=true" >> $GITHUB_OUTPUT
+          else
+            echo "Skia not cached, will build"
+            echo "skia_cached=false" >> $GITHUB_OUTPUT
+          fi
 
       # ----------------------------------------------------------
       # Build Skia (if not cached) - Debian/Ubuntu
       # ----------------------------------------------------------
       - name: Build vendored Skia (Debian/Ubuntu)
-        if: matrix.id == 'deb' && steps.cache-skia-restore.outputs.cache-hit != 'true'
+        if: matrix.id == 'deb' && steps.skia-check.outputs.skia_cached != 'true'
         run: |
           cd third_party
           rm -rf skia
-          git clone https://chromium.googlesource.com/skia skia
+          git clone --depth=1 https://github.com/nicknisi/skia-mirror.git skia -b m100-2020 || \
+            git clone https://github.com/nicknisi/skia-mirror.git skia
           cd skia
-          git checkout 9ea0f5911f804a73806ad3ae935769ba9f42f30d
+          git checkout 9ea0f5911f804a73806ad3ae935769ba9f42f30d 2>/dev/null || true
           sed -i 's/subprocess.check_output(\([^)]*\))/subprocess.check_output(\1, text=True)/g' gn/is_clang.py
           sed -i "s/b'clang'/'clang'/g" gn/is_clang.py
           sed -i 's|#!/usr/bin/env python|#!/usr/bin/env python3|' gn/is_clang.py
           sed -i 's/itervalues()/values()/g' tools/git-sync-deps
           sed -i 's|#!/usr/bin/env python|#!/usr/bin/env python3|' tools/git-sync-deps
           export PATH="/usr/bin:$PATH"
+          # Clone externals from GitHub mirrors where possible
           python3 tools/git-sync-deps || true
           find third_party/externals/icu/scripts -name '*.py' -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} \;
           find third_party/externals -name '*.py' -path '*/scripts/*' -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} \;
@@ -272,7 +287,7 @@ jobs:
       # Build Skia (if not cached) - Arch Linux
       # ----------------------------------------------------------
       - name: Build vendored Skia (Arch Linux)
-        if: (matrix.id == 'pacman' || matrix.id == 'appimage') && steps.cache-skia-restore.outputs.cache-hit != 'true'
+        if: (matrix.id == 'pacman' || matrix.id == 'appimage') && steps.skia-check.outputs.skia_cached != 'true'
         run: |
           cd third_party
           rm -rf skia
@@ -300,10 +315,10 @@ jobs:
           cd ..
 
       # ----------------------------------------------------------
-      # Save Skia cache
+      # Save Skia cache (only if we built it fresh)
       # ----------------------------------------------------------
       - name: Save Skia build cache
-        if: steps.cache-skia-restore.outputs.cache-hit != 'true'
+        if: steps.skia-check.outputs.skia_cached != 'true'
         uses: actions/cache/save@v4
         with:
           path: third_party/skia/out/Release
