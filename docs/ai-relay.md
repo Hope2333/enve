@@ -18,6 +18,14 @@ Before substantial work, read:
   - status: `.ai/modernization/current-status.md`
   - roadmap: `.ai/modernization/phase-5-roadmap.md`
 
+## Parked Future Lane Registry
+
+- FIXE `0.2.x` future mainline
+  - handoff: `.ai/features/fixe-0.2.x/ai-handoff.md`
+  - roadmap: `.ai/features/fixe-0.2.x/roadmap.md`
+  - assets: `.ai/features/fixe-0.2.x/logo-assets.md`
+  - state: parked until the active `0.1.x` line is explicitly closed or frozen
+
 The `.ai/` paths listed here are the authoritative active-lane state.
 If similarly named files also exist under `docs/modernization/`, treat them as bridge or archival notes only, not as the current relay source of truth.
 If the local `.ai/` workspace is missing, recreate the minimal lane files locally before starting substantial work; do not fall back to creating a second tracked active-state copy under `docs/modernization/`.
