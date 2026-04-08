@@ -220,7 +220,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     install(FILES org.maurycy.enve.desktop
         DESTINATION share/applications
     )
-    install(FILES pixmaps/enve.svg
+    install(FILES src/app/icons/enve.svg
         DESTINATION share/icons/hicolor/scalable/apps
     )
 endif()
