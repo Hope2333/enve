@@ -101,7 +101,7 @@ jobs:
                   "container": None,
                   "artifact_name": "enve-deb",
                   "artifact_pattern": "*.deb",
-                  "artifact_path": "../enve_*.deb",
+                  "artifact_path": "enve_*.deb",
               })
           if _to_bool("P_PACMAN"):
               selected.append({
@@ -317,7 +317,9 @@ jobs:
           # Update debian changelog with current version (native format)
           dch --distribution unstable --newversion "${VERSION}" "Automated build"
           dpkg-buildpackage -us -uc -b
-          ls -la ../enve_*.deb
+          # Copy to workspace root for upload (upload-artifact v4 doesn't allow ..)
+          cp ../enve_*.deb .
+          ls -la enve_*.deb
 
       # ----------------------------------------------------------
       # Build pacman package (PKGBUILD + makepkg)
