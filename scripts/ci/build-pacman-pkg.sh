@@ -53,13 +53,13 @@ prepare() {
 
 build() {
   cd "\${srcdir}/enve"
-  cmake -S . -B build \\\\
-    -DCMAKE_BUILD_TYPE=Release \\\\
-    -DCMAKE_INSTALL_PREFIX=/usr \\\\
-    -DENVE_USE_SYSTEM_LIBMYPAINT=ON \\\\
-    -DENVE_USE_WEBENGINE=OFF \\\\
-    -DENVE_USE_QSCINTILLA=OFF \\\\
-    -DENVE_USE_GPERFTOOLS=OFF \\\\
+  cmake -S . -B build \\
+    -DCMAKE_BUILD_TYPE=Release \\
+    -DCMAKE_INSTALL_PREFIX=/usr \\
+    -DENVE_USE_SYSTEM_LIBMYPAINT=ON \\
+    -DENVE_USE_WEBENGINE=OFF \\
+    -DENVE_USE_QSCINTILLA=OFF \\
+    -DENVE_USE_GPERFTOOLS=OFF \\
     -GNinja
   cmake --build build
 }
