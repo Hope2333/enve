@@ -20,6 +20,12 @@ sha256sums=('SKIP')
 prepare() {
   cd "${srcdir}/enve"
   git submodule update --init --recursive
+
+  # Restore Skia cache from original workspace
+  if [ -d "${GITHUB_WORKSPACE}/third_party/skia/out/Release" ]; then
+    mkdir -p third_party/skia/out/Release
+    cp -r "${GITHUB_WORKSPACE}/third_party/skia/out/Release/"* third_party/skia/out/Release/
+  fi
 }
 
 build() {
