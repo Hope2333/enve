@@ -22,9 +22,15 @@ prepare() {
   git submodule update --init --recursive
 
   # Restore Skia cache from CI runner
+  echo "SKIA_CACHE_DIR=${SKIA_CACHE_DIR}"
+  ls -la "${SKIA_CACHE_DIR}" 2>&1 || true
   if [ -d "${SKIA_CACHE_DIR}/out/Release" ]; then
+    echo "Copying Skia cache..."
     mkdir -p third_party/skia/out/Release
     cp -r "${SKIA_CACHE_DIR}/out/Release/"* third_party/skia/out/Release/
+    echo "Skia cache copied successfully"
+  else
+    echo "WARNING: Skia cache not found at ${SKIA_CACHE_DIR}/out/Release"
   fi
 }
 
