@@ -328,6 +328,9 @@ jobs:
         if: matrix.id == 'pacman'
         run: |
           VERSION="${{ needs.prepare-release.outputs.version_no_v }}"
+          # Copy Skia artifact into workspace for PKGBUILD to find
+          mkdir -p third_party/skia/out/Release
+          cp -r skia-m100/* third_party/skia/out/Release/
           chmod +x scripts/ci/build-pacman-pkg.sh
           scripts/ci/build-pacman-pkg.sh "${VERSION}"
 

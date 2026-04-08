@@ -14,11 +14,17 @@ WORKDIR="$(pwd)/pkgbuild-work"
 rm -rf "$WORKDIR"
 mkdir -p "$WORKDIR"
 
-# Copy Skia cache into workdir so builduser can access it
+# Copy Skia from workspace (downloaded artifact or cached build)
+SKIA_SRC=""
 if [ -d "$GITHUB_WORKSPACE/third_party/skia/out/Release" ]; then
+	SKIA_SRC="$GITHUB_WORKSPACE/third_party/skia/out/Release"
+elif [ -d "third_party/skia/out/Release" ]; then
+	SKIA_SRC="$(pwd)/third_party/skia/out/Release"
+fi
+
+if [ -n "$SKIA_SRC" ] && [ -f "$SKIA_SRC/libskia.a" ]; then
 	mkdir -p "$WORKDIR/skia-cache/out/Release"
-	cp -r "$GITHUB_WORKSPACE/third_party/skia/out/Release/"* "$WORKDIR/skia-cache/out/Release/"
-	chown -R "$BUILDER":"$BUILDER" "$WORKDIR/skia-cache"
+	cp -r "$SKIA_SRC/"* "$WORKDIR/skia-cache/out/Release/"
 fi
 
 cat >"$WORKDIR/PKGBUILD" <<PKGBUILD
