@@ -19,6 +19,9 @@ override_dh_auto_configure:
 override_dh_auto_build:
 	dh_auto_build --builddir=build
 
+override_dh_auto_test:
+	# No test target configured; skip tests during package build
+
 override_dh_auto_install:
 	dh_auto_install --builddir=build
 
