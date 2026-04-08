@@ -29,6 +29,6 @@ sed -i "s|\${SKIA_CACHE_DIR}|${WORKDIR}/skia-cache|g" "$WORKDIR/PKGBUILD"
 
 chown -R "$BUILDER":"$BUILDER" "$WORKDIR"
 
-su "$BUILDER" -c "cd '$WORKDIR' && makepkg -s --noconfirm"
+su "$BUILDER" -c "cd '$WORKDIR' && SKIA_CACHE_DIR='$WORKDIR/skia-cache' makepkg -s --noconfirm"
 
 ls -la "$WORKDIR"/enve-*.pkg.tar.zst
