@@ -14,6 +14,13 @@ WORKDIR="$(pwd)/pkgbuild-work"
 rm -rf "$WORKDIR"
 mkdir -p "$WORKDIR"
 
+# Copy Skia cache into workdir so builduser can access it
+if [ -d "$GITHUB_WORKSPACE/third_party/skia/out/Release" ]; then
+	mkdir -p "$WORKDIR/skia-cache/out/Release"
+	cp -r "$GITHUB_WORKSPACE/third_party/skia/out/Release/"* "$WORKDIR/skia-cache/out/Release/"
+	chown -R "$BUILDER":"$BUILDER" "$WORKDIR/skia-cache"
+fi
+
 cat >"$WORKDIR/PKGBUILD" <<PKGBUILD
 pkgname=enve
 pkgver=${VERSION}
@@ -38,9 +45,9 @@ prepare() {
   cd "\${srcdir}/enve"
   git submodule update --init --recursive
 
-  if [ -d "${GITHUB_WORKSPACE}/third_party/skia/out/Release" ]; then
+  if [ -d "$WORKDIR/skia-cache/out/Release" ]; then
     mkdir -p third_party/skia/out/Release
-    cp -r "${GITHUB_WORKSPACE}/third_party/skia/out/Release/"* third_party/skia/out/Release/
+    cp -r "$WORKDIR/skia-cache/out/Release/"* third_party/skia/out/Release/
   fi
 }
 
