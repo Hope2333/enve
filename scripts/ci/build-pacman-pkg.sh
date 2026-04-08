@@ -45,6 +45,12 @@ prepare() {
   cd "\${srcdir}/enve"
   git submodule update --init --recursive
 
+  # Build vendored quazip
+  cd third_party/quazip
+  qmake quazip.pro CONFIG+=release
+  make -j"\$(nproc)"
+  cd ../../..
+
   if [ -d "$WORKDIR/skia-cache/out/Release" ]; then
     mkdir -p third_party/skia/out/Release
     cp -r "$WORKDIR/skia-cache/out/Release/"* third_party/skia/out/Release/
