@@ -14,7 +14,7 @@ depends=(
 )
 makedepends=('cmake' 'ninja' 'git')
 optdepends=('qt5-webengine: for SVG preview' 'qscintilla: for expression editor')
-source=("enve::local://${GITHUB_WORKSPACE}")
+source=("enve")
 sha256sums=('SKIP')
 
 prepare() {

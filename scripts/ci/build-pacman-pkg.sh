@@ -15,9 +15,11 @@ WORKDIR="$(pwd)/pkgbuild-work"
 rm -rf "$WORKDIR"
 mkdir -p "$WORKDIR"
 
+# Create symlink so makepkg can find the source
+ln -sf "$GITHUB_WORKSPACE" "$WORKDIR/enve"
+
 cp "$SCRIPT_DIR/PKGBUILD.template" "$WORKDIR/PKGBUILD"
 sed -i "s/__VERSION__/${VERSION}/" "$WORKDIR/PKGBUILD"
-sed -i "s|\${GITHUB_WORKSPACE}|${GITHUB_WORKSPACE}|g" "$WORKDIR/PKGBUILD"
 
 chown -R "$BUILDER":"$BUILDER" "$WORKDIR"
 
