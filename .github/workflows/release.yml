@@ -159,6 +159,13 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Install Skia build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libfreetype6-dev libfontconfig1-dev libpng-dev libharfbuzz-dev \
+            libexpat1-dev libgl1-mesa-dev libegl1-mesa-dev libglvnd-dev
+
       - name: Restore Skia cache
         id: cache-skia-restore
         uses: actions/cache/restore@v4
