@@ -103,3 +103,5 @@ chown -R "$BUILDER":"$BUILDER" "$WORKDIR"
 su "$BUILDER" -c "cd '$WORKDIR' && makepkg -s --noconfirm"
 
 ls -la "$WORKDIR"/enve-*.pkg.tar.zst
+cp "$WORKDIR"/enve-*.pkg.tar.zst .
+ls -la enve-*.pkg.tar.zst
