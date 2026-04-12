@@ -372,6 +372,7 @@ jobs:
 
           # Copy desktop file
           cp org.maurycy.enve.desktop "${APPDIR}/usr/share/applications/org.maurycy.enve.desktop"
+          cp org.maurycy.enve.desktop "${APPDIR}/org.maurycy.enve.desktop"
 
           # Copy icon
           cp src/app/icons/enve.svg "${APPDIR}/usr/share/icons/hicolor/scalable/apps/enve.svg"
