@@ -450,7 +450,7 @@ jobs:
           OUTPUT="enve-${VERSION}-x86_64.AppImage"
           
           # Use appimagetool from Arch package (with --appimage-extract-and-run to avoid FUSE mount)
-          /usr/local/bin/appimagetool --appimage-extract-and-run AppDir "${OUTPUT}"
+          ARCH=x86_64 /usr/local/bin/appimagetool --appimage-extract-and-run AppDir "${OUTPUT}"
           
           chmod +x "${OUTPUT}"
           ls -la "${OUTPUT}"
