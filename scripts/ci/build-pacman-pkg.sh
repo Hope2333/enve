@@ -32,7 +32,8 @@ cp -a "$SKIA_SRC/." "$WORKDIR/skia-cache/out/Release/"
 test -f "$WORKDIR/skia-cache/out/Release/libskia.a"
 
 tar -C "$WORKDIR" -czf "$WORKDIR/skia-m100.tar.gz" skia-cache
-tar -tzf "$WORKDIR/skia-m100.tar.gz" | grep -q '^skia-cache/out/Release/libskia\.a$'
+tar -tzf "$WORKDIR/skia-m100.tar.gz" >"$WORKDIR/skia-m100.contents"
+grep -Fxq 'skia-cache/out/Release/libskia.a' "$WORKDIR/skia-m100.contents"
 
 cat >"$WORKDIR/PKGBUILD" <<PKGBUILD
 pkgname=enve
