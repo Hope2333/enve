@@ -21,11 +21,18 @@ if [ -d "third_party/skia/out/Release" ] && [ -f "third_party/skia/out/Release/l
 	SKIA_SRC="$(pwd)/third_party/skia/out/Release"
 fi
 
-if [ -n "$SKIA_SRC" ]; then
-	mkdir -p "$WORKDIR/skia-cache/out/Release"
-	cp -r "$SKIA_SRC/"* "$WORKDIR/skia-cache/out/Release/"
-	chown -R "$BUILDER":"$BUILDER" "$WORKDIR/skia-cache"
+if [ -z "$SKIA_SRC" ]; then
+	echo "ERROR: Skia artifact not found at third_party/skia/out/Release/libskia.a" >&2
+	echo "The release workflow must download the skia-m100 artifact before makepkg starts." >&2
+	exit 1
 fi
+
+mkdir -p "$WORKDIR/skia-cache/out/Release"
+cp -a "$SKIA_SRC/." "$WORKDIR/skia-cache/out/Release/"
+test -f "$WORKDIR/skia-cache/out/Release/libskia.a"
+
+tar -C "$WORKDIR" -czf "$WORKDIR/skia-m100.tar.gz" skia-cache
+tar -tzf "$WORKDIR/skia-m100.tar.gz" | grep -q '^skia-cache/out/Release/libskia\.a$'
 
 cat >"$WORKDIR/PKGBUILD" <<PKGBUILD
 pkgname=enve
@@ -44,8 +51,8 @@ depends=(
 )
 makedepends=('cmake' 'ninja' 'git')
 optdepends=('qt5-webengine: for SVG preview' 'qscintilla: for expression editor')
-source=("enve::git+file://${GITHUB_WORKSPACE}")
-sha256sums=('SKIP')
+source=("enve::git+file://${GITHUB_WORKSPACE}" "skia-m100.tar.gz")
+sha256sums=('SKIP' 'SKIP')
 
 prepare() {
   cd "\${srcdir}/enve"
@@ -57,10 +64,16 @@ prepare() {
   make -j"\$(nproc)"
   cd ../../..
 
-  if [ -d "$WORKDIR/skia-cache/out/Release" ]; then
-    mkdir -p third_party/skia/out/Release
-    cp -r "$WORKDIR/skia-cache/out/Release/"* third_party/skia/out/Release/
+  if [ ! -f "\${srcdir}/skia-cache/out/Release/libskia.a" ]; then
+    echo "ERROR: Skia source archive did not extract into \${srcdir}/skia-cache/out/Release/libskia.a" >&2
+    find "\${srcdir}" -maxdepth 4 -type f -name 'libskia.a' -print >&2 || true
+    exit 1
   fi
+
+  mkdir -p third_party/skia/out/Release
+  cp -a "\${srcdir}/skia-cache/out/Release/." third_party/skia/out/Release/
+  test -f third_party/skia/out/Release/libskia.a
+  ls -la third_party/skia/out/Release | head -50
 }
 
 build() {

@@ -16,7 +16,7 @@ Before substantial work, read:
 - Modernization / CI lane
   - handoff: `.ai/modernization/ai-handoff.md`
   - status: `.ai/modernization/current-status.md`
-  - roadmap: `.ai/modernization/phase-5-roadmap.md`
+  - roadmap: `.ai/modernization/release-pipeline-roadmap.md`
 
 ## Parked Future Lane Registry
 
