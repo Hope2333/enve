@@ -63,7 +63,7 @@ prepare() {
   cd third_party/quazip
   qmake quazip.pro CONFIG+=release
   make -j"\$(nproc)"
-  cd ../../..
+  cd ../..
 
   if [ ! -f "\${srcdir}/skia-cache/out/Release/libskia.a" ]; then
     echo "ERROR: Skia source archive did not extract into \${srcdir}/skia-cache/out/Release/libskia.a" >&2
