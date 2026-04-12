@@ -376,6 +376,7 @@ jobs:
 
           # Copy icon
           cp src/app/icons/enve.svg "${APPDIR}/usr/share/icons/hicolor/scalable/apps/enve.svg"
+          cp src/app/icons/enve.svg "${APPDIR}/enve.svg"
 
           # Copy Qt plugins (platforms, etc.)
           cp -r /usr/lib/qt/plugins/platforms "${APPDIR}/usr/plugins/" 2>/dev/null || true
