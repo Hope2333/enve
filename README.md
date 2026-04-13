@@ -40,14 +40,26 @@ You can download the latest enve release for <a href="???" target="_blank">Linux
 ### Linux dependency notes
 
 - Release packages currently build and link the vendored QuaZip from `third_party/quazip`.
-- Arch `quazip-qt5` is a future system-dependency candidate, but it provides
-  `libquazip1-qt5.so.*`, while the current CMake/qmake release binary links
-  against vendored `libquazip.so.1`.
+- Arch `quazip-qt5` is a future system-dependency candidate, but it may not be
+  available in every user's enabled repository set or repository timeline. It
+  also provides `libquazip1-qt5.so.*`, while the current CMake/qmake release
+  binary links against vendored `libquazip.so.1`.
 - Arch `quazip-qt6` is not suitable for the current Qt5 release line.
 - Arch `quazip-legacy` is an AUR package and should not be required for official
   release packages.
 - The current release package should therefore bundle the vendored QuaZip runtime
   until the build system grows an explicit `ENVE_USE_SYSTEM_QUAZIP` option.
+- If you are building manually and want to experiment with system QuaZip later,
+  first check what your Arch repository set provides:
+
+```bash
+pacman -Ss quazip
+pacman -Ql quazip-qt5 2>/dev/null || true
+```
+
+- For the current `0.1.x` release line, the supported fallback is still the
+  vendored QuaZip under `third_party/quazip`, not requiring users to enable AUR
+  packages or extra repositories.
 
 ### CMake (Recommended — Primary Build System)
 
