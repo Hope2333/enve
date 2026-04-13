@@ -369,6 +369,7 @@ jobs:
 
           # Copy binary
           cp build/bin/enve "${APPDIR}/usr/bin/enve"
+          cp third_party/quazip/quazip/libquazip.so* "${APPDIR}/usr/lib/" 2>/dev/null || true
 
           # Copy desktop file
           cp org.maurycy.enve.desktop "${APPDIR}/usr/share/applications/org.maurycy.enve.desktop"
@@ -424,6 +425,32 @@ jobs:
           cp /usr/lib/libicui18n.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
           cp /usr/lib/libicuuc.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
           cp /usr/lib/libicudata.so.* "${APPDIR}/usr/lib/" 2>/dev/null || true
+
+          # Copy the runtime dependency closure for the AppImage binary and
+          # bundled libraries. This catches FFmpeg/QuaZip/Qt secondary deps
+          # that manual globbing can miss.
+          copy_deps() {
+            target="$1"
+            ldd "$target" 2>/dev/null \
+              | awk '/=> \\/usr\\/lib\\// { print $3 } /^\\/usr\\/lib\\// { print $1 }' \
+              | sort -u \
+              | while IFS= read -r lib; do
+                  [ -n "$lib" ] || continue
+                  [ -f "$lib" ] || continue
+                  cp -n "$lib" "${APPDIR}/usr/lib/" 2>/dev/null || true
+                done
+          }
+
+          for pass in 1 2 3; do
+            copy_deps "${APPDIR}/usr/bin/enve"
+            find "${APPDIR}/usr/lib" -maxdepth 1 -type f -name '*.so*' \
+              | while IFS= read -r lib; do
+                  copy_deps "$lib"
+                done
+          done
+
+          echo "Bundled AppImage FFmpeg and QuaZip libraries:"
+          ls -la "${APPDIR}/usr/lib"/libav*.so* "${APPDIR}/usr/lib"/libsw*.so* "${APPDIR}/usr/lib"/libquazip.so* 2>/dev/null || true
 
           # Create AppRun
           cat > "${APPDIR}/AppRun" << 'APPRUN'

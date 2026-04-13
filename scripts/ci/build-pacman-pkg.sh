@@ -46,7 +46,7 @@ license=('GPL-3.0-or-later')
 depends=(
   'qt5-base' 'qt5-declarative' 'qt5-multimedia'
   'qt5-svg' 'qt5-quickcontrols2'
-  'ffmpeg6.1' 'freetype2' 'fontconfig' 'libpng' 'harfbuzz'
+  'ffmpeg' 'freetype2' 'fontconfig' 'libpng' 'harfbuzz'
   'glib2' 'libmypaint' 'zstd' 'libglvnd'
   'libwebp' 'libjpeg-turbo' 'libxi' 'libxkbcommon' 'expat' 'json-c'
 )
