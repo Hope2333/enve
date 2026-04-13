@@ -93,6 +93,9 @@ build() {
 package() {
   cd "\${srcdir}/enve"
   DESTDIR="\${pkgdir}" cmake --install build
+  install -Dm755 third_party/quazip/quazip/libquazip.so.1.0.0 "\${pkgdir}/usr/lib/libquazip.so.1.0.0"
+  ln -sf libquazip.so.1.0.0 "\${pkgdir}/usr/lib/libquazip.so.1"
+  ln -sf libquazip.so.1 "\${pkgdir}/usr/lib/libquazip.so"
   install -Dm644 org.maurycy.enve.desktop "\${pkgdir}/usr/share/applications/org.maurycy.enve.desktop"
   install -Dm644 src/app/icons/enve.svg "\${pkgdir}/usr/share/icons/hicolor/scalable/apps/enve.svg"
 }
