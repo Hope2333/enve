@@ -450,8 +450,12 @@ jobs:
           VERSION="${{ needs.prepare-release.outputs.version_no_v }}"
           OUTPUT="enve-${VERSION}-x86_64.AppImage"
           
-          # Use appimagetool from Arch package (with --appimage-extract-and-run to avoid FUSE mount)
-          ARCH=x86_64 /usr/local/bin/appimagetool --appimage-extract-and-run AppDir "${OUTPUT}"
+          # Use appimagetool from Arch package (with --appimage-extract-and-run to avoid FUSE mount).
+          # Prefer high-compression xz output for release artifacts.
+          ARCH=x86_64 /usr/local/bin/appimagetool --appimage-extract-and-run \
+            --comp xz \
+            --mksquashfs-opt -Xdict-size --mksquashfs-opt 100% \
+            AppDir "${OUTPUT}"
           
           chmod +x "${OUTPUT}"
           ls -la "${OUTPUT}"
