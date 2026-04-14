@@ -218,8 +218,10 @@ void Canvas::renderSk(SkCanvas * const canvas,
     const auto dashPathEffect = SkDashPathEffect::Make(intervals, 2, 0);
 
     canvas->concat(skViewTrans);
+    const bool hasRenderableSceneFrame =
+            mSceneFrame && !mSceneFrameOutdated && mSceneFrame->fBoxState == mStateId;
     if(isPreviewingOrRendering()) {
-        if(mSceneFrame) {
+        if(hasRenderableSceneFrame) {
             canvas->clear(SK_ColorBLACK);
             canvas->save();
             if(bgColor.alpha() != 255)
@@ -228,8 +230,13 @@ void Canvas::renderSk(SkCanvas * const canvas,
             canvas->scale(reversedRes, reversedRes);
             mSceneFrame->drawImage(canvas, filter);
             canvas->restore();
+            return;
+        } else if(qEnvironmentVariableIsSet("ENVE_DEBUG_RENDER")) {
+            qDebug() << "Canvas::renderSk preview fallback"
+                     << "hasSceneFrame" << bool(mSceneFrame)
+                     << "sceneFrameOutdated" << mSceneFrameOutdated
+                     << "stateMatches" << bool(mSceneFrame && mSceneFrame->fBoxState == mStateId);
         }
-        return;
     }
     canvas->save();
     if(mClipToCanvasSize) {
@@ -242,7 +249,7 @@ void Canvas::renderSk(SkCanvas * const canvas,
         paint.setPathEffect(dashPathEffect);
         canvas->drawRect(toSkRect(getCurrentBounds()), paint);
     }
-    const bool drawCanvas = mSceneFrame && mSceneFrame->fBoxState == mStateId;
+    const bool drawCanvas = hasRenderableSceneFrame;
     if(qEnvironmentVariableIsSet("ENVE_DEBUG_RENDER")) {
         static int canvasRenderLogCount = 0;
         if(canvasRenderLogCount < 20) {
