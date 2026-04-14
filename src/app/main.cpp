@@ -279,6 +279,12 @@ int main(int argc, char *argv[]) {
         } catch(const std::exception& e) {
             gPrintExceptionCritical(e);
         }
+    } else {
+        const auto scene = document.createNewScene();
+        const auto block = scene->blockUndoRedo();
+        scene->prp_setNameAction("Scene 0");
+        document.setActiveScene(scene);
+        document.actionFinished();
     }
     splash->showMessage("Done");
     app.processEvents();
