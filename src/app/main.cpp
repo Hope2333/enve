@@ -270,6 +270,8 @@ int main(int argc, char *argv[]) {
                                 *videoEncoder, memoryHandler);
     std::cout << "Render handler initialized" << std::endl;
 
+    const bool debugStartup = qEnvironmentVariableIsSet("ENVE_DEBUG_STARTUP");
+
     MainWindow w(document, actions, audioHandler, renderHandler);
     if(argc > 1) {
         try {
@@ -285,17 +287,25 @@ int main(int argc, char *argv[]) {
         scene->prp_setNameAction("Scene 0");
         document.setActiveScene(scene);
         document.actionFinished();
+        if(debugStartup) {
+            std::cout << "Created default startup scene. scenes="
+                      << document.fScenes.count() << std::endl;
+        }
     }
     splash->showMessage("Done");
     app.processEvents();
     w.show();
 
-    const bool keepSplashVisible = true;
+    const bool keepSplashVisible = qEnvironmentVariableIsSet("ENVE_KEEP_SPLASH");
     if(keepSplashVisible) {
         splash->setParent(&w);
         splash->move(splash->pos() + w.mapFromGlobal({0, 0}));
         splash->show();
-    } else splash->finish(&w);
+        if(debugStartup) std::cout << "Keeping splash visible." << std::endl;
+    } else {
+        splash->finish(&w);
+        if(debugStartup) std::cout << "Closed startup splash." << std::endl;
+    }
 
     try {
         return app.exec();

@@ -32,6 +32,7 @@
 #include "memoryhandler.h"
 #include "simpletask.h"
 #include "eevent.h"
+#include <QDebug>
 
 CanvasWindow::CanvasWindow(Document &document,
                            QWidget * const parent) :
@@ -83,6 +84,13 @@ void CanvasWindow::setCurrentCanvas(Canvas * const canvas) {
 
     if(hadScene) fitCanvasToSize();
     updateFix();
+
+    if(qEnvironmentVariableIsSet("ENVE_DEBUG_STARTUP")) {
+        qDebug() << "CanvasWindow::setCurrentCanvas"
+                 << "hasCanvas" << bool(canvas)
+                 << "sceneCount" << mDocument.fScenes.count()
+                 << "visible" << isVisible();
+    }
 
     emit currentSceneChanged(canvas);
 }
@@ -145,6 +153,18 @@ bool CanvasWindow::hasNoCanvas() {
 #include "glhelpers.h"
 
 void CanvasWindow::renderSk(SkCanvas * const canvas) {
+    if(qEnvironmentVariableIsSet("ENVE_DEBUG_RENDER")) {
+        static int renderLogCount = 0;
+        if(renderLogCount < 10) {
+            qDebug() << "CanvasWindow::renderSk"
+                     << "hasCanvas" << bool(mCurrentCanvas)
+                     << "size" << size()
+                     << "visible" << isVisible()
+                     << "focus" << KFT_hasFocus();
+            renderLogCount++;
+        }
+    }
+
     if(mCurrentCanvas) {
         canvas->save();
         mCurrentCanvas->renderSk(canvas, rect(),
