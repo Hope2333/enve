@@ -243,6 +243,21 @@ void Canvas::renderSk(SkCanvas * const canvas,
         canvas->drawRect(toSkRect(getCurrentBounds()), paint);
     }
     const bool drawCanvas = mSceneFrame && mSceneFrame->fBoxState == mStateId;
+    if(qEnvironmentVariableIsSet("ENVE_DEBUG_RENDER")) {
+        static int canvasRenderLogCount = 0;
+        if(canvasRenderLogCount < 20) {
+            qDebug() << "Canvas::renderSk"
+                     << "clip" << mClipToCanvasSize
+                     << "hasSceneFrame" << bool(mSceneFrame)
+                     << "sceneFrameOutdated" << mSceneFrameOutdated
+                     << "drawCanvas" << drawCanvas
+                     << "currentMode" << int(mCurrentMode)
+                     << "stateId" << mStateId
+                     << "hasCurrentContainer" << bool(mCurrentContainer)
+                     << "drawRect" << drawRect;
+            canvasRenderLogCount++;
+        }
+    }
     if(bgColor.alpha() != 255)
         drawTransparencyMesh(canvas, canvasRect);
 
