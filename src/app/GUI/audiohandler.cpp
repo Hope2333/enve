@@ -48,6 +48,8 @@ AVSampleFormat toAVAudioFormat(const QAudioFormat::SampleType qFormat) {
 
 void AudioHandler::initializeAudio(eSoundSettingsData& soundSettings) {
     if(mAudioOutput) delete mAudioOutput;
+    mAudioOutput = nullptr;
+    mAudioIOOutput = nullptr;
 
     mAudioBuffer = QByteArray(BufferSize, 0);
 
@@ -61,7 +63,6 @@ void AudioHandler::initializeAudio(eSoundSettingsData& soundSettings) {
 
     QAudioDeviceInfo info(mAudioDevice);
     if(!info.isFormatSupported(mAudioFormat)) {
-        const auto oldFormat = mAudioFormat;
         mAudioFormat = info.nearestFormat(mAudioFormat);
         std::cout << "Using:" << std::endl <<
                      "    Sample rate: " << mAudioFormat.sampleRate() << std::endl <<
@@ -71,7 +72,13 @@ void AudioHandler::initializeAudio(eSoundSettingsData& soundSettings) {
                      "    Sample Type: " << mAudioFormat.sampleType() << std::endl <<
                      "    Byte order: " << mAudioFormat.byteOrder() << std::endl;
         soundSettings.fSampleRate = mAudioFormat.sampleRate();
-        soundSettings.fSampleFormat = toAVAudioFormat(mAudioFormat.sampleType());
+        try {
+            soundSettings.fSampleFormat = toAVAudioFormat(mAudioFormat.sampleType());
+        } catch(const std::exception& e) {
+            qWarning() << "AudioHandler::initializeAudio disabled audio output:"
+                       << e.what();
+            return;
+        }
     }
 
     mAudioOutput = new QAudioOutput(mAudioDevice, mAudioFormat, this);
@@ -79,18 +86,25 @@ void AudioHandler::initializeAudio(eSoundSettingsData& soundSettings) {
 }
 
 void AudioHandler::startAudio() {
+    if(!mAudioOutput) return;
     mAudioIOOutput = mAudioOutput->start();
 }
 
 void AudioHandler::pauseAudio() {
+    if(!mAudioOutput) return;
     mAudioOutput->suspend();
 }
 
 void AudioHandler::resumeAudio() {
+    if(!mAudioOutput) return;
     mAudioOutput->resume();
 }
 
 void AudioHandler::stopAudio() {
+    if(!mAudioOutput) {
+        mAudioIOOutput = nullptr;
+        return;
+    }
     //mAudioOutput->suspend();
     //mCurrentSoundComposition->stop();
     mAudioIOOutput = nullptr;

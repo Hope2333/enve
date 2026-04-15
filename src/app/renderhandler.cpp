@@ -45,8 +45,10 @@ RenderHandler::RenderHandler(Document &document,
             this, &RenderHandler::nextPreviewFrame);
     connect(mPreviewFPSTimer, &QTimer::timeout,
             this, &RenderHandler::audioPushTimerExpired);
-    connect(audioHandler.audioOutput(), &QAudioOutput::notify,
-            this, &RenderHandler::audioPushTimerExpired);
+    if(audioHandler.audioOutput()) {
+        connect(audioHandler.audioOutput(), &QAudioOutput::notify,
+                this, &RenderHandler::audioPushTimerExpired);
+    }
 
     const auto vidEmitter = videoEncoder.getEmitter();
 //    connect(vidEmitter, &VideoEncoderEmitter::encodingStarted,
