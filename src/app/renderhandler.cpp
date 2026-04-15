@@ -279,7 +279,8 @@ void RenderHandler::playPreview() {
     mMinPreviewFrame = mLoop ? mCurrentScene->getMinFrame() : minPreviewFrame;
     mMaxPreviewFrame = maxPreviewFrame;
     mCurrentPreviewFrame = minPreviewFrame;
-    mCurrentScene->setSceneFrame(mCurrentPreviewFrame);
+    mCurrentScene->anim_setAbsFrame(mCurrentPreviewFrame);
+    emit mCurrentScene->currentFrameChanged(mCurrentPreviewFrame);
 
     setPreviewState(PreviewSate::playing);
 
@@ -315,7 +316,7 @@ void RenderHandler::nextPreviewFrame() {
             startAudio();
         } else stopPreview();
     } else {
-        mCurrentScene->setSceneFrame(mCurrentPreviewFrame);
+        mCurrentScene->anim_setAbsFrame(mCurrentPreviewFrame);
         if(!mLoop) mCurrentScene->setMinFrameUseRange(mCurrentPreviewFrame);
         emit mCurrentScene->currentFrameChanged(mCurrentPreviewFrame);
     }

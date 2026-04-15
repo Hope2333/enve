@@ -219,7 +219,8 @@ void Canvas::renderSk(SkCanvas * const canvas,
 
     canvas->concat(skViewTrans);
     const bool hasRenderableSceneFrame =
-            mSceneFrame && !mSceneFrameOutdated && mSceneFrame->fBoxState == mStateId;
+            !mPreviewing && mSceneFrame &&
+            !mSceneFrameOutdated && mSceneFrame->fBoxState == mStateId;
     if(isPreviewingOrRendering()) {
         if(hasRenderableSceneFrame) {
             canvas->clear(SK_ColorBLACK);
