@@ -48,6 +48,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.VERSION }}
       version_no_v: ${{ steps.version.outputs.VERSION_NO_V }}
+      pacman_version: ${{ steps.version.outputs.PACMAN_VERSION }}
       tag_name: ${{ steps.version.outputs.TAG_NAME }}
       build_time: ${{ steps.version.outputs.BUILD_TIME }}
       prerelease: ${{ steps.version.outputs.PRERELEASE }}
@@ -75,6 +76,7 @@ jobs:
             TAG_NAME="${GITHUB_REF#refs/tags/}"
           fi
           VERSION_NO_V="${TAG_NAME#v}"
+          PACMAN_VERSION="$(printf '%s' "${VERSION_NO_V}" | sed 's/[^[:alnum:].+_]/_/g')"
           BUILD_TIME="$(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           MARK_STABLE="$(printf '%s' "${INPUT_MARK_STABLE}" | tr '[:upper:]' '[:lower:]')"
           if [ "${MARK_STABLE}" = "true" ]; then
@@ -87,6 +89,7 @@ jobs:
           
           echo "VERSION=${TAG_NAME}" >> "$GITHUB_OUTPUT"
           echo "VERSION_NO_V=${VERSION_NO_V}" >> "$GITHUB_OUTPUT"
+          echo "PACMAN_VERSION=${PACMAN_VERSION}" >> "$GITHUB_OUTPUT"
           echo "TAG_NAME=${TAG_NAME}" >> "$GITHUB_OUTPUT"
           echo "BUILD_TIME=${BUILD_TIME}" >> "$GITHUB_OUTPUT"
           echo "PRERELEASE=${PRERELEASE}" >> "$GITHUB_OUTPUT"
@@ -94,6 +97,7 @@ jobs:
           
           echo "Version: ${TAG_NAME}"
           echo "Version (no v): ${VERSION_NO_V}"
+          echo "Pacman version: ${PACMAN_VERSION}"
           echo "Build time: ${BUILD_TIME}"
           echo "Prerelease: ${PRERELEASE}"
           echo "Make latest: ${MAKE_LATEST}"
@@ -348,7 +352,7 @@ jobs:
       - name: Build pacman package
         if: matrix.id == 'pacman'
         run: |
-          VERSION="${{ needs.prepare-release.outputs.version_no_v }}"
+          VERSION="${{ needs.prepare-release.outputs.pacman_version }}"
           chmod +x scripts/ci/build-pacman-pkg.sh
           scripts/ci/build-pacman-pkg.sh "${VERSION}"
 
