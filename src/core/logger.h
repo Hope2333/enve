@@ -23,19 +23,18 @@
 #include <QDateTime>
 #include <QFile>
 #include <QMutex>
+#include <QThread>
+#include <QProcess>
 #include <chrono>
 #include <sstream>
 
-// ============================================================
-// Log Levels (matching syslog conventions)
-// ============================================================
 enum class LogLevel {
-    TRACE = 0,   // Verbose internal state transitions
-    DEBUG = 1,   // Debugging details
-    INFO  = 2,   // Normal operational messages
-    WARN  = 3,   // Warning conditions
-    ERROR = 4,   // Recoverable errors
-    FATAL = 5    // Unrecoverable errors (will abort)
+    TRACE = 0,
+    DEBUG = 1,
+    INFO  = 2,
+    WARN  = 3,
+    ERROR = 4,
+    FATAL = 5
 };
 
 inline const char* logLevelLabel(LogLevel lv) {
@@ -54,29 +53,29 @@ inline bool logLevelIsAtLeast(LogLevel current, LogLevel minimum) {
     return static_cast<int>(current) >= static_cast<int>(minimum);
 }
 
-// ============================================================
-// Structured Log Entry
-// ============================================================
 struct CORE_EXPORT LogEntry {
     LogLevel        level;
     QDateTime       timestamp;
-    const char*     file;       // source filename (basename)
-    int             line;       // source line number
-    const char*     func;       // function name
-    QString         message;
+    qint64          pid;
+    qint64          tid;
+    const char*     file;
+    int             line;
+    const char*     func;
+    QString         msg;
+    const char*     exFile;
+    int             exLine;
+    const char*     exFunc;
+    QString         exMsg;
 
-    // Returns the structured text format:
-    //   [2026-05-07T12:34:56.789] [ERROR] [gputaskexecutor.cpp:061] initCtx() — msg
+    LogEntry()
+        : level(LogLevel::INFO), pid(0), tid(0),
+          file("?"), line(0), func("?"),
+          exFile(nullptr), exLine(0), exFunc(nullptr) {}
+
     QString format() const;
-
-    // Returns JSON format for AI consumption:
-    //   {"ts":"...","level":"ERROR","file":"gputaskexecutor.cpp","line":61,"func":"initCtx","msg":"..."}
     QString formatJson() const;
 };
 
-// ============================================================
-// Logger singleton
-// ============================================================
 class CORE_EXPORT Logger {
 public:
     static Logger& instance();
@@ -84,34 +83,37 @@ public:
     void setMinimumLevel(LogLevel lv) { mMinLevel = lv; }
     LogLevel minimumLevel() const { return mMinLevel; }
 
-    // Enable file-based logging in addition to stderr
     void enableFileLogging(const QString& path);
     void disableFileLogging();
 
-    // Enable JSON structured output (for AI consumption)
     void setJsonMode(bool enabled) { mJsonMode = enabled; }
     bool jsonMode() const { return mJsonMode; }
 
-    // Main log dispatch
     void log(const LogEntry& entry);
 
-    // Convenience: with stream-style message building
     void log(LogLevel level, const char* file, int line,
              const char* func, const QString& msg);
+
+    void logException(LogLevel level, const char* file, int line,
+                      const char* func, const char* exFile,
+                      int exLine, const char* exFunc, const QString& exMsg);
+
+    void logEnvironment();
+
+    void installCrashHandler();
+
+    static void crashHandler(int sig);
 
 private:
     Logger();
     ~Logger();
-    LogLevel mMinLevel = LogLevel::DEBUG;
+    LogLevel mMinLevel = LogLevel::TRACE;
     bool mJsonMode = false;
     QFile* mLogFile = nullptr;
     QMutex mMutex;
 };
 
-// ============================================================
-// Log Macros (drop-in for existing code)
-// ============================================================
-
+// Log Macros
 #define ENVE_LOG_TRACE(msg) \
     do { Logger::instance().log(LogLevel::TRACE, __FILE__, __LINE__, __func__, msg); } while(0)
 
@@ -130,13 +132,11 @@ private:
 #define ENVE_LOG_FATAL(msg) \
     do { Logger::instance().log(LogLevel::FATAL, __FILE__, __LINE__, __func__, msg); } while(0)
 
-// Stream-style: ENVE_LOG(LogLevel::INFO) << "value=" << x;
 #define ENVE_LOG(LEVEL) \
     for(::EnveLogStream _ls__(LEVEL, __FILE__, __LINE__, __func__); \
         _ls__; _ls__.flush()) \
     _ls__.stream
 
-// Internal helper class for stream-style logging
 struct CORE_EXPORT EnveLogStream {
     LogLevel level;
     const char* file;

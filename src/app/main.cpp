@@ -113,6 +113,9 @@ int main(int argc, char *argv[]) {
         Logger::instance().setJsonMode(true);
     }
 
+    Logger::instance().installCrashHandler();
+    Logger::instance().logEnvironment();
+
     std::cout << "Entered main()" << std::endl;
 #ifdef Q_OS_WIN
     SetProcessDPIAware(); // call before the main event loop

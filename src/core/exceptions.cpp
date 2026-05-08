@@ -51,9 +51,10 @@ void _gPrintException(const std::exception& e,
     allText = QString::number(level) + ") " + e.what() + "\n " + allText;
 
     const LogLevel lv = fatal ? LogLevel::FATAL : LogLevel::ERROR;
-    Logger::instance().log(lv, file, line,
-                           func.toUtf8().constData(),
-                           QString::fromUtf8(e.what()));
+    Logger::instance().logException(lv, file, line,
+                                    func.toUtf8().constData(),
+                                    NULL, 0, NULL,
+                                    QString::fromUtf8(e.what()));
 
     try {
         if(!isExceptionNested(e)) {
