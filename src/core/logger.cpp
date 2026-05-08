@@ -68,7 +68,9 @@ void Logger::enableFileLogging(const QString& path) {
     if(mLogFile) delete mLogFile;
     mLogFile = new QFile(path);
     if(mLogFile->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
-        ENVE_LOG_INFO() << "=== enve log started ===";
+        QTextStream ts(mLogFile);
+        ts << "[START] enve log session" << "\n";
+        ts.flush();
     }
 }
 

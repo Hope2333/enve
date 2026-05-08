@@ -86,7 +86,7 @@ void generateAlphaMesh(QPixmap& alphaMesh, const int dim) {
 }
 
 int main(int argc, char *argv[]) {
-    ENVE_LOG_INFO() << "enve starting (pid=" << getpid() << ")";
+    ENVE_LOG(LogLevel::INFO) << "enve starting (pid=" << getpid() << ")";
 
     // Redirect ALL Qt debug output through structured Logger
     qInstallMessageHandler([](QtMsgType type, const QMessageLogContext& ctx, const QString& msg) {
