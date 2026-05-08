@@ -15,8 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "gputaskexecutor.h"
-
-#include <iostream>
+#include "logger.h"
 
 QAtomicList<stdsptr<eTask>> GpuTaskExecutor::sTasks;
 QAtomicInt GpuTaskExecutor::sUseCount = 0;
@@ -56,25 +55,25 @@ void GpuTaskExecutor::initialize(QThread* const thread) {
 }
 
 void GpuTaskExecutor::initializeContext() {
-    std::cout << "Entered GpuTaskExecutor::initializeContext" << std::endl;
+    ENVE_LOG_DEBUG("Entered GpuTaskExecutor::initializeContext");
     mInterface = GrGLMakeNativeInterface();
     if(!mInterface) RuntimeThrow("Failed to make native interface.");
-    std::cout << "Created GrGLInterface" << std::endl;
+    ENVE_LOG_DEBUG("Created GrGLInterface");
     const auto grContext = GrDirectContext::MakeGL(mInterface);
     if(!grContext) RuntimeThrow("Failed to make GrDirectContext.");
-    std::cout << "Created GrDirectContext" << std::endl;
+    ENVE_LOG_DEBUG("Created GrDirectContext");
     GLuint textureSquareVAO;
     iniTexturedVShaderVAO(this, textureSquareVAO);
-    std::cout << "iniTexturedVShaderVAO" << std::endl;
+    ENVE_LOG_DEBUG("iniTexturedVShaderVAO");
     mContext.setContext(grContext, textureSquareVAO);
-    std::cout << "SwitchableContext set" << std::endl;
+    ENVE_LOG_DEBUG("SwitchableContext set");
     glClearColor(0, 0, 0, 0);
     glEnable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     checkGLErrors(this, "Error initializing GPU context.");
 
-    std::cout << "Done GpuTaskExecutor::initializeContext" << std::endl;
+    ENVE_LOG_DEBUG("Done GpuTaskExecutor::initializeContext");
 }
 
 void GpuTaskExecutor::processTask(eTask& task) {

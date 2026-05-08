@@ -176,6 +176,7 @@ set(envecore_SOURCES
     etexture.cpp
     etextureframebuffer.cpp
     exceptions.cpp
+    logger.cpp
     Expressions/expression.cpp
     Expressions/framebinding.cpp
     Expressions/propertybindingbase.cpp

@@ -18,6 +18,7 @@
 #define EXCEPTIONS_H
 
 #include "core_global.h"
+#include "logger.h"
 
 #include <exception>
 #include <csignal>
@@ -82,6 +83,13 @@ CORE_EXPORT
 extern QString gAllTextFromException(const std::exception& e,
                                      QString allText = "",
                                      const uint level = 0);
+CORE_EXPORT
+extern void gPrintExceptionCritical(const std::exception& e,
+                                     const char* file, int line, const char* func);
+CORE_EXPORT
+extern void gPrintExceptionFatal(const std::exception& e,
+                                  const char* file, int line, const char* func);
+// Backward-compatible overloads (no source location)
 CORE_EXPORT
 extern void gPrintExceptionCritical(const std::exception& e);
 CORE_EXPORT

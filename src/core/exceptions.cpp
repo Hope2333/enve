@@ -42,11 +42,17 @@ bool isExceptionNested(const std::exception& e) {
 }
 
 void _gPrintException(const std::exception& e,
+                      const QString& func,
+                      const char* file,
+                      int line,
                       QString allText,
                       const uint level,
                       const bool fatal) {
     allText = QString::number(level) + ") " + e.what() + "\n " + allText;
-    qCritical() << std::to_string(level) + ") " << e.what();
+
+    const LogLevel lv = fatal ? LogLevel::FATAL : LogLevel::ERROR;
+    Logger::instance().log(lv, file, line, func, e.what());
+
     try {
         if(!isExceptionNested(e)) {
             gPrintException(fatal, allText);
@@ -54,16 +60,27 @@ void _gPrintException(const std::exception& e,
         }
         std::rethrow_if_nested(e);
     } catch(const std::exception& ne) {
-        _gPrintException(ne, allText, level + 1, fatal);
+        _gPrintException(ne, func, file, line, allText, level + 1, fatal);
     } catch(...) {}
 }
 
+void gPrintExceptionCritical(const std::exception& e,
+                              const char* file, int line, const char* func) {
+    _gPrintException(e, func, file, line, "", 0, false);
+}
+
+void gPrintExceptionFatal(const std::exception& e,
+                           const char* file, int line, const char* func) {
+    _gPrintException(e, func, file, line, "", 0, true);
+}
+
+// Backward-compatible overloads
 void gPrintExceptionCritical(const std::exception& e) {
-    _gPrintException(e, "", 0, false);
+    gPrintExceptionCritical(e, __FILE__, 0, __func__);
 }
 
 void gPrintExceptionFatal(const std::exception& e) {
-    _gPrintException(e, "", 0, true);
+    gPrintExceptionFatal(e, __FILE__, 0, __func__);
 }
 
 QString gAllTextFromException(const std::exception &e,

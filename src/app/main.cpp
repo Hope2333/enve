@@ -29,6 +29,7 @@
 #include "videoencoder.h"
 #include "iconloader.h"
 #include "GUI/envesplash.h"
+#include "logger.h"
 #ifdef Q_OS_WIN
     #include "windowsincludes.h"
 #endif // Q_OS_WIN
@@ -85,6 +86,33 @@ void generateAlphaMesh(QPixmap& alphaMesh, const int dim) {
 }
 
 int main(int argc, char *argv[]) {
+    ENVE_LOG_INFO() << "enve starting (pid=" << getpid() << ")";
+
+    // Redirect ALL Qt debug output through structured Logger
+    qInstallMessageHandler([](QtMsgType type, const QMessageLogContext& ctx, const QString& msg) {
+        LogLevel lv = LogLevel::DEBUG;
+        switch(type) {
+            case QtDebugMsg:    lv = LogLevel::DEBUG; break;
+            case QtInfoMsg:     lv = LogLevel::INFO;  break;
+            case QtWarningMsg:  lv = LogLevel::WARN;  break;
+            case QtCriticalMsg: lv = LogLevel::ERROR; break;
+            case QtFatalMsg:    lv = LogLevel::FATAL; break;
+        }
+        Logger::instance().log(lv, ctx.file ? ctx.file : "unknown",
+                               ctx.line, ctx.function ? ctx.function : "unknown", msg);
+    });
+
+    // Enable file logging if ENVE_LOG_FILE env var is set
+    if(qEnvironmentVariableIsSet("ENVE_LOG_FILE")) {
+        Logger::instance().enableFileLogging(
+            qEnvironmentVariable("ENVE_LOG_FILE"));
+    }
+
+    // Enable JSON log mode from env var (ENVE_LOG_JSON=1)
+    if(qEnvironmentVariableIsSet("ENVE_LOG_JSON")) {
+        Logger::instance().setJsonMode(true);
+    }
+
     std::cout << "Entered main()" << std::endl;
 #ifdef Q_OS_WIN
     SetProcessDPIAware(); // call before the main event loop
