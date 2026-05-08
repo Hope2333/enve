@@ -130,10 +130,11 @@ private:
 #define ENVE_LOG_FATAL(msg) \
     do { Logger::instance().log(LogLevel::FATAL, __FILE__, __LINE__, __func__, msg); } while(0)
 
-// Stream-style: ENVE_LOG_INFO() << "value=" << x << " status=" << y;
+// Stream-style: ENVE_LOG(LogLevel::INFO) << "value=" << x;
 #define ENVE_LOG(LEVEL) \
     for(::EnveLogStream _ls__(LEVEL, __FILE__, __LINE__, __func__); \
-        _ls__; _ls__.flush())
+        _ls__; _ls__.flush()) \
+    _ls__.stream
 
 // Internal helper class for stream-style logging
 struct CORE_EXPORT EnveLogStream {
