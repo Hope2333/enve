@@ -45,7 +45,7 @@ QString LogEntry::format() const {
     if(exFile) {
         ts << " EX[" << exFile << ":" << exLine << " " << exFunc << "()] " << exMsg;
     } else {
-        ts << " -- " << msg;
+        ts << " -- " << (exMsg.isEmpty() ? msg : exMsg);
     }
     return result;
 }
@@ -66,7 +66,7 @@ QString LogEntry::formatJson() const {
             {"file", exFile}, {"line", exLine},
             {"func", exFunc}, {"msg", exMsg}};
     } else {
-        obj["msg"] = msg;
+        obj["msg"] = exMsg.isEmpty() ? msg : exMsg;
     }
 
     return QString::fromUtf8(QJsonDocument(obj).toJson(QJsonDocument::Compact));
