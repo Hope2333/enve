@@ -53,7 +53,7 @@ public:
     QString name() const override { return "canvas"; }
     QJsonObject execute(const QJsonObject& args) override;
     QString help() const override {
-        return "Canvas ops. args:{action:\"create\"|"list\"|"set_active\","export\".,width,height,fps,canvas_id,path}";
+        return "Canvas ops. args:{action:'create'|'list'|'set_active'|'export',width,height,fps,canvas_id,path}";
     }
 };
 
@@ -62,7 +62,7 @@ public:
     QString name() const override { return "menu"; }
     QJsonObject execute(const QJsonObject& args) override;
     QString help() const override {
-        return "Trigger menu action. args:{action:\"delete\"|"copy\"|"paste\"|"cut\"|"duplicate\"|"group\"|"ungroup\"|"undo\"|"redo\"|...}";
+        return "Trigger menu action. args:{action:'delete'|'copy'|'paste'|'cut'|'duplicate'|'group'|'ungroup'|'undo'|'redo'|...}";
     }
 };
 

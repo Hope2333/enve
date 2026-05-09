@@ -382,11 +382,11 @@ int main(int argc, char *argv[]) {
                 if(line.isEmpty()) continue;
                 const auto result = CommandRegistry::instance()
                     .processLine(line);
-                ENVE_LOG(LogLevel::INFO) << "AI result:" << result;
+                ENVE_LOG(LogLevel::INFO) << "AI result:" << result.toStdString();
             }
         });
 
-        ENVE_LOG(LogLevel::INFO) << "AI stdin transport active";
+        if(debugStartup) std::cout << "AI stdin transport active" << std::endl;
     } else if(aiMode == "socket") {
         CommandRegistry::instance().setEnabled(true);
         ENVE_LOG(LogLevel::INFO) << "AI socket transport — not implemented yet";
