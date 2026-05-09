@@ -53,6 +53,8 @@ endif()
 set(envecore_SOURCES
     action.cpp
     actions.cpp
+    commandhandlers.cpp
+    commandregistry.cpp
     Animators/animator.cpp
     Animators/animatort.cpp
     Animators/basedanimatort.cpp
