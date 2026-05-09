@@ -30,6 +30,10 @@
 #include "iconloader.h"
 #include "GUI/envesplash.h"
 #include "logger.h"
+#include "commandregistry.h"
+#include "commandhandlers.h"
+#include <QSocketNotifier>
+#include <unistd.h>
 #ifdef Q_OS_WIN
     #include "windowsincludes.h"
 #endif // Q_OS_WIN
@@ -336,6 +340,56 @@ int main(int argc, char *argv[]) {
     } else {
         splash->finish(&w);
         if(debugStartup) std::cout << "Closed startup splash." << std::endl;
+    }
+
+    const QString aiMode = qEnvironmentVariable("ENVE_AI");
+    QSocketNotifier* stdinNotifier = nullptr;
+    QByteArray stdinBuffer;
+
+    if(aiMode == "stdin") {
+        auto& reg = CommandRegistry::instance();
+        reg.setEnabled(true);
+
+        reg.registerCommand("echo", cmdEcho);
+        reg.registerCommand("help", cmdHelp);
+        reg.registerHandler("inject_event",
+            std::make_shared<InjectEventHandler>());
+        reg.registerHandler("screenshot",
+            std::make_shared<ScreenshotHandler>());
+        reg.registerHandler("state",
+            std::make_shared<StateHandler>());
+        reg.registerHandler("canvas",
+            std::make_shared<CanvasHandler>());
+        reg.registerHandler("menu",
+            std::make_shared<MenuHandler>());
+        reg.registerHandler("keyframe",
+            std::make_shared<KeyframeHandler>());
+        reg.registerHandler("box",
+            std::make_shared<BoxHandler>());
+
+        stdinNotifier = new QSocketNotifier(
+            STDIN_FILENO, QSocketNotifier::Read, &app);
+        QObject::connect(stdinNotifier, &QSocketNotifier::activated,
+        [&stdinBuffer](int) {
+            char buf[4096];
+            const ssize_t n = ::read(STDIN_FILENO, buf, sizeof(buf));
+            if(n <= 0) return;
+            stdinBuffer.append(buf, static_cast<int>(n));
+            int idx;
+            while((idx = stdinBuffer.indexOf('\n')) >= 0) {
+                const QByteArray line = stdinBuffer.left(idx).trimmed();
+                stdinBuffer.remove(0, idx + 1);
+                if(line.isEmpty()) continue;
+                const auto result = CommandRegistry::instance()
+                    .processLine(line);
+                ENVE_LOG(LogLevel::INFO) << "AI result:" << result;
+            }
+        });
+
+        ENVE_LOG(LogLevel::INFO) << "AI stdin transport active";
+    } else if(aiMode == "socket") {
+        CommandRegistry::instance().setEnabled(true);
+        ENVE_LOG(LogLevel::INFO) << "AI socket transport — not implemented yet";
     }
 
     try {

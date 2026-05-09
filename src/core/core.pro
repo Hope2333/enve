@@ -260,6 +260,8 @@ SOURCES += \
     XML/xmlexporthelpers.cpp \
     action.cpp \
     actions.cpp \
+    commandregistry.cpp \
+    commandhandlers.cpp \
     canvas.cpp \
     canvashandlesmartpath.cpp \
     canvasmouseevents.cpp \
@@ -604,6 +606,8 @@ HEADERS += \
     XML/xmlexporthelpers.h \
     action.h \
     actions.h \
+    commandregistry.h \
+    commandhandlers.h \
     canvas.h \
     clipboardcontainer.h \
     colorhelpers.h \
