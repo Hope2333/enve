@@ -72,10 +72,7 @@ public:
     virtual QString help() const { return QString(); }
 };
 
-// Built-in: echo
-QJsonObject cmdEcho(const QJsonObject& args);
-
-// Built-in: help — list registered commands
-QJsonObject cmdHelp(const QJsonObject& args);
+CORE_EXPORT QJsonObject cmdEcho(const QJsonObject& args);
+CORE_EXPORT QJsonObject cmdHelp(const QJsonObject& args);
 
 #endif // COMMANDREGISTRY_H

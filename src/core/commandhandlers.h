@@ -21,43 +21,43 @@
 #include <QWidget>
 #include <QPixmap>
 
-class InjectEventHandler : public CommandHandler {
+class CORE_EXPORT InjectEventHandler : public CommandHandler {
 public:
     QString name() const override { return "inject_event"; }
     QJsonObject execute(const QJsonObject& args) override;
     QString help() const override {
-        return "Inject Qt event. args:{target:\"widgetName\",type:\"mouse_press|mouse_move|mouse_release|key_press|key_release\",x,y,button,key,modifiers}";
+        return "Inject Qt event. args:{target,type:'mouse_press'|'mouse_move'|'mouse_release'|'key_press'|'key_release',x,y,button,key,modifiers}";
     }
 };
 
-class ScreenshotHandler : public CommandHandler {
+class CORE_EXPORT ScreenshotHandler : public CommandHandler {
 public:
     QString name() const override { return "screenshot"; }
     QJsonObject execute(const QJsonObject& args) override;
     QString help() const override {
-        return "Capture widget to base64 PNG. args:{target:\"widgetName\"}";
+        return "Capture widget to base64 PNG. args:{target}";
     }
 };
 
-class StateHandler : public CommandHandler {
+class CORE_EXPORT StateHandler : public CommandHandler {
 public:
     QString name() const override { return "state"; }
     QJsonObject execute(const QJsonObject& args) override;
     QString help() const override {
-        return "Dump widget tree. args:{target:\"widgetName\"|empty for root}";
+        return "Dump widget tree + active scene info. args:{target|empty}";
     }
 };
 
-class CanvasHandler : public CommandHandler {
+class CORE_EXPORT CanvasHandler : public CommandHandler {
 public:
     QString name() const override { return "canvas"; }
     QJsonObject execute(const QJsonObject& args) override;
     QString help() const override {
-        return "Canvas ops. args:{action:'create'|'list'|'set_active'|'export',width,height,fps,canvas_id,path}";
+        return "Canvas ops. args:{action:'create'|'list'|'set_active',width,height,fps,canvas_id}";
     }
 };
 
-class MenuHandler : public CommandHandler {
+class CORE_EXPORT MenuHandler : public CommandHandler {
 public:
     QString name() const override { return "menu"; }
     QJsonObject execute(const QJsonObject& args) override;
@@ -66,21 +66,21 @@ public:
     }
 };
 
-class KeyframeHandler : public CommandHandler {
+class CORE_EXPORT KeyframeHandler : public CommandHandler {
 public:
     QString name() const override { return "keyframe"; }
     QJsonObject execute(const QJsonObject& args) override;
     QString help() const override {
-        return "Keyframe ops. args:{action:\"add\",box_path,property,frame,value}";
+        return "Keyframe ops (not fully implemented). args:{action:'add',box_path,property,frame,value}";
     }
 };
 
-class BoxHandler : public CommandHandler {
+class CORE_EXPORT BoxHandler : public CommandHandler {
 public:
     QString name() const override { return "box"; }
     QJsonObject execute(const QJsonObject& args) override;
     QString help() const override {
-        return "Box/layer ops. args:{action:\"add\"|\"list\",type:\"rectangle\"|\"circle\"|\"text\"|\"image\"|\"paint\",parent_path}";
+        return "Box/layer ops. args:{action:'add'|'list',type:'rectangle'|'circle'|'text'|'image'}";
     }
 };
 
